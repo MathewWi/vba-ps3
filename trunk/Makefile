@@ -6,6 +6,7 @@ MKFSELF_NPDRM = $(CELL_HOST_PATH)/bin/make_fself_npdrm
 MKPKG_NPDRM = $(CELL_HOST_PATH)/bin/make_package_npdrm
 
 STRIP = $(CELL_HOST_PATH)/ppu/bin/ppu-lv2-strip
+COPY = cp
 
 SRC_DIR = ./src
 CELL_FRAMEWORK_DIR = ./src/cellframework
@@ -52,13 +53,11 @@ PPU_CFLAGS		+=	-DFRAMESKIP -DC_CORE -DWORDS_BIGENDIAN -Dlinux -DHAVE_NETINET_IN_
 #PPU_CXXSTDFLAGS +=	-D__PPU__
 #PPU_CXXSTDFLAGS +=	-DCONSOLE_USE_NETWORK
 
-#PPU_LIBS		+=	$(CELL_TARGET_PATH)/ppu/lib/libgcm_cmd.a \
-					$(CELL_TARGET_PATH)/ppu/lib/libgcm_sys_stub.a $(CELL_TARGET_PATH)/ppu/lib/libfs_stub.a $(CELL_TARGET_PATH)/ppu/lib/libl10n_stub.a
-#PPU_LDLIBS		+= -lio_stub -lm -lfs_stub -lsysutil_stub -lsysmodule_stub -lpthread -laudio_stub
-#PPU_LDLIBS		+= -lcontrol_console_ppu -lsysmodule_stub
-#PPU_LDLIBS		+= -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt -lPSGL -lresc_stub -ldbgfont
-#PPU_LDLIBS		+=	-lnet_stub -lnetctl_stub
-PPU_LDLIBS		+= 	-L. -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt -ldbgfont -lPSGL -lgcm_cmd -lgcm_sys_stub -lresc_stub -lm -lio_stub -lfs_stub -lsysutil_stub -lcontrol_console_ppu -lsysmodule_stub  -lnet_stub -lnetctl_stub -laudio_stub -lpthread
+
+PPU_LDLIBS		+= 	-L. -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt \
+					-ldbgfont -lPSGL -lcgc -lPSGLcgc -lgcm_cmd -lgcm_sys_stub -lresc_stub \
+					-lm -lio_stub -lfs_stub -lsysutil_stub -lcontrol_console_ppu -lsysmodule_stub \
+					-lnet_stub -lnetctl_stub -laudio_stub -lpthread
 
 
 ifeq ($(CONSOLE_USE_NETWORK),1)
@@ -77,5 +76,5 @@ include $(CELL_MK_DIR)/sdk.target.mk
 pkg: $(PPU_TARGET)
 	$(STRIP) $(PPU_TARGET) 
 	$(MKFSELF_NPDRM) $(PPU_TARGET) pkg/USRDIR/EBOOT.BIN
+	$(COPY) -r ./src/cellframework/extra/shaders pkg/USRDIR/
 	$(MKPKG_NPDRM) pkg/package.conf pkg
-
