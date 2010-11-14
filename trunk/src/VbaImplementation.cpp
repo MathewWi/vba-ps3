@@ -8,7 +8,11 @@
 #ifndef VBA_IMPLEMENTATION_CPP_
 #define VBA_IMPLEMENTATION_CPP_
 
+#include "VbaImplementation.h"
+
 #include "vba/common/SoundDriver.h"
+
+#include "cellframework/logger/Logger.h"
 
 int RGB_LOW_BITS_MASK = 0;
 
@@ -88,9 +92,9 @@ extern void systemSetTitle(const char *)
 
 }
 extern SoundDriver* systemSoundInit()
-		{
+{
 
-		}
+}
 extern void systemOnWriteDataToSoundBuffer(const uint16_t * finalWave, int length)
 {
 
