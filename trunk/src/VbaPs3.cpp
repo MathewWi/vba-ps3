@@ -310,7 +310,7 @@ void Emulator_StartROMRunning()
 
 void Emulator_VbaInit()
 {
-	LOG("Emulator_VbaInit()")
+	LOG("Emulator_VbaInit()");
 
     vba_loaded = true;
 }
@@ -392,6 +392,8 @@ void Emulator_EnableSound()
 
 void EmulationLoop()
 {
+	LOG("EmulationLoop()");
+
 	if (!vba_loaded)
 		Emulator_VbaInit();
 
