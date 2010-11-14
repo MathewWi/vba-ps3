@@ -18,7 +18,7 @@ extern "C" {
 #include "gba/RTC.h"
 #include "common/Port.h"
 
-#include "fex.h"
+#include "fex/fex.h"
 
 extern "C" {
 #include "common/memgzio.h"

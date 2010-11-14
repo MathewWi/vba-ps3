@@ -28,8 +28,8 @@ SOURCES		:=	$(VBA_API_DIR)/ $(VBA_API_DIR)/apu $(VBA_API_DIR)/common  \
 PPU_SRCS		=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp)) $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c)) $(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
 PPU_TARGET		=	vba.ppu.elf
 
-PPU_CXXFLAGS	+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/fex -I./utils/libpng -I./utils/zlib -DPSS_STYLE=1 -DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024 
-PPU_CFLAGS		+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/fex -I./utils/libpng -I./utils/zlib -DPSS_STYLE=1 -DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024
+PPU_CXXFLAGS	+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex -I./utils/libpng -I./utils/zlib -DPSS_STYLE=1 -DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024 
+PPU_CFLAGS		+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex -I./utils/libpng -I./utils/zlib -DPSS_STYLE=1 -DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024
 
 PPU_CXXFLAGS	+=	-D__need_timeval
 PPU_CFLAGS		+=	-D__need_timeval
