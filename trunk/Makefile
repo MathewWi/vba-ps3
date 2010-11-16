@@ -16,14 +16,24 @@ UTIL_DIR = ./utils
 
 SOURCES		:=	$(VBA_API_DIR)/ $(VBA_API_DIR)/apu $(VBA_API_DIR)/common  \
 				$(VBA_API_DIR)/gb $(VBA_API_DIR)/gba $(VBA_API_DIR)/filters \
-				$(UTIL_DIR)/ $(UTIL_DIR)/7z_C $(UTIL_DIR)/zlib $(UTIL_DIR)/fex \
-				$(UTIL_DIR)/libpng $(UTIL_DIR)/SFML/src/SFML/Network $(UTIL_DIR)/SFML/src/SFML/Network/Unix \
 				$(CELL_FRAMEWORK_DIR)/graphics $(CELL_FRAMEWORK_DIR)/input $(CELL_FRAMEWORK_DIR)/audio \
 				$(CELL_FRAMEWORK_DIR)/threads $(CELL_FRAMEWORK_DIR)/logger $(CELL_FRAMEWORK_DIR)/network \
 				$(CELL_FRAMEWORK_DIR)/fileio \
-				$(SRC_DIR)/ $(SRC_DIR)/conf 
+				$(SRC_DIR)/ $(SRC_DIR)/conf \
+				$(UTIL_DIR)/ $(UTIL_DIR)/7z_C $(UTIL_DIR)/zlib $(UTIL_DIR)/fex \
+				$(UTIL_DIR)/libpng $(UTIL_DIR)/SFML/src/SFML/Network $(UTIL_DIR)/SFML/src/SFML/Network/Unix
+				
+#$(VBA_API_DIR)/ $(VBA_API_DIR)/apu $(VBA_API_DIR)/common  \
+				$(VBA_API_DIR)/gb $(VBA_API_DIR)/gba $(VBA_API_DIR)/filters \
+				$(UTIL_DIR)/SFML/src/SFML/Network
 				
 PPU_SRCS		=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp)) $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c)) $(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
+
+#PPU_SRCS	+= 	$(UTIL_DIR)/SFML/src/SFML/Network/Http.cpp
+#PPU_SRCS	+= 	$(UTIL_DIR)/SFML/src/SFML/Network/Packet.cpp
+#PPU_SRCS	+= 	$(UTIL_DIR)/SFML/src/SFML/Network/IPAddress.cpp
+#PPU_SRCS	+= 	$(UTIL_DIR)/SFML/src/SFML/Network/SocketTCP.cpp
+
 PPU_TARGET		=	vba.ppu.elf
 
 PPU_CXXFLAGS	+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex -I./utils/libpng -I./utils/zlib -DPSS_STYLE=1 -DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024 
@@ -49,6 +59,10 @@ PPU_CXXFLAGS 	+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.201\" -DPS3_DEBUG_PORT=
 
 #PPU_CFLAGS		+=	-DEMUDEBUG -DEMU_DBG_DELAY=500000
 PPU_CFLAGS		+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.201\" -DPS3_DEBUG_PORT=9001
+
+# add for basic networking
+PPU_CXXFLAGS	+=	-D__CELLOS_LV2__
+PPU_CFLAGS		+= 	-D__CELLOS_LV2__
 
 # enable telnet control console
 #PPU_CSTDFLAGS 	+=	-D__PPU__

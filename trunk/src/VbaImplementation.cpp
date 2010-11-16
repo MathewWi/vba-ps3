@@ -5,8 +5,6 @@
  *      Author: halsafar
  */
 
-#ifndef VBA_IMPLEMENTATION_CPP_
-#define VBA_IMPLEMENTATION_CPP_
 
 #include "VbaImplementation.h"
 
@@ -79,14 +77,24 @@ extern uint32_t systemReadJoypad(int)
 
 extern uint32_t systemGetClock()
 {
-
+    //uint32_t now = gettime();
+    //return diff_usec(start, now) / 1000;
 }
 
 
-extern void systemMessage(int, const char *, ...)
+extern void systemMessage(int id, const char * fmt, ...)
 {
+	LOG("systemMessage(%d)\n\t", id);
 
+	va_list args;
+	va_start(args,fmt);
+	LOG(fmt, args);
+	va_end(args);
+
+	LOG("\n");
 }
+
+
 extern void systemSetTitle(const char *)
 {
 
@@ -161,5 +169,3 @@ extern void winlog(const char *,...)
 
 }
 
-
-#endif /* VBA_IMPLEMENTATION_CPP_ */

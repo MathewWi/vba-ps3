@@ -8,6 +8,8 @@
 #ifndef VBA_IMPLEMENTATION_H_
 #define VBA_IMPLEMENTATION_H_
 
+#include "vba/System.h"
+
 #define AUDIO_INPUT_RATE (47800)
 #define AUDIO_BUFFER_SAMPLES (4096)
 

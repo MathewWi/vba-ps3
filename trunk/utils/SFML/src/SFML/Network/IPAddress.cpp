@@ -54,7 +54,7 @@ myAddress(INADDR_NONE)
 ////////////////////////////////////////////////////////////
 IPAddress::IPAddress(const std::string& Address)
 {
-    // First try to convert it as a byte representation ("xxx.xxx.xxx.xxx")
+    /*// First try to convert it as a byte representation ("xxx.xxx.xxx.xxx")
     myAddress = inet_addr(Address.c_str());
 
     // If not successful, try to convert it as a host name
@@ -71,7 +71,7 @@ IPAddress::IPAddress(const std::string& Address)
             // Host name not found on the network
             myAddress = INADDR_NONE;
         }
-    }
+    }*/
 }
 
 
@@ -81,7 +81,7 @@ IPAddress::IPAddress(const std::string& Address)
 ////////////////////////////////////////////////////////////
 IPAddress::IPAddress(const char* Address)
 {
-    // First try to convert it as a byte representation ("xxx.xxx.xxx.xxx")
+    /*// First try to convert it as a byte representation ("xxx.xxx.xxx.xxx")
     myAddress = inet_addr(Address);
 
     // If not successful, try to convert it as a host name
@@ -98,7 +98,7 @@ IPAddress::IPAddress(const char* Address)
             // Host name not found on the network
             myAddress = INADDR_NONE;
         }
-    }
+    }*/
 }
 
 
@@ -203,7 +203,7 @@ IPAddress IPAddress::GetLocalAddress()
 ////////////////////////////////////////////////////////////
 IPAddress IPAddress::GetPublicAddress(float Timeout)
 {
-    // The trick here is more complicated, because the only way
+/*    // The trick here is more complicated, because the only way
     // to get our public IP address is to get it from a distant computer.
     // Here we get the web page from http://www.sfml-dev.org/ip-provider.php
     // and parse the result to extract our IP address
@@ -216,7 +216,7 @@ IPAddress IPAddress::GetPublicAddress(float Timeout)
         return IPAddress(Page.GetBody());
 
     // Something failed: return an invalid address
-    return IPAddress();
+    return IPAddress();*/
 }
 
 

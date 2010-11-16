@@ -19,6 +19,12 @@
 #include <cell/cell_fs.h>
 #include <cell/pad.h>
 
+
+#include "vba/Util.h"
+#include "vba/gba/GBA.h"
+#include "vba/gb/gb.h"
+#include "vba/gb/gbGlobals.h"
+
 #include "conf/conffile.h"
 
 #include "VbaPs3.h"
@@ -60,6 +66,25 @@ bool rom_loaded = false;
 
 // current rom being emulated
 string current_rom;
+
+
+struct EmulatedSystem VbaEmulationSystem =
+{
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        false,
+        0
+};
 
 
 bool Emulator_Initialized()
@@ -123,7 +148,7 @@ void Emulator_Shutdown()
 
 static bool try_load_config_file (const char *fname, ConfigFile &conf)
 {
-	LOG("try_load_config_file(%s)", fname);
+	LOG("try_load_config_file(%s)\n", fname);
 	FILE * fp;
 
 	fp = fopen(fname, "r");
@@ -139,7 +164,7 @@ static bool try_load_config_file (const char *fname, ConfigFile &conf)
 
 bool Emulator_InitSettings()
 {
-	LOG("Emulator_Implementation_InitSettings()");
+	LOG("Emulator_InitSettings()\n");
 
 	if (currentconfig == NULL)
 	{
@@ -219,7 +244,7 @@ bool Emulator_InitSettings()
 	}
 	 */
 
-	LOG("SUCCESS - Emulator_Implementation_InitSettings()");
+	LOG("SUCCESS - Emulator_InitSettings()\n");
 	return true;
 }
 
@@ -271,24 +296,65 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 
 		Emulator_CloseGame();
 
-		/*size_t fileSize = LoadFile((char*)nesrom, current_rom.c_str(), 0, true);
-		if (fileSize <= 0)
+		if (utilIsGBImage(rom.c_str()))
 		{
-			LOG("1: ERROR LOADING FILE!\n");
+			if (!gbLoadRom(rom.c_str()))
+			{
+				LOG("FAILED to GB load rom...\n");
+				Emulator_Shutdown();
+			}
+
+			VbaEmulationSystem = GBSystem;
+
+            gbBorderOn = 0; // GB borders always off
+
+            if(gbBorderOn)
+            {
+                    //srcWidth = 256;
+                    //srcHeight = 224;
+                    gbBorderLineSkip = 256;
+                    gbBorderColumnSkip = 48;
+                    gbBorderRowSkip = 40;
+            }
+            else
+            {
+                    //srcWidth = 160;
+                    //srcHeight = 144;
+                    gbBorderLineSkip = 160;
+                    gbBorderColumnSkip = 0;
+                    gbBorderRowSkip = 0;
+            }
+
+            //srcPitch = 324;
+            //soundSetSampleRate(44100);
+		}
+		else if (utilIsGBAImage(rom.c_str()))
+		{
+			if (!CPULoadRom(rom.c_str()))
+			{
+				LOG("FAILED to GBA load rom\n");
+				Emulator_Shutdown();
+			}
+
+			VbaEmulationSystem = GBASystem;
+
+            //srcWidth = 240;
+            //srcHeight = 160;
+            //srcPitch = 484;
+            //soundSetSampleRate(22050); //44100 / 2
+            cpuSaveType = 0;
+		}
+		else
+		{
+			LOG("Unsupported rom type!\n");
 			Emulator_Shutdown();
 		}
-
-		if (!LoadRom(current_rom.c_str(), fileSize))
-		{
-			LOG("2: ERROR LOADING ROM!\n");
-			Emulator_Shutdown();
-		}*/
 
 		// load battery ram
 		// FIXME: load battery
 
 		rom_loaded = true;
-		LOG("Successfully loaded rom!");
+		LOG("Successfully loaded rom!\n");
 	}
 }
 
@@ -310,7 +376,7 @@ void Emulator_StartROMRunning()
 
 void Emulator_VbaInit()
 {
-	LOG("Emulator_VbaInit()");
+	LOG("Emulator_VbaInit()\n");
 
     vba_loaded = true;
 }
@@ -329,12 +395,12 @@ void Emulator_GraphicsInit()
 
 	if (Graphics->InitCg() != CELL_OK)
 	{
-		LOG("Failed to InitCg: %d", __LINE__);
+		LOG("Failed to InitCg: %d\n", __LINE__);
 		Emulator_Shutdown();
 	}
 
 	LOG("Emulator_GraphicsInit->Setting Dimensions\n");
-	Graphics->SetDimensions(240, 256 * 4);
+	Graphics->SetDimensions(256, 240, 256 * 4);
 
 	Rect r;
 	r.x = 0;
@@ -357,7 +423,19 @@ void Input_SetVbaInput()
 
 void UpdateInput()
 {
+	for (int i = 0; i < CellInput->NumberPadsConnected(); i++)
+	{
+		if (CellInput->UpdateDevice(i) != CELL_PAD_OK)
+		{
+			continue;
+		}
 
+		if (CellInput->IsButtonPressed(i, CTRL_L3) && CellInput->IsButtonPressed(i, CTRL_R3))
+		{
+			Emulator_StopROMRunning();
+			Emulator_SwitchMode(MODE_MENU);
+		}
+	}
 }
 
 
@@ -392,14 +470,14 @@ void Emulator_EnableSound()
 
 void EmulationLoop()
 {
-	LOG("EmulationLoop()");
+	LOG("EmulationLoop()\n");
 
 	if (!vba_loaded)
 		Emulator_VbaInit();
 
 	if (!rom_loaded)
 	{
-		LOG("No Rom Loaded!");
+		LOG("No Rom Loaded!\n");
 		Emulator_SwitchMode(MODE_MENU);
 		return;
 	}
@@ -407,8 +485,9 @@ void EmulationLoop()
 	// init cell audio
 	if (CellAudio == NULL)
 	{
-		CellAudio = new Audio::AudioPort<int32_t>(1, AUDIO_INPUT_RATE);
-		CellAudio->set_float_conv_func(Emulator_Convert_Samples);
+		//LOG("Initializing CellAudio!\n");
+		//CellAudio = new Audio::AudioPort<int32_t>(1, AUDIO_INPUT_RATE);
+		//CellAudio->set_float_conv_func(Emulator_Convert_Samples);
 	}
 
 	// set the shader cg params
@@ -423,9 +502,11 @@ void EmulationLoop()
 	emulation_running = true;
 	while (emulation_running)
 	{
+		//LOG("EmulationLoopStep\n");
 		UpdateInput();
-
-
+		sys_timer_usleep(1);
+		//VbaEmulationSystem.emuMain(VbaEmulationSystem.emuCount);
+		Graphics->Swap();
 
 #ifdef EMUDEBUG
 		if (CellConsole_IsInitialized())
@@ -433,6 +514,7 @@ void EmulationLoop()
 			cellConsolePoll();
 		}
 #endif
+
 		cellSysutilCheckCallback();
 	}
 }
@@ -464,10 +546,6 @@ int main()
 
 	cellSysutilRegisterCallback(0, sysutil_exit_callback, NULL);
 
-#ifdef EMUDEBUG
-	ControlConsole_Init();
-#endif
-
 	LOG_INIT();
 	LOG("LOGGER LOADED!\n");
 
@@ -480,6 +558,7 @@ int main()
 	Emulator_VbaInit();
 
 	//needs to come first before graphics
+	currentconfig = new ConfigFile();
 	if(Emulator_InitSettings())
 	{
 		load_settings = false;
