@@ -115,7 +115,7 @@ void systemDrawScreen()
 // updates the joystick data
 bool systemReadJoypads()
 {
-	LOG_DBG("systemReadJoypads()\n");
+	//LOG_DBG("systemReadJoypads()\n");
 
 	return true;
 }
@@ -124,7 +124,7 @@ bool systemReadJoypads()
 // return information about the given joystick, -1 for default joystick
 uint32_t systemReadJoypad(int pad)
 {
-	LOG_DBG("systemReadJoypad(%d)\n", pad);
+	//LOG_DBG("systemReadJoypad(%d)\n", pad);
 
 	return 0;
 }
@@ -136,7 +136,7 @@ uint32_t systemGetClock()
 
 	uint32_t time = get_usec() * 1000;
 	LOG("TIME: %u", time);
-	return 1;
+	return time;
     //uint32_t now = sys_time_get_system_time();
     //return now - startTime;
     //return diff_usec(start, now) / 1000;

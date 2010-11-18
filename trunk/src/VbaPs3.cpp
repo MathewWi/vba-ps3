@@ -344,19 +344,6 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
             gbSoundSetDeclicking(true);
             gbReset();
 
-            // PS3 - setup graphics for GB
-        	Graphics->SetDimensions(160, 144, 160 * 4);
-
-        	Rect r;
-        	r.x = 0;
-        	r.y = 0;
-        	r.w = 160;
-        	r.h = 144;
-        	Graphics->SetRect(r);
-        	Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
-
-        	Graphics->UpdateCgParams(160, 144, 160, 144);
-
         	soundInit();
 		}
 		else if (utilIsGBAImage(rom.c_str()))
@@ -377,6 +364,8 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 
             CPUReset();
             soundReset();
+
+        	soundInit();
 		}
 		else
 		{
@@ -434,15 +423,18 @@ void Emulator_GraphicsInit()
 	}
 
 	LOG("Emulator_GraphicsInit->Setting Dimensions\n");
-	Graphics->SetDimensions(256, 240, 256 * 4);
+    // PS3 - setup graphics for GB
+	Graphics->SetDimensions(160, 144, 160 * 4);
 
 	Rect r;
 	r.x = 0;
 	r.y = 0;
-	r.w = 256;
-	r.h = 240;
+	r.w = 160;
+	r.h = 144;
 	Graphics->SetRect(r);
 	Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
+
+	Graphics->UpdateCgParams(160, 144, 160, 144);
 
 	LOG("Emulator_GraphicsInit->InitDebug Font\n");
 	Graphics->InitDbgFont();
@@ -490,18 +482,6 @@ static void Emulator_Convert_Samples(float * __restrict__ out, const int32_t * _
 }
 
 
-void Emulator_EnableSound()
-{
-	if(CellAudio)
-	{
-		delete CellAudio;
-	}
-
-	CellAudio = new Audio::AudioPort<int32_t>(1, AUDIO_INPUT_RATE);
-	CellAudio->set_float_conv_func(Emulator_Convert_Samples);
-}
-
-
 void EmulationLoop()
 {
 	LOG("EmulationLoop()\n");
@@ -525,7 +505,7 @@ void EmulationLoop()
 	}
 
 	// set the shader cg params
-	Graphics->UpdateCgParams(256, 240, 256, 240);
+	//Graphics->UpdateCgParams(256, 240, 256, 240);
 
 	// set fceu input
 	Input_SetVbaInput();
@@ -540,10 +520,10 @@ void EmulationLoop()
 	emulation_running = true;
 	while (emulation_running)
 	{
-		//LOG("EmulationLoopStep\n");
 		UpdateInput();
-		sys_timer_usleep(1);
+
 		VbaEmulationSystem.emuMain(VbaEmulationSystem.emuCount);
+
 		Graphics->Swap();
 
 #ifdef EMUDEBUG
