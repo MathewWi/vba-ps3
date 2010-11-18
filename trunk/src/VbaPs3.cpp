@@ -22,7 +22,9 @@
 
 #include "vba/Util.h"
 #include "vba/gba/GBA.h"
+#include "vba/gba/Sound.h"
 #include "vba/gb/gb.h"
+#include "vba/gb/gbSound.h"
 #include "vba/gb/gbGlobals.h"
 
 #include "conf/conffile.h"
@@ -298,6 +300,8 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 
 		if (utilIsGBImage(rom.c_str()))
 		{
+			gbCleanUp();
+
 			if (!gbLoadRom(rom.c_str()))
 			{
 				LOG("FAILED to GB load rom...\n");
@@ -326,7 +330,34 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
             }
 
             //srcPitch = 324;
-            //soundSetSampleRate(44100);
+
+            // Port - init system (startime, palettes, etc) FIXME: startime should be set more accurately, fix once gb doesnt crash
+            systemInit();
+
+            //gbSetPalette(0);
+
+            // VBA - init GB core
+            soundSetSampleRate(44100);
+
+            gbGetHardwareType();
+            gbSoundReset();
+            gbSoundSetDeclicking(true);
+            gbReset();
+
+            // PS3 - setup graphics for GB
+        	Graphics->SetDimensions(160, 144, 160 * 4);
+
+        	Rect r;
+        	r.x = 0;
+        	r.y = 0;
+        	r.w = 160;
+        	r.h = 144;
+        	Graphics->SetRect(r);
+        	Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
+
+        	Graphics->UpdateCgParams(160, 144, 160, 144);
+
+        	soundInit();
 		}
 		else if (utilIsGBAImage(rom.c_str()))
 		{
@@ -341,8 +372,11 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
             //srcWidth = 240;
             //srcHeight = 160;
             //srcPitch = 484;
-            //soundSetSampleRate(22050); //44100 / 2
+            soundSetSampleRate(22050); //44100 / 2
             cpuSaveType = 0;
+
+            CPUReset();
+            soundReset();
 		}
 		else
 		{
@@ -499,13 +533,17 @@ void EmulationLoop()
 	// FIXME: implement for real
 	int fskip = 0;
 
+	// Tell VBA we are emulating
+	emulating = 1;
+
+	// emulation loop
 	emulation_running = true;
 	while (emulation_running)
 	{
 		//LOG("EmulationLoopStep\n");
 		UpdateInput();
 		sys_timer_usleep(1);
-		//VbaEmulationSystem.emuMain(VbaEmulationSystem.emuCount);
+		VbaEmulationSystem.emuMain(VbaEmulationSystem.emuCount);
 		Graphics->Swap();
 
 #ifdef EMUDEBUG
