@@ -148,7 +148,10 @@ void Blip_Buffer::bass_freq( int freq )
 void Blip_Buffer::end_frame( blip_time_t t )
 {
 	offset_ += t * factor_;
+
+#ifndef GEKKO
 	assert( samples_avail() <= (long) buffer_size_ ); // fails if time is past end of buffer
+#endif
 }
 
 long Blip_Buffer::count_samples( blip_time_t t ) const

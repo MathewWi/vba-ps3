@@ -4488,6 +4488,8 @@ void gbDrawLine()
   }
 }
 
+
+#include "src/cellframework/logger/Logger.h"
 void gbEmulate(int ticksToStop)
 {
   gbRegister tempRegister;
@@ -4550,7 +4552,6 @@ void gbEmulate(int ticksToStop)
           clockTicks = 1;*/
 
     } else {
-
       // First we apply the clockTicks, then we execute the opcodes.
       opcode1 = 0;
       opcode2 = 0;
@@ -5256,7 +5257,6 @@ void gbEmulate(int ticksToStop)
       }
 #endif
     }
-
 
     soundTicks -= clockTicks;
 	if ( !gbSpeed )
