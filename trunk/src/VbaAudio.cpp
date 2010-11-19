@@ -40,7 +40,7 @@ bool VbaAudio::init(long sampleRate)
 		_cellAudio = NULL;
 	}
 
-	_cellAudio = new Audio::AudioPort<u16>(1, sampleRate);
+	//_cellAudio = new Audio::AudioPort<u16>(1, sampleRate);
 	//_cellAudio->set_float_conv_func(Emulator_Convert_Samples);
 }
 
@@ -65,5 +65,5 @@ void VbaAudio::resume()
 
 void VbaAudio::write(u16 * finalWave, int length)
 {
-	_cellAudio->write((u16*)finalWave, length);
+	//_cellAudio->write((u16*)finalWave, length);
 }

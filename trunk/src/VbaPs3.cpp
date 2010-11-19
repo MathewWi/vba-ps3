@@ -296,6 +296,10 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 {
 	if (!rom_loaded || forceReload || current_rom.empty() || current_rom.compare(rom) != 0)
 	{
+		int srcWidth = 0;
+		int srcHeight = 0;
+		int srcPitch = 0;
+
 		current_rom = rom;
 
 		Emulator_CloseGame();
@@ -316,29 +320,29 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 
             if(gbBorderOn)
             {
-                    //srcWidth = 256;
-                    //srcHeight = 224;
+                    srcWidth = 256;
+                    srcHeight = 224;
                     gbBorderLineSkip = 256;
                     gbBorderColumnSkip = 48;
                     gbBorderRowSkip = 40;
             }
             else
             {
-                    //srcWidth = 160;
-                    //srcHeight = 144;
+                    srcWidth = 160;
+                    srcHeight = 144;
                     gbBorderLineSkip = 160;
                     gbBorderColumnSkip = 0;
                     gbBorderRowSkip = 0;
             }
 
-            //srcPitch = 324;
+            srcPitch = 324;
 
             // Port - init system (startime, palettes, etc) FIXME: startime should be set more accurately, fix once gb doesnt crash
             systemInit();
 
             //gbSetPalette(0);
 
-            // VBA - init GB core
+            // VBA - init GB core and sound core
             soundSetSampleRate(44100);
 
             gbGetHardwareType();
@@ -358,9 +362,9 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 
 			VbaEmulationSystem = GBASystem;
 
-            //srcWidth = 240;
-            //srcHeight = 160;
-            //srcPitch = 484;
+            srcWidth = 240;
+            srcHeight = 160;
+            srcPitch = 484;
             soundSetSampleRate(22050); //44100 / 2
             cpuSaveType = 0;
 
@@ -374,6 +378,21 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 			LOG("Unsupported rom type!\n");
 			Emulator_Shutdown();
 		}
+
+		// ROM SUCCESSFULLY LOADED AT THIS POINT
+
+    	// PORT - init graphics for this rom
+    	Graphics->SetDimensions(srcWidth, srcHeight, (srcPitch)*4);
+
+    	Rect r;
+    	r.x = 0;
+    	r.y = 0;
+    	r.w = srcWidth;
+    	r.h = srcHeight;
+    	Graphics->SetRect(r);
+    	Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
+
+    	Graphics->UpdateCgParams(srcWidth, srcHeight, srcWidth, srcHeight);
 
 		// load battery ram
 		// FIXME: load battery
@@ -426,7 +445,7 @@ void Emulator_GraphicsInit()
 
 	LOG("Emulator_GraphicsInit->Setting Dimensions\n");
     // PS3 - setup graphics for GB
-	Graphics->SetDimensions(160, 144, 324*4);
+	Graphics->SetDimensions(160, 144, (256*4) + 4);
 
 	Rect r;
 	r.x = 0;

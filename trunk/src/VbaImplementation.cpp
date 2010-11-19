@@ -42,7 +42,7 @@ u16 systemGbPalette[24];
 int systemRedShift = 0;
 int systemBlueShift = 0;
 int systemGreenShift = 0;
-int systemColorDepth = 16;
+int systemColorDepth = 32;
 int systemDebug = 0;
 int systemVerbose = 1;
 int systemFrameSkip = 0;
@@ -156,9 +156,9 @@ bool systemReadJoypads()
 // return information about the given joystick, -1 for default joystick
 uint32_t systemReadJoypad(int pad)
 {
-	u32 J = 0;
+	//LOG_DBG("systemReadJoypad(%d)\n", pad);
 
-	LOG_DBG("systemReadJoypad(%d)\n", pad);
+	u32 J = 0;
 	if (pad == -1) pad = 0;
 
 	int i = pad;

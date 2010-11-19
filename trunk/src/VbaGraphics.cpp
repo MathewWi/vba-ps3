@@ -55,7 +55,7 @@ void VbaGraphics::Draw() const
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pitch / 4, m_height, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pitch/4.0, m_height, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0);
 
 	glDrawArrays(GL_QUADS, 0, 4);
 	glFlush();
