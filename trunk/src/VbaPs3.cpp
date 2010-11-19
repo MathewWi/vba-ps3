@@ -423,7 +423,7 @@ void Emulator_GraphicsInit()
 
 	LOG("Emulator_GraphicsInit->Setting Dimensions\n");
     // PS3 - setup graphics for GB
-	Graphics->SetDimensions(160, 144, 160 * 4);
+	Graphics->SetDimensions(160, 144, 324 * 4);
 
 	Rect r;
 	r.x = 0;
@@ -515,7 +515,7 @@ void EmulationLoop()
 
 		VbaEmulationSystem.emuMain(VbaEmulationSystem.emuCount);
 
-		Graphics->Swap();
+		//Graphics->Swap();
 
 #ifdef EMUDEBUG
 		if (CellConsole_IsInitialized())

@@ -108,7 +108,7 @@ void systemScreenCapture(int a)
 
 void systemDrawScreen()
 {
-	LOG_DBG("systemDrawScreen()\n");
+	//LOG_DBG("systemDrawScreen()\n");
 	Graphics->Draw(pix);
 }
 
@@ -227,13 +227,13 @@ void systemShowSpeed(int speed)
 
 void system10Frames(int rate)
 {
-	LOG_DBG("system10Frames(%d)\n", rate);
+	//LOG_DBG("system10Frames(%d)\n", rate);
 }
 
 
  void systemFrame()
 {
-	 LOG_DBG("systemFrame()\n");
+	 //LOG_DBG("systemFrame()\n");
 }
 
 
