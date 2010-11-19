@@ -38,7 +38,6 @@ SYS_PROCESS_PARAM(1001, 0x10000);
 
 VbaGraphics* Graphics = NULL;
 CellInputFacade* CellInput = NULL;
-Audio::Stream<int32_t>* CellAudio = NULL;
 
 ConfigFile	*currentconfig = NULL;
 
@@ -132,8 +131,8 @@ void Emulator_Shutdown()
 	if (CellInput)
 		delete CellInput;
 
-	if (CellAudio)
-		delete CellAudio;
+	// VBA - shutdown sound, release CEllAudio thread
+	soundShutdown();
 
 	if (Graphics)
 		delete Graphics;
@@ -494,14 +493,6 @@ void EmulationLoop()
 		LOG("No Rom Loaded!\n");
 		Emulator_SwitchMode(MODE_MENU);
 		return;
-	}
-
-	// init cell audio
-	if (CellAudio == NULL)
-	{
-		//LOG("Initializing CellAudio!\n");
-		//CellAudio = new Audio::AudioPort<int32_t>(1, AUDIO_INPUT_RATE);
-		//CellAudio->set_float_conv_func(Emulator_Convert_Samples);
 	}
 
 	// set the shader cg params

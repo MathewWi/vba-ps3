@@ -6,6 +6,7 @@
  */
 #include "VbaImplementation.h"
 
+#include "vba/gba/Sound.h"
 #include "vba/common/SoundDriver.h"
 #include "vba/gba/Globals.h"
 
@@ -166,6 +167,10 @@ SoundDriver* systemSoundInit()
 {
 	LOG_DBG("systemSoundInit()\n");
 
+	// VBA - shutdown sound
+	soundShutdown();
+
+	// Port - return audio interface for VBA
 	return new VbaAudio();
 }
 
