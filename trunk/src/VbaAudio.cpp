@@ -65,6 +65,5 @@ void VbaAudio::resume()
 
 void VbaAudio::write(u16 * finalWave, int length)
 {
-	LOG_DBG("write()\n");
 	_cellAudio->write((u16*)finalWave, length);
 }

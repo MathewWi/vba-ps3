@@ -49,7 +49,7 @@ using namespace std;
 #endif
 
 // default shader sources
-#define DEFAULT_SHADER_FILE  "/dev_hdd0/game/FCEU90000/USRDIR/shaders/stock.cg"
+#define DEFAULT_SHADER_FILE  "/dev_hdd0/game/VBAM90000/USRDIR/shaders/stock.cg"
 
 
 // PC Palette

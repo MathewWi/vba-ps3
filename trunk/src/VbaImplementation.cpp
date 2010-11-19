@@ -13,8 +13,24 @@
 #include "cellframework/logger/Logger.h"
 #include "cellframework/utility/utils.h"
 
+#include "conf/conffile.h"
+
 #include "VbaPs3.h"
 #include "VbaAudio.h"
+
+
+#define VBA_BUTTON_A            1
+#define VBA_BUTTON_B            2
+#define VBA_BUTTON_SELECT       4
+#define VBA_BUTTON_START        8
+#define VBA_RIGHT                       16
+#define VBA_LEFT                        32
+#define VBA_UP                          64
+#define VBA_DOWN                        128
+#define VBA_BUTTON_R            256
+#define VBA_BUTTON_L            512
+#define VBA_SPEED                       1024
+#define VBA_CAPTURE                     2048
 
 
 // VBA - must define these
@@ -71,15 +87,30 @@ bool systemInit()
 
     // Set palette etc - Fixed to RGB565
     systemColorDepth = 16;
-    systemRedShift = 11;
-    systemGreenShift = 6;
-    systemBlueShift = 0;
+
+    systemRedShift    = 19;
+    systemGreenShift  = 11;
+    systemBlueShift   = 3;
+
+    //systemRedShift = 11;
+    //systemGreenShift = 6;
+    //systemBlueShift = 0;
+
+    RGB_LOW_BITS_MASK = 0x00010101;
+
     for(i = 0; i < 0x10000; i++)
     {
-            systemColorMap16[i] =
-                    ((i & 0x1f) << systemRedShift) |
-                    (((i & 0x3e0) >> 5) << systemGreenShift) |
-                    (((i & 0x7c00) >> 10) << systemBlueShift);
+		systemColorMap16[i] =
+				((i & 0x1f) << systemRedShift) |
+				(((i & 0x3e0) >> 5) << systemGreenShift) |
+				(((i & 0x7c00) >> 10) << systemBlueShift);
+    }
+
+    for (int i = 0; i < 0x10000; i++)
+    {
+      systemColorMap32[i] = (((i & 0x1f) << systemRedShift)
+                             | (((i & 0x3e0) >> 5) << systemGreenShift)
+                             | (((i & 0x7c00) >> 10) << systemBlueShift));
     }
 
 	return true;
@@ -125,9 +156,96 @@ bool systemReadJoypads()
 // return information about the given joystick, -1 for default joystick
 uint32_t systemReadJoypad(int pad)
 {
-	//LOG_DBG("systemReadJoypad(%d)\n", pad);
+	u32 J = 0;
 
-	return 0;
+	LOG_DBG("systemReadJoypad(%d)\n", pad);
+	if (pad == -1) pad = 0;
+
+	int i = pad;
+	if (CellInput->UpdateDevice(i) != CELL_PAD_OK)
+	{
+		return J;
+	}
+
+	if (Settings.FCEUControlstyle == CONTROL_STYLE_BETTER)
+	{
+		if (CellInput->IsButtonPressed(i, CTRL_CIRCLE))
+		{
+			J = VBA_BUTTON_B;
+		}
+		if (CellInput->IsButtonPressed(i, CTRL_CROSS))
+		{
+			J |= VBA_BUTTON_A;
+		}
+	}
+	else
+	{
+		if (CellInput->IsButtonPressed(i, CTRL_CIRCLE))
+		{
+			J = VBA_BUTTON_A;
+		}
+		if (CellInput->IsButtonPressed(i, CTRL_CROSS))
+		{
+			J |= VBA_BUTTON_B;
+		}
+	}
+
+	if (CellInput->IsButtonPressed(i, CTRL_TRIANGLE))
+	{
+		J |= VBA_BUTTON_A;
+	}
+	if (CellInput->IsButtonPressed(i, CTRL_SQUARE))
+	{
+		J |= VBA_BUTTON_B;
+	}
+
+	if (CellInput->IsButtonPressed(i, CTRL_L1))
+	{
+		J |= VBA_BUTTON_L;
+	}
+	if (CellInput->IsButtonPressed(i, CTRL_R1))
+	{
+		J |= VBA_BUTTON_R;
+	}
+
+	if (CellInput->IsButtonPressed(i, CTRL_UP) | CellInput->IsAnalogPressedUp(i, CTRL_LSTICK))
+	{
+		J |= VBA_UP;
+	}
+	if (CellInput->IsButtonPressed(i, CTRL_DOWN) | CellInput->IsAnalogPressedDown(i, CTRL_LSTICK))
+	{
+		J |= VBA_DOWN;
+	}
+	if (CellInput->IsButtonPressed(i, CTRL_LEFT) | CellInput->IsAnalogPressedLeft(i, CTRL_LSTICK))
+	{
+		J |= VBA_LEFT;
+	}
+	if (CellInput->IsButtonPressed(i, CTRL_RIGHT) | CellInput->IsAnalogPressedRight(i, CTRL_LSTICK))
+	{
+		J |= VBA_RIGHT;
+	}
+
+	if (CellInput->IsButtonPressed(i, CTRL_START))
+	{
+		J |= VBA_BUTTON_START;
+	}
+	if (CellInput->IsButtonPressed(i, CTRL_SELECT))
+	{
+		J |= VBA_BUTTON_SELECT;
+	}
+
+	if (CellInput->IsButtonPressed(i, CTRL_R2))
+	{
+		J |= VBA_SPEED;
+	}
+
+	if (CellInput->IsButtonPressed(i, CTRL_L3) && CellInput->IsButtonPressed(i, CTRL_R3))
+	{
+		Emulator_StopROMRunning();
+		Emulator_SwitchMode(MODE_MENU);
+	}
+
+	return J;
 }
 
 
@@ -135,11 +253,13 @@ uint32_t systemGetClock()
 {
 	LOG_DBG("systemGetClock()\n");
 
-	uint32_t time = get_usec() * 1000;
+	/*uint32_t time = get_usec() * 1000;
 	LOG("TIME: %u", time);
-	return time;
-    //uint32_t now = sys_time_get_system_time();
-    //return now - startTime;
+	return time;*/
+
+    uint32_t now = sys_time_get_system_time();
+    return now - startTime;
+
     //return diff_usec(start, now) / 1000;
 }
 
@@ -228,6 +348,7 @@ void systemShowSpeed(int speed)
 void system10Frames(int rate)
 {
 	//LOG_DBG("system10Frames(%d)\n", rate);
+	systemFrameSkip = 0;
 }
 
 

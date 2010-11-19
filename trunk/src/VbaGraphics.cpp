@@ -7,9 +7,13 @@
 
 #include "VbaGraphics.h"
 
+#include <limits>
 #include <assert.h>
 
 #include "cellframework/logger/Logger.h"
+
+#include "vba/System.h"
+
 
 // FIXME: make this use the faster ABGR_SCE instead of the easy RGBA
 
@@ -61,7 +65,7 @@ void VbaGraphics::Draw() const
 
 void VbaGraphics::Draw(uint8_t *XBuf)
 {
-	LOG("Draw(%d, %d)\n", m_width, m_height);
+	//LOG("Draw(%d, %d)\n", m_width, m_height);
 
 	Clear();
 
@@ -70,7 +74,9 @@ void VbaGraphics::Draw(uint8_t *XBuf)
 	for(int i = 0; i != m_width * m_height; i ++)
 	{
 		//LOG(" %u ", XBuf[i]);
-		//texture[i] = 255 | 255 | 255 | 255;//XBuf[i] << 24 | 0xFF | 0xFF | 0xFF;
+		texture[i] = XBuf[i] << 24 | XBuf[i] << 16 | XBuf[i] << 8 | 0xFF;
+		//texture[i] = systemColorMap32[XBuf[i]] | 0xFF;
+		//texture[i] = std::numeric_limits<uint32_t>::max();
 		//texture[i] = ((pcpalette[XBuf[i]].r) << 24) | ((pcpalette[XBuf[i]].g) << 16) | (pcpalette[XBuf[i]].b << 8) | 0xFF;
 		//texture[i] = ((pcpalette[XBuf[i]].b) << 24) | ((pcpalette[XBuf[i]].g) << 16) | (pcpalette[XBuf[i]].r << 8) | 0xFF;
 	}
@@ -93,8 +99,8 @@ void VbaGraphics::Sleep(uint64_t usec) const
 
 void VbaGraphics::Clear() const
 {
-	//glClearColor(1.0, 0, 0, 1);
-   glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.25, 0.25, 0.25, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 

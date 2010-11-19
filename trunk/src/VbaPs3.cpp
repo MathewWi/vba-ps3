@@ -201,18 +201,18 @@ bool Emulator_InitSettings()
 	}
 	Graphics->SetSmooth(Settings.PS3Smooth);
 
-	if (currentconfig->Exists("FCEU::Controlstyle"))
+	if (currentconfig->Exists("VBA::Controlstyle"))
 	{
-		Settings.FCEUControlstyle = currentconfig->GetInt("FCEU::Controlstyle");
+		Settings.FCEUControlstyle = currentconfig->GetInt("VBA::Controlstyle");
 	}
 	else
 	{
 		Settings.FCEUControlstyle = CONTROL_STYLE_BETTER;
 	}
 
-	if (currentconfig->Exists("FCEU::Shader"))
+	if (currentconfig->Exists("VBA::Shader"))
 	{
-		Graphics->LoadFragmentShader(currentconfig->GetString("FCEU::Shader"));
+		Graphics->LoadFragmentShader(currentconfig->GetString("VBA::Shader"));
 	}
 	else
 	{
@@ -251,11 +251,14 @@ bool Emulator_InitSettings()
 
 bool Emulator_SaveSettings()
 {
-	currentconfig->SetBool("PS3General::KeepAspect",Settings.PS3KeepAspect);
-	currentconfig->SetBool("PS3General::Smooth", Settings.PS3Smooth);
-	currentconfig->SetInt("FCEU::Controlstyle",Settings.FCEUControlstyle);
-	currentconfig->SetString("FCEU::Shader",Graphics->GetFragmentShaderPath());
-	return currentconfig->SaveTo(SYS_CONFIG_FILE);
+	if (currentconfig != NULL)
+	{
+		currentconfig->SetBool("PS3General::KeepAspect",Settings.PS3KeepAspect);
+		currentconfig->SetBool("PS3General::Smooth", Settings.PS3Smooth);
+		currentconfig->SetInt("VBA::Controlstyle",Settings.FCEUControlstyle);
+		currentconfig->SetString("VBA::Shader",Graphics->GetFragmentShaderPath());
+		return currentconfig->SaveTo(SYS_CONFIG_FILE);
+	}
 }
 
 
@@ -340,7 +343,7 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 
             gbGetHardwareType();
             gbSoundReset();
-            gbSoundSetDeclicking(true);
+            gbSoundSetDeclicking(false);
             gbReset();
 
         	soundInit();
@@ -423,7 +426,7 @@ void Emulator_GraphicsInit()
 
 	LOG("Emulator_GraphicsInit->Setting Dimensions\n");
     // PS3 - setup graphics for GB
-	Graphics->SetDimensions(160, 144, 324 * 4);
+	Graphics->SetDimensions(160, 144, 324*4);
 
 	Rect r;
 	r.x = 0;
@@ -448,7 +451,7 @@ void Input_SetVbaInput()
 
 void UpdateInput()
 {
-	for (int i = 0; i < CellInput->NumberPadsConnected(); i++)
+	/*for (int i = 0; i < CellInput->NumberPadsConnected(); i++)
 	{
 		if (CellInput->UpdateDevice(i) != CELL_PAD_OK)
 		{
@@ -460,7 +463,7 @@ void UpdateInput()
 			Emulator_StopROMRunning();
 			Emulator_SwitchMode(MODE_MENU);
 		}
-	}
+	}*/
 }
 
 
@@ -494,9 +497,6 @@ void EmulationLoop()
 		Emulator_SwitchMode(MODE_MENU);
 		return;
 	}
-
-	// set the shader cg params
-	//Graphics->UpdateCgParams(256, 240, 256, 240);
 
 	// set fceu input
 	Input_SetVbaInput();
@@ -567,11 +567,11 @@ int main()
 	Emulator_VbaInit();
 
 	//needs to come first before graphics
-	currentconfig = new ConfigFile();
+	/*currentconfig = new ConfigFile();
 	if(Emulator_InitSettings())
 	{
 		load_settings = false;
-	}
+	}*/
 
     // allocate memory to store rom
     //nesrom = (unsigned char *)memalign(32,1024*1024*4); // 4 MB should be plenty

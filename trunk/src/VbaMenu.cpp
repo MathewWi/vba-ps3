@@ -187,7 +187,7 @@ void do_shaderChoice()
 
 				// load shader
 				Graphics->LoadFragmentShader(path);
-				Graphics->UpdateCgParams(256, 240, 256, 240);
+				Graphics->UpdateCgParams(160, 144, 160, 144);
 
 				menuStack.pop();
 			}
