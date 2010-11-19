@@ -70,7 +70,7 @@ void VbaGraphics::Draw(uint8_t *XBuf)
 	for(int i = 0; i != m_width * m_height; i ++)
 	{
 		//LOG(" %u ", XBuf[i]);
-		texture[i] = 255 | 255 | 255 | 255;//XBuf[i] << 24 | 0xFF | 0xFF | 0xFF;
+		//texture[i] = 255 | 255 | 255 | 255;//XBuf[i] << 24 | 0xFF | 0xFF | 0xFF;
 		//texture[i] = ((pcpalette[XBuf[i]].r) << 24) | ((pcpalette[XBuf[i]].g) << 16) | (pcpalette[XBuf[i]].b << 8) | 0xFF;
 		//texture[i] = ((pcpalette[XBuf[i]].b) << 24) | ((pcpalette[XBuf[i]].g) << 16) | (pcpalette[XBuf[i]].r << 8) | 0xFF;
 	}
@@ -93,7 +93,7 @@ void VbaGraphics::Sleep(uint64_t usec) const
 
 void VbaGraphics::Clear() const
 {
-	glClearColor(1.0, 0, 0, 1);
+	//glClearColor(1.0, 0, 0, 1);
    glClear(GL_COLOR_BUFFER_BIT);
 }
 
