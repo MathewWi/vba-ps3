@@ -409,7 +409,7 @@ struct SSettings
 	bool	PS3Smooth;
 
 	//FCEU additions
-	int	FCEUControlstyle;
+	int	ControlStyle;
 
 	char	PS3PathSaveStates[128];
 	char	PS3PathSRAM[128];

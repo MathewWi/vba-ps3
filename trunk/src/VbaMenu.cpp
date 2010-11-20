@@ -394,11 +394,11 @@ void do_settings()
 			case SETTING_CONTROL_STYLE:
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) || CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
 				{
-					Settings.FCEUControlstyle = (Emulator_ControlStyle)(((Settings.FCEUControlstyle) + 1) % 2);
+					Settings.ControlStyle = (Emulator_ControlStyle)(((Settings.ControlStyle) + 1) % 2);
 				}
 				if(CellInput->IsButtonPressed(0, CTRL_START))
 				{
-					Settings.FCEUControlstyle = CONTROL_STYLE_ORIGINAL;
+					Settings.ControlStyle = CONTROL_STYLE_ORIGINAL;
 				}
 				break;
 			case SETTING_SHADER:
@@ -417,7 +417,7 @@ void do_settings()
 					Settings.PS3Smooth = true;
 					Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
 					Graphics->SetSmooth(true);
-					Settings.FCEUControlstyle = CONTROL_STYLE_ORIGINAL;
+					Settings.ControlStyle = CONTROL_STYLE_ORIGINAL;
 				}
 				break;
 			default:
@@ -470,8 +470,8 @@ void do_settings()
 
 	cellDbgFontPuts(0.05f, 0.21f, FONT_SIZE, currently_selected_setting == SETTING_CONTROL_STYLE ? YELLOW : WHITE, "Control Style");
 	cellDbgFontPrintf(0.5f, 0.21f, FONT_SIZE,
-			Settings.FCEUControlstyle == CONTROL_STYLE_ORIGINAL ? GREEN : RED,
-			"%s", Settings.FCEUControlstyle == CONTROL_STYLE_ORIGINAL ? "Original (X->B, O->A)" : "Better (X->A, []->B)");
+			Settings.ControlStyle == CONTROL_STYLE_ORIGINAL ? GREEN : RED,
+			"%s", Settings.ControlStyle == CONTROL_STYLE_ORIGINAL ? "Original (X->B, O->A)" : "Better (X->A, []->B)");
 
 	cellDbgFontPuts(0.05f, 0.25f, FONT_SIZE, currently_selected_setting == SETTING_SHADER ? YELLOW : WHITE, "Shader: ");
 	cellDbgFontPrintf(0.5f, 0.25f, FONT_SIZE,
@@ -506,7 +506,7 @@ void do_ROMMenu ()
 			{
 				browser->PushDirectory(	browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name,
 										CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY,
-										"gb|gba");
+										"gb|gbc|gba");
 			}
 			else if (browser->IsCurrentAFile())
 			{
@@ -557,7 +557,7 @@ void MenuMainLoop()
 
 	if (tmpBrowser == NULL)
 	{
-		tmpBrowser = new FileBrowser("/dev_hdd0/game/FCEU90000/USRDIR/shaders/\0");
+		tmpBrowser = new FileBrowser("/dev_hdd0/game/VBAM90000/USRDIR/shaders/\0");
 	}
 
 	// FIXME: could always just return to last menu item... don't pop on resume kinda thing

@@ -208,11 +208,11 @@ bool Emulator_InitSettings()
 
 	if (currentconfig->Exists("VBA::Controlstyle"))
 	{
-		Settings.FCEUControlstyle = currentconfig->GetInt("VBA::Controlstyle");
+		Settings.ControlStyle = currentconfig->GetInt("VBA::Controlstyle");
 	}
 	else
 	{
-		Settings.FCEUControlstyle = CONTROL_STYLE_BETTER;
+		Settings.ControlStyle = CONTROL_STYLE_BETTER;
 	}
 
 	if (currentconfig->Exists("VBA::Shader"))
@@ -260,7 +260,7 @@ bool Emulator_SaveSettings()
 	{
 		currentconfig->SetBool("PS3General::KeepAspect",Settings.PS3KeepAspect);
 		currentconfig->SetBool("PS3General::Smooth", Settings.PS3Smooth);
-		currentconfig->SetInt("VBA::Controlstyle",Settings.FCEUControlstyle);
+		currentconfig->SetInt("VBA::Controlstyle",Settings.ControlStyle);
 		currentconfig->SetString("VBA::Shader",Graphics->GetFragmentShaderPath());
 		return currentconfig->SaveTo(SYS_CONFIG_FILE);
 	}
@@ -325,8 +325,8 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 			cartridgeType = IMAGE_GB;
 			VbaEmulationSystem = GBSystem;
 
-            gbBorderOn = 0; // GB borders always off
-
+			// FIXME: make this an option that is toggable, implement systemGbBorderOn
+            gbBorderOn = 0;
             if(gbBorderOn)
             {
                     srcWidth = 256;
@@ -345,8 +345,6 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
             }
 
             //srcPitch = 324;
-
-            //gbSetPalette(0);
 
             // VBA - init GB core and sound core
             soundSetSampleRate(44100);
@@ -389,6 +387,8 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 		}
 		else
 		{
+			cartridgeType = IMAGE_UNKNOWN;
+
 			LOG("Unsupported rom type!\n");
 			Emulator_Shutdown();
 		}
@@ -416,11 +416,11 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 
 void Emulator_StopROMRunning()
 {
+	// app
 	emulation_running = false;
 
-	// load battery ram
-	// FIXME: Load sram
-
+	// vba
+	//emulating = 0;
 }
 
 void Emulator_StartROMRunning()
@@ -587,16 +587,14 @@ int main()
 
 	Emulator_VbaInit();
 
-	//needs to come first before graphics
+	// load settings
 	/*currentconfig = new ConfigFile();
 	if(Emulator_InitSettings())
 	{
 		load_settings = false;
 	}*/
 
-    // allocate memory to store rom
-    //nesrom = (unsigned char *)memalign(32,1024*1024*4); // 4 MB should be plenty
-
+	// main loop
 	while(1)
 	{
 		switch(mode_switch)

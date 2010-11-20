@@ -91,6 +91,7 @@ bool systemInit()
 
     systemColorDepth = 32;
 
+    // offset by +3, FIXME: verify this is correct!
     systemRedShift    = 27;
     systemGreenShift  = 19;
     systemBlueShift   = 11;
@@ -103,7 +104,7 @@ bool systemInit()
     //systemGreenShift = 6;
     //systemBlueShift = 0;
 
-    // VBA - used by filters only, not needed really
+    // VBA - used by the cpu filters only, not needed really
     //RGB_LOW_BITS_MASK = 0x00010101;
 
     utilUpdateSystemColorMaps(Emulator_GetVbaCartType() == IMAGE_GBA && gbColorOption == 1);
@@ -162,7 +163,7 @@ uint32_t systemReadJoypad(int pad)
 		return J;
 	}
 
-	if (Settings.FCEUControlstyle == CONTROL_STYLE_BETTER)
+	if (Settings.ControlStyle == CONTROL_STYLE_BETTER)
 	{
 		if (CellInput->IsButtonPressed(i, CTRL_CIRCLE))
 		{
