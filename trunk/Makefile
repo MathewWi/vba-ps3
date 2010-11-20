@@ -5,7 +5,19 @@
 #
 
 # specify build tools
+CELL_BUILD_TOOLS = GCC
 
+# explicitly set some cell sdk defaults
+CELL_SDK ?= /usr/local/cell
+
+# CELL_GPU_TYPE (currently RSX is only one option)
+CELL_GPU_TYPE       = RSX
+
+# CELL_PSGL_VERSION is debug, dpm or opt
+CELL_PSGL_VERSION   = opt
+
+# CELL_DISPLAY_MODE (default: 720p)
+CELL_DISPLAY_MODE   ?= 720p
 
 CELL_MK_DIR ?= $(CELL_SDK)/samples/mk
 include $(CELL_MK_DIR)/sdk.makedef.mk
