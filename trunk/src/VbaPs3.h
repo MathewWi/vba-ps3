@@ -8,11 +8,15 @@
 #ifndef VBAPS3_H_
 #define VBAPS3_H_
 
+#include "vba/Util.h"
+
 #include "VbaImplementation.h"
 #include "VbaGraphics.h"
 
 #include "cellframework/logger/Logger.h"
 #include "cellframework/input/cellInput.h"
+
+#define EMULATOR_PATH_STATES "/dev_hdd0/game/VBAM90000/USRDIR/"
 
 enum Emulator_Modes
 {
@@ -25,6 +29,14 @@ enum Emulator_ControlStyle
 {
 	CONTROL_STYLE_ORIGINAL,
 	CONTROL_STYLE_BETTER
+};
+
+enum Emulator_FileTypes
+{
+	FILETYPE_STATE,
+	FILETYPE_BATTERY,
+	FILETYPE_PNG,
+	FILETYPE_BMP
 };
 
 void Emulator_RequestLoadROM(string rom, bool forceReload);
@@ -44,6 +56,10 @@ void Emulator_IncrementCurrentSaveStateSlot();
 void Emulator_DecrementCurrentSaveStateSlot();
 bool Emulator_InitSettings();
 bool Emulator_SaveSettings();
+
+string Emulator_MakeFName(Emulator_FileTypes type);
+
+IMAGE_TYPE Emulator_GetVbaCartType();
 
 extern Emulator_ControlStyle ControlStyle;
 

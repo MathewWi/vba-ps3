@@ -9,6 +9,9 @@
 #include "vba/gba/Sound.h"
 #include "vba/common/SoundDriver.h"
 #include "vba/gba/Globals.h"
+#include "vba/Util.h"
+#include "vba/gb/gb.h"
+#include "vba/gb/gbGlobals.h"
 
 #include "cellframework/logger/Logger.h"
 #include "cellframework/utility/utils.h"
@@ -23,14 +26,14 @@
 #define VBA_BUTTON_B            2
 #define VBA_BUTTON_SELECT       4
 #define VBA_BUTTON_START        8
-#define VBA_RIGHT                       16
-#define VBA_LEFT                        32
-#define VBA_UP                          64
-#define VBA_DOWN                        128
+#define VBA_RIGHT               16
+#define VBA_LEFT                32
+#define VBA_UP                  64
+#define VBA_DOWN                128
 #define VBA_BUTTON_R            256
 #define VBA_BUTTON_L            512
-#define VBA_SPEED                       1024
-#define VBA_CAPTURE                     2048
+#define VBA_SPEED               1024
+#define VBA_CAPTURE             2048
 
 
 // VBA - must define these
@@ -76,6 +79,7 @@ bool systemInit()
 	startTime = sys_time_get_system_time();
 
     int i;
+
     // Build GBPalette
     for( i = 0; i < 24; )
     {
@@ -85,33 +89,24 @@ bool systemInit()
             systemGbPalette[i++] = 0;
     }
 
-    // Set palette etc - Fixed to RGB565
-    systemColorDepth = 16;
+    systemColorDepth = 32;
 
-    systemRedShift    = 19;
-    systemGreenShift  = 11;
-    systemBlueShift   = 3;
+    systemRedShift    = 27;
+    systemGreenShift  = 19;
+    systemBlueShift   = 11;
+
+    //systemRedShift    = 19;
+    //systemGreenShift  = 11;
+    //systemBlueShift   = 3;
 
     //systemRedShift = 11;
     //systemGreenShift = 6;
     //systemBlueShift = 0;
 
-    RGB_LOW_BITS_MASK = 0x00010101;
+    // VBA - used by filters only, not needed really
+    //RGB_LOW_BITS_MASK = 0x00010101;
 
-    for(i = 0; i < 0x10000; i++)
-    {
-		systemColorMap16[i] =
-				((i & 0x1f) << systemRedShift) |
-				(((i & 0x3e0) >> 5) << systemGreenShift) |
-				(((i & 0x7c00) >> 10) << systemBlueShift);
-    }
-
-    for (int i = 0; i < 0x10000; i++)
-    {
-      systemColorMap32[i] = (((i & 0x1f) << systemRedShift)
-                             | (((i & 0x3e0) >> 5) << systemGreenShift)
-                             | (((i & 0x7c00) >> 10) << systemBlueShift));
-    }
+    utilUpdateSystemColorMaps(Emulator_GetVbaCartType() == IMAGE_GBA && gbColorOption == 1);
 
 	return true;
 }
@@ -239,8 +234,34 @@ uint32_t systemReadJoypad(int pad)
 		J |= VBA_SPEED;
 	}
 
+	// state shift
+	if (CellInput->WasAnalogPressedLeft(i, CTRL_RSTICK))
+	{
+		Emulator_DecrementCurrentSaveStateSlot();
+	}
+	if (CellInput->WasAnalogPressedRight(i, CTRL_RSTICK))
+	{
+		Emulator_IncrementCurrentSaveStateSlot();
+	}
+
+	// state save
+	if (CellInput->WasButtonHeld(i, CTRL_R2) && CellInput->WasButtonHeld(i, CTRL_R3))
+	{
+
+		VbaEmulationSystem.emuWriteState(Emulator_MakeFName(FILETYPE_STATE).c_str());
+	}
+
+	// state load
+	if (CellInput->WasButtonHeld(i, CTRL_L2) && CellInput->WasButtonHeld(i, CTRL_L3))
+	{
+		VbaEmulationSystem.emuReadState(Emulator_MakeFName(FILETYPE_STATE).c_str());
+	}
+
+	// return to menu
 	if (CellInput->IsButtonPressed(i, CTRL_L3) && CellInput->IsButtonPressed(i, CTRL_R3))
 	{
+		VbaEmulationSystem.emuWriteBattery(Emulator_MakeFName(FILETYPE_BATTERY).c_str());
+
 		Emulator_StopROMRunning();
 		Emulator_SwitchMode(MODE_MENU);
 	}

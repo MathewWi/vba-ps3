@@ -4,6 +4,9 @@
  *  Created on: Nov 13, 2010
  *      Author: halsafar
  */
+#include <string>
+#include <sstream>
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +21,6 @@
 #include <cell/sysmodule.h>
 #include <cell/cell_fs.h>
 #include <cell/pad.h>
-
 
 #include "vba/Util.h"
 #include "vba/gba/GBA.h"
@@ -67,6 +69,9 @@ bool rom_loaded = false;
 
 // current rom being emulated
 string current_rom;
+
+// cart type
+IMAGE_TYPE cartridgeType = IMAGE_UNKNOWN;
 
 
 struct EmulatedSystem VbaEmulationSystem =
@@ -118,7 +123,7 @@ void Emulator_Shutdown()
 	// ...
 	if (rom_loaded)
 	{
-
+		VbaEmulationSystem.emuWriteBattery(Emulator_MakeFName(FILETYPE_BATTERY).c_str());
 	}
 
 	//add saving back of conf file
@@ -298,7 +303,7 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 	{
 		int srcWidth = 0;
 		int srcHeight = 0;
-		int srcPitch = 0;
+		//int srcPitch = 0;
 
 		current_rom = rom;
 
@@ -306,6 +311,9 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 
 		if (utilIsGBImage(rom.c_str()))
 		{
+	        // Port - init system (startime, palettes, etc) FIXME: startime should be set more accurately, fix once gb doesnt crash
+	        systemInit();
+
 			gbCleanUp();
 
 			if (!gbLoadRom(rom.c_str()))
@@ -314,6 +322,7 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 				Emulator_Shutdown();
 			}
 
+			cartridgeType = IMAGE_GB;
 			VbaEmulationSystem = GBSystem;
 
             gbBorderOn = 0; // GB borders always off
@@ -335,10 +344,7 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
                     gbBorderRowSkip = 0;
             }
 
-            srcPitch = 324;
-
-            // Port - init system (startime, palettes, etc) FIXME: startime should be set more accurately, fix once gb doesnt crash
-            systemInit();
+            //srcPitch = 324;
 
             //gbSetPalette(0);
 
@@ -354,23 +360,31 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 		}
 		else if (utilIsGBAImage(rom.c_str()))
 		{
+	        // Port - init system (startime, palettes, etc) FIXME: startime should be set more accurately, fix once gb doesnt crash
+	        systemInit();
+
 			if (!CPULoadRom(rom.c_str()))
 			{
 				LOG("FAILED to GBA load rom\n");
 				Emulator_Shutdown();
 			}
 
+			cartridgeType = IMAGE_GBA;
 			VbaEmulationSystem = GBASystem;
 
             srcWidth = 240;
             srcHeight = 160;
-            srcPitch = 484;
-            soundSetSampleRate(22050); //44100 / 2
+            //srcPitch = 484;
+
+            soundSetSampleRate(44100); //22050
+
             cpuSaveType = 0;
 
-            CPUReset();
-            soundReset();
+            CPUInit("", false);
 
+            CPUReset();
+
+            soundReset();
         	soundInit();
 		}
 		else
@@ -382,7 +396,7 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 		// ROM SUCCESSFULLY LOADED AT THIS POINT
 
     	// PORT - init graphics for this rom
-    	Graphics->SetDimensions(srcWidth, srcHeight, (srcPitch)*4);
+    	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
 
     	Rect r;
     	r.x = 0;
@@ -393,9 +407,6 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
     	Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
 
     	Graphics->UpdateCgParams(srcWidth, srcHeight, srcWidth, srcHeight);
-
-		// load battery ram
-		// FIXME: load battery
 
 		rom_loaded = true;
 		LOG("Successfully loaded rom!\n");
@@ -415,6 +426,12 @@ void Emulator_StopROMRunning()
 void Emulator_StartROMRunning()
 {
 	Emulator_SwitchMode(MODE_EMULATION);
+}
+
+
+IMAGE_TYPE Emulator_GetVbaCartType()
+{
+	return cartridgeType;
 }
 
 
@@ -443,63 +460,50 @@ void Emulator_GraphicsInit()
 		Emulator_Shutdown();
 	}
 
-	LOG("Emulator_GraphicsInit->Setting Dimensions\n");
-    // PS3 - setup graphics for GB
-	Graphics->SetDimensions(160, 144, (256*4) + 4);
-
-	Rect r;
-	r.x = 0;
-	r.y = 0;
-	r.w = 160;
-	r.h = 144;
-	Graphics->SetRect(r);
-	Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
-
-	Graphics->UpdateCgParams(160, 144, 160, 144);
-
 	LOG("Emulator_GraphicsInit->InitDebug Font\n");
 	Graphics->InitDbgFont();
 }
 
 
-void Input_SetVbaInput()
+string Emulator_MakeFName(Emulator_FileTypes type)
 {
+	LOG_DBG("Emulator_MakeFName(%s, %d)\n", current_rom.c_str(), type);
 
+	// strip out the filename from the path
+	string fn = current_rom.substr(0, current_rom.find_last_of('.'));
+	fn = fn.substr(fn.find_last_of('/')+1);
+
+	std::stringstream ss;
+	switch (type)
+	{
+		case FILETYPE_STATE:
+			ss << EMULATOR_PATH_STATES << fn << current_state_save << ".sgm";
+			fn = ss.str();
+			break;
+		case FILETYPE_BATTERY:
+			ss << EMULATOR_PATH_STATES << fn << ".sav";
+			fn = ss.str();
+			break;
+		case FILETYPE_PNG:
+			ss << EMULATOR_PATH_STATES << fn << ".png";
+			fn = ss.str();
+			break;
+		case FILETYPE_BMP:
+			ss << EMULATOR_PATH_STATES << fn << ".bmp";
+			fn = ss.str();
+			break;
+		default:
+			break;
+	}
+
+	LOG("fn: %s\n", fn.c_str());
+	return fn;
 }
 
 
 void UpdateInput()
 {
-	/*for (int i = 0; i < CellInput->NumberPadsConnected(); i++)
-	{
-		if (CellInput->UpdateDevice(i) != CELL_PAD_OK)
-		{
-			continue;
-		}
 
-		if (CellInput->IsButtonPressed(i, CTRL_L3) && CellInput->IsButtonPressed(i, CTRL_R3))
-		{
-			Emulator_StopROMRunning();
-			Emulator_SwitchMode(MODE_MENU);
-		}
-	}*/
-}
-
-
-// FCEU quirk. 16-bit integer are embedded into a 32-bit int ...
-static void Emulator_Convert_Samples(float * __restrict__ out, const int32_t * __restrict__ in, size_t frames)
-{
-   union {
-      const int32_t *i32;
-      const int16_t *i16;
-   } u;
-   u.i32 = in;
-
-   for (size_t i = 0; i < frames * 2; i+=2)
-   {
-      out[i] = (float)u.i16[i+1] / 0x7FFF;
-      out[i + 1] = (float)u.i16[i+1] / 0x7FFF;
-   }
 }
 
 
@@ -517,8 +521,8 @@ void EmulationLoop()
 		return;
 	}
 
-	// set fceu input
-	Input_SetVbaInput();
+	// Load the battery of the rom
+	VbaEmulationSystem.emuReadBattery(Emulator_MakeFName(FILETYPE_BATTERY).c_str());
 
 	// FIXME: implement for real
 	int fskip = 0;
@@ -530,8 +534,6 @@ void EmulationLoop()
 	emulation_running = true;
 	while (emulation_running)
 	{
-		UpdateInput();
-
 		VbaEmulationSystem.emuMain(VbaEmulationSystem.emuCount);
 
 		//Graphics->Swap();
