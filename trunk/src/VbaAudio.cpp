@@ -7,6 +7,15 @@
 
 #include "VbaAudio.h"
 
+namespace Internal {
+   static void Emulator_Convert_Samples(float * out, unsigned, const int16_t *in, size_t frames)
+   {
+      for (size_t i = 0; i < frames * 2; i++)
+      {
+         out[i] = (float)(in[i]) / 0x3000;
+      }
+   }
+}
 
 
 VbaAudio::VbaAudio()
@@ -14,8 +23,6 @@ VbaAudio::VbaAudio()
 	LOG_DBG("VbaAudio()\n");
 
 	_cellAudio = NULL;
-	//CellAudio = new Audio::AudioPort<int32_t>(1, AUDIO_INPUT_RATE);
-	//CellAudio->set_float_conv_func(Emulator_Convert_Samples);
 }
 
 
@@ -40,8 +47,8 @@ bool VbaAudio::init(long sampleRate)
 		_cellAudio = NULL;
 	}
 
-	//_cellAudio = new Audio::AudioPort<u16>(1, sampleRate);
-	//_cellAudio->set_float_conv_func(Emulator_Convert_Samples);
+	_cellAudio = new Audio::AudioPort<int16_t>(2, sampleRate);
+	//_cellAudio->set_float_conv_func(Internal::Emulator_Convert_Samples);
 }
 
 
@@ -65,5 +72,5 @@ void VbaAudio::resume()
 
 void VbaAudio::write(u16 * finalWave, int length)
 {
-	//_cellAudio->write((u16*)finalWave, length);
+	_cellAudio->write((s16*)finalWave, length / 2);
 }

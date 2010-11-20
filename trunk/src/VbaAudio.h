@@ -14,6 +14,7 @@
 
 #include "cellframework/logger/Logger.h"
 #include "cellframework/audio/audioport.hpp"
+#include "cellframework/audio/rsound.hpp"
 
 
 class VbaAudio : public SoundDriver
@@ -28,7 +29,7 @@ public:
 	void resume(); // resume the secondary sound buffer
 	void write(u16 * finalWave, int length);  // write the emulated sound to the secondary sound buffer
 private:
-	Audio::Stream<u16> *_cellAudio;
+	Audio::Stream<int16_t> *_cellAudio;
 };
 
 

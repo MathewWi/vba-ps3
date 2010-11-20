@@ -48,7 +48,8 @@ float soundFiltering     = 0.5f;
 int   SOUND_CLOCK_TICKS  = SOUND_CLOCK_TICKS_;
 int   soundTicks         = SOUND_CLOCK_TICKS_;
 
-static float soundVolume     = 1.0f;
+//static float soundVolume     = 1.0f;
+static float soundVolume = 0.8f;
 static int soundEnableFlag   = 0x3ff; // emulator channels enabled
 static float soundFiltering_ = -1;
 static float soundVolume_    = -1;
