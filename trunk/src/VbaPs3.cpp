@@ -34,12 +34,15 @@
 #include "VbaPs3.h"
 #include "VbaMenu.h"
 
+#include "cellframework/utility/OSKUtil.h"
+
 #define SYS_CONFIG_FILE "/dev_hdd0/game/VBAM90000/USRDIR/vba.conf"
 
 SYS_PROCESS_PARAM(1001, 0x10000);
 
 VbaGraphics* Graphics = NULL;
 CellInputFacade* CellInput = NULL;
+OSKUtil* oskutil = NULL;
 
 ConfigFile	*currentconfig = NULL;
 
@@ -116,6 +119,16 @@ void Emulator_SwitchMode(Emulator_Modes m)
 	mode_switch = m;
 }
 
+void Emulator_OSKStart(const wchar_t* msg, const wchar_t* init)
+{
+	oskutil->Start(msg,init);
+}
+
+const char * Emulator_OSKOutputString()
+{
+	return oskutil->OutputString();
+}
+
 
 void Emulator_Shutdown()
 {
@@ -141,6 +154,9 @@ void Emulator_Shutdown()
 
 	if (Graphics)
 		delete Graphics;
+
+	if (oskutil)
+		delete oskutil;
 
 	LOG_CLOSE();
 
@@ -206,6 +222,24 @@ bool Emulator_InitSettings()
 	}
 	Graphics->SetSmooth(Settings.PS3Smooth);
 
+	if (currentconfig->Exists("PS3General::OverscanEnabled"))
+	{
+		Settings.PS3OverscanEnabled	= currentconfig->GetBool("PS3General::OverscanEnabled");
+	}
+	else
+	{
+		Settings.PS3OverscanEnabled	= false;
+	}
+	if (currentconfig->Exists("PS3General::OverscanAmount"))
+	{
+		Settings.PS3OverscanAmount	= currentconfig->GetInt("PS3General::OverscanAmount");
+	}
+	else
+	{
+		Settings.PS3OverscanAmount	= 0;
+	}
+	Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+
 	if (currentconfig->Exists("VBA::Controlstyle"))
 	{
 		Settings.ControlStyle = currentconfig->GetInt("VBA::Controlstyle");
@@ -222,6 +256,33 @@ bool Emulator_InitSettings()
 	else
 	{
 		Graphics->LoadFragmentShader(DEFAULT_SHADER_FILE);
+	}
+	if (currentconfig->Exists("PS3General::PS3PALTemporalMode60Hz"))
+	{
+		Settings.PS3PALTemporalMode60Hz = currentconfig->GetBool("PS3General::PS3PALTemporalMode60Hz");
+		Graphics->SetPAL60Hz(Settings.PS3PALTemporalMode60Hz);
+	}
+	else
+	{
+		Settings.PS3PALTemporalMode60Hz = false;
+		Graphics->SetPAL60Hz(Settings.PS3PALTemporalMode60Hz);
+	}
+	//RSound Settings
+	if(currentconfig->Exists("RSound::RSoundEnabled"))
+	{
+		Settings.RSoundEnabled		= currentconfig->GetBool("RSound::RSoundEnabled");
+	}
+	else
+	{
+		Settings.RSoundEnabled		= false;
+	}
+	if(currentconfig->Exists("RSound::RSoundServerIPAddress"))
+	{
+		Settings.RSoundServerIPAddress	= currentconfig->GetString("RSound::RSoundServerIPAddress");
+	}
+	else
+	{
+		Settings.RSoundServerIPAddress = "0.0.0.0";
 	}
 	// PS3 Path Settings
 	/*
@@ -260,8 +321,13 @@ bool Emulator_SaveSettings()
 	{
 		currentconfig->SetBool("PS3General::KeepAspect",Settings.PS3KeepAspect);
 		currentconfig->SetBool("PS3General::Smooth", Settings.PS3Smooth);
+		currentconfig->SetBool("PS3General::OverscanEnabled", Settings.PS3OverscanEnabled);
+		currentconfig->SetInt("PS3General::OverscanAmount",Settings.PS3OverscanAmount);
+		currentconfig->SetBool("PS3General::PS3PALTemporalMode60Hz",Settings.PS3PALTemporalMode60Hz);
 		currentconfig->SetInt("VBA::Controlstyle",Settings.ControlStyle);
 		currentconfig->SetString("VBA::Shader",Graphics->GetFragmentShaderPath());
+		currentconfig->SetString("RSound::RSoundServerIPAddress",Settings.RSoundServerIPAddress);
+		currentconfig->SetBool("RSound::RSoundEnabled",Settings.RSoundEnabled);
 		return currentconfig->SaveTo(SYS_CONFIG_FILE);
 	}
 }
@@ -404,7 +470,6 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
     	r.w = srcWidth;
     	r.h = srcHeight;
     	Graphics->SetRect(r);
-    	Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
 
     	Graphics->UpdateCgParams(srcWidth, srcHeight, srcWidth, srcHeight);
 
@@ -563,6 +628,14 @@ void sysutil_exit_callback (uint64_t status, uint64_t param, void *userdata) {
 		case CELL_SYSUTIL_DRAWING_BEGIN:
 		case CELL_SYSUTIL_DRAWING_END:
 			break;
+		case CELL_SYSUTIL_OSKDIALOG_LOADED:
+			break;
+		case CELL_SYSUTIL_OSKDIALOG_FINISHED:
+			oskutil->Stop();
+			break;
+		case CELL_SYSUTIL_OSKDIALOG_UNLOADED:
+			oskutil->Close();
+			break;
 	}
 }
 
@@ -585,14 +658,16 @@ int main()
 	CellInput = new CellInputFacade();
 	CellInput->Init();
 
+	oskutil = new OSKUtil();
+
 	Emulator_VbaInit();
 
-	// load settings
-	/*currentconfig = new ConfigFile();
+	//load settings
+	currentconfig = new ConfigFile();
 	if(Emulator_InitSettings())
 	{
 		load_settings = false;
-	}*/
+	}
 
 	// main loop
 	while(1)

@@ -21,7 +21,10 @@
 
 VbaGraphics::VbaGraphics() : PSGLGraphics(), gl_buffer(NULL), vertex_buf(NULL)
 {
-
+	m_smooth = true;
+	m_pal60Hz = false;
+	m_overscan = false;
+	m_overscan_amount = 0.0f;
 }
 
 
@@ -198,54 +201,159 @@ void VbaGraphics::DbgPrintf(const char *fmt, ...) const
    Sleep(600000);
 }
 
+int VbaGraphics::CheckResolution(uint32_t resId)
+{
+	return cellVideoOutGetResolutionAvailability(CELL_VIDEO_OUT_PRIMARY, resId, CELL_VIDEO_OUT_ASPECT_AUTO,0);
+}
+
+int VbaGraphics::AddResolution(uint32_t resId)
+{
+	supportedResolutions.push_back(resId);
+}
+
+void VbaGraphics::NextResolution()
+{
+	LOG("VbaGraphics::NextResolution()\n");
+	LOG("supportedResolutions size: %d\n", supportedResolutions.size());
+	if(currentResolution+1 < supportedResolutions.size())
+	{
+		currentResolution++;
+		LOG("currentResolution: %d\n", currentResolution);
+	}
+}
+
+void VbaGraphics::PreviousResolution()
+{
+	LOG("VbaGraphics::NextResolution()\n");
+	LOG("supportedResolutions size: %d\n", supportedResolutions.size());
+	if(currentResolution > 0)
+	{
+		currentResolution--;
+		LOG("currentResolution: %d\n", currentResolution);
+	}
+}
+
+void VbaGraphics::SwitchResolution()
+{
+	if(CheckResolution(supportedResolutions[currentResolution]))
+	{
+		ChangeResolution(supportedResolutions[currentResolution]);
+	}
+}
+
+void VbaGraphics::SwitchResolution(uint32_t resId)
+{
+	if(CheckResolution(resId))
+	{
+		ChangeResolution(resId);
+	}
+}
+
+uint32_t VbaGraphics::GetInitialResolution()
+{
+	return initialResolution;
+}
+
+uint32_t VbaGraphics::GetCurrentResolution()
+{
+	return supportedResolutions[currentResolution];
+}
+
+void VbaGraphics::GetAllAvailableResolutions()
+{
+	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_576))
+	{
+		AddResolution(CELL_VIDEO_OUT_RESOLUTION_576);
+		initialResolution = CELL_VIDEO_OUT_RESOLUTION_576;
+	}
+	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_480))
+	{
+		AddResolution(CELL_VIDEO_OUT_RESOLUTION_480);
+		initialResolution = CELL_VIDEO_OUT_RESOLUTION_480;
+	}
+	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_720))
+	{
+		AddResolution(CELL_VIDEO_OUT_RESOLUTION_720);
+		initialResolution = CELL_VIDEO_OUT_RESOLUTION_720;
+	}
+	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_960x1080))
+	{
+		AddResolution(CELL_VIDEO_OUT_RESOLUTION_960x1080);
+		initialResolution = CELL_VIDEO_OUT_RESOLUTION_960x1080;
+	}
+	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_1280x1080))
+	{
+		AddResolution(CELL_VIDEO_OUT_RESOLUTION_1280x1080);
+		initialResolution = CELL_VIDEO_OUT_RESOLUTION_1280x1080;
+	}
+	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_1440x1080))
+	{
+		AddResolution(CELL_VIDEO_OUT_RESOLUTION_1440x1080);
+		initialResolution = CELL_VIDEO_OUT_RESOLUTION_1440x1080;
+	}
+	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_1600x1080))
+	{
+		AddResolution(CELL_VIDEO_OUT_RESOLUTION_1600x1080);
+		initialResolution = CELL_VIDEO_OUT_RESOLUTION_1600x1080;
+	}
+	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_1080))
+	{
+		AddResolution(CELL_VIDEO_OUT_RESOLUTION_1080);
+		initialResolution = CELL_VIDEO_OUT_RESOLUTION_1080;
+	}
+	currentResolution = supportedResolutions.size()-1;
+}
 
 CellVideoOutState VbaGraphics::GetVideoOutState()
 {
 	return _videoOutState;
 }
 
-
-int32_t VbaGraphics::ChangeResolution(uint32_t resId, uint16_t refreshrateId)
+int32_t VbaGraphics::ChangeResolution(uint32_t resId)
 {
+	LOG("VbaGraphics::ChangeResolution(%d)\n", resId);
 	int32_t ret;
 	CellVideoOutState video_state;
 	CellVideoOutConfiguration video_config;
 	CellVideoOutResolution resolution;
-	uint32_t depth_pitch;
-
+	
 	cellVideoOutGetState(CELL_VIDEO_OUT_PRIMARY, 0, &video_state);
-	video_state.displayMode.refreshRates = refreshrateId;
 	video_state.displayMode.resolutionId = resId;
 	cellVideoOutGetResolution(video_state.displayMode.resolutionId, &resolution);
-
-	depth_pitch = resolution.width * 4;
-
+	
 	memset(&video_config, 0, sizeof(CellVideoOutConfiguration));
-
-	video_config.resolutionId = video_state.displayMode.resolutionId;
+	
+	video_config.resolutionId = resId;
 	video_config.format = CELL_VIDEO_OUT_BUFFER_COLOR_FORMAT_X8R8G8B8;
 	video_config.aspect = video_state.displayMode.aspect;
-	video_config.pitch = resolution.width * 4;
-
-	// just bring down it anyway
-	this->DeinitDbgFont();
-	this->DeInit();
-
+	video_config.pitch = resolution.width << 2;
+	
+	Deinit();
+	
 	ret = cellVideoOutConfigure(CELL_VIDEO_OUT_PRIMARY, &video_config, NULL, 0);
-	if (ret != CELL_OK)
+	if(ret != CELL_OK)
 	{
 		return ret;
 	}
+	
+	Init(resId);
+	PSGLGraphics::InitDbgFont();
+	cellVideoOutGetState(CELL_VIDEO_OUT_PRIMARY, 0, &stored_video_state);
 }
 
-
-void VbaGraphics::Init()
+void VbaGraphics::PSGLInit()
 {
-	LOG("VbaGraphics::Init()");
-	PSGLGraphics::Init();
-
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_VSYNC_SCE);
+
+	uint32_t ret = InitCg();
+	if (ret != CELL_OK)
+	{
+		LOG("Failed to InitCg: %d", __LINE__);
+	}
+
+	//FIXME: Change to SetViewports?
+	set_aspect();
 
 	vertex_buf = (uint8_t*)memalign(128, 256);
 	assert(vertex_buf);
@@ -288,15 +396,41 @@ void VbaGraphics::Init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glBindBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE, pbo);
-	SetSmooth(true);
+	SetSmooth(m_smooth);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	Clear();
 	Swap();
+}
+
+void VbaGraphics::Init()
+{
+	LOG("VbaGraphics::Init()");
+	PSGLGraphics::Init(NULL, m_pal60Hz);
+	PSGLInit();
 
 	// snag the video out state
 	cellVideoOutGetState(CELL_VIDEO_OUT_PRIMARY, 0, &_videoOutState);
+	GetAllAvailableResolutions();
+}
+
+//FIXME: Ported over verbatim from Fceu. Might require additional changes
+void VbaGraphics::Init(uint32_t resId)
+{
+	LOG("VbaGraphics::Init(%d, %d)", resId, m_pal60Hz);
+	PSGLGraphics::Init(resId, m_pal60Hz);
+	PSGLInit();
+
+	SetDimensions(240, 160, (240)* 4);
+
+	Rect r;
+	r.x = 0;
+	r.y = 0;
+	r.w = 240;
+	r.h = 160;
+	SetRect(r);
+	SetAspectRatio(m_ratio);
 }
 
 
@@ -352,8 +486,15 @@ int32_t VbaGraphics::InitCg()
 		LOG("Error Creating Cg Context\n");
 		return 1;
 	}
-
-	return LoadFragmentShader(DEFAULT_SHADER_FILE);
+	if (strlen(_curFragmentShaderPath.c_str()) > 0)
+	{
+		return LoadFragmentShader(_curFragmentShaderPath.c_str());
+	}
+	else
+	{
+		_curFragmentShaderPath = DEFAULT_SHADER_FILE;
+		return LoadFragmentShader(_curFragmentShaderPath.c_str());
+	}
 }
 
 
@@ -409,19 +550,29 @@ void VbaGraphics::UpdateCgParams(unsigned width, unsigned height, unsigned tex_w
 	cgGLSetParameter2f(_cgpOutputSize, _cgViewWidth, _cgViewHeight);
 }
 
+void VbaGraphics::SetPAL60Hz(bool pal60Hz)
+{
+	m_pal60Hz = pal60Hz;
+}
 
 void VbaGraphics::SetSmooth(bool smooth)
 {
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, smooth ? GL_LINEAR : GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, smooth ? GL_LINEAR : GL_NEAREST);
+	m_smooth = smooth;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, smooth ? GL_LINEAR : GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, smooth ? GL_LINEAR : GL_NEAREST);
+}
+
+void VbaGraphics::SetOverscan(bool will_overscan, float amount)
+{
+	LOG("VbaGraphics::SetOverscan(%, %f)", will_overscan, amount);
+	m_overscan_amount = amount;
+	m_overscan = will_overscan;
+	set_aspect();
 }
 
 
 void VbaGraphics::set_aspect()
 {
-	bool overscan = false;
-	float overscan_amount = 0.0f;
-
 	float device_aspect = this->GetDeviceAspectRatio();
 	GLuint width = this->GetResolutionWidth();
 	GLuint height = this->GetResolutionHeight();
@@ -454,9 +605,9 @@ void VbaGraphics::set_aspect()
 		glViewport(0, 0, width, height);
 	}
 
-	if (overscan)
+	if (m_overscan)
 	{
-		glOrthof(-overscan_amount/2, 1 + overscan_amount/2, -overscan_amount/2, 1 + overscan_amount/2, -1, 1);
+		glOrthof(-m_overscan_amount/2, 1 + m_overscan_amount/2, -m_overscan_amount/2, 1 + m_overscan_amount/2, -1, 1);
 	}
 	else
 	{

@@ -46,6 +46,9 @@ void Emulator_Shutdown();
 void Emulator_StopROMRunning();
 void Emulator_StartROMRunning();
 
+void Emulator_OSKStart(const wchar_t* msg, const wchar_t* init);
+const char * Emulator_OSKOutputString();
+
 bool Emulator_Snes9xInitialized();
 bool Emulator_RomRunning();
 

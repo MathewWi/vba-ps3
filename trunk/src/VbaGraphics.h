@@ -9,6 +9,7 @@
 #define VbaGraphics_H_
 
 #include <string>
+#include <vector>
 using namespace std;
 
 #include <sys/types.h>
@@ -18,6 +19,7 @@ using namespace std;
 #include "cellframework/graphics/GraphicsTypes.h"
 #include "cellframework/graphics/PSGLGraphics.h"
 
+// FIXME: Old copy-paste cruft from FCEU
 #define FCEU_RENDER_TEXTURE_WIDTH (256.0)
 #define FCEU_RENDER_TEXTURE_HEIGHT (256.0)
 
@@ -72,12 +74,14 @@ public:
 
 	void SetAspectRatio(float ratio);
 	void SetSmooth(bool smooth);
+	void SetPAL60Hz(bool pal60Hz);
 	void Clear() const;
 	void Draw() const;
 	void Draw(uint8_t *XBuf);
 	void FlushDbgFont() const;
 	void Swap() const;
 	void Init();
+	void Init(uint32_t resId);
 	void DeInit();
 	void Printf(float x, float y, const char *fmt, ...) const;
 	void DbgPrintf(const char *fmt, ...) const;
@@ -86,21 +90,38 @@ public:
 	string GetFragmentShaderPath() { return _curFragmentShaderPath; }
 	CellVideoOutState GetVideoOutState();
 
-	int32_t ChangeResolution(uint32_t resId, uint16_t refreshrateId);
-
+	int CheckResolution(uint32_t resId);
+	void SwitchResolution();
+	void SwitchResolution(uint32_t resId);
+	uint32_t GetInitialResolution();
+	uint32_t GetCurrentResolution();
+	void PreviousResolution();
+	void NextResolution();
+	int AddResolution(uint32_t resId);
+	void SetOverscan(bool overscan, float amount = 0.0f);
 	int32_t InitCg();
 	int32_t LoadFragmentShader(string shaderPath);
 	void UpdateCgParams(unsigned width, unsigned height, unsigned tex_width, unsigned tex_height);
 
 	pcpal Palette[256];
 private:
+	void PSGLInit();
+	CellVideoOutState stored_video_state;
 	CellVideoOutState _videoOutState;
-
+	void GetAllAvailableResolutions();
+	int32_t ChangeResolution(uint32_t resId);
+	std::vector<uint32_t> supportedResolutions;
+	int currentResolution;
+	uint32_t initialResolution;
 	unsigned m_width;
 	unsigned m_height;
 	unsigned m_pitch;
+	bool m_overscan;
+	float m_overscan_amount;
 	uint32_t *m_pixels;
 	float m_ratio;
+	bool m_smooth;
+	bool m_pal60Hz;
 	GLuint pbo, vbo;
 	uint32_t *gl_buffer;
 	uint8_t *vertex_buf;

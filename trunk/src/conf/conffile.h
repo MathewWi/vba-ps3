@@ -408,6 +408,11 @@ struct SSettings
 	bool	PS3KeepAspect;
 	bool	PS3Smooth;
 
+	bool		PS3OverscanEnabled;
+	int		PS3OverscanAmount;
+	bool		PS3PALTemporalMode60Hz;
+	int		PS3FontSize;
+
 	//FCEU additions
 	int	ControlStyle;
 
@@ -415,6 +420,9 @@ struct SSettings
 	char	PS3PathSRAM[128];
 	char	PS3PathScreenshots[128];
 	char	PS3PathROMDirectory[128];
+
+	bool		RSoundEnabled;
+	const char * 	RSoundServerIPAddress;
 };
 
 extern struct SSettings			Settings;

@@ -40,6 +40,7 @@ SOURCES		:=	$(VBA_API_DIR)/ $(VBA_API_DIR)/gb $(VBA_API_DIR)/gba \
 				$(CELL_FRAMEWORK_DIR)/graphics $(CELL_FRAMEWORK_DIR)/input $(CELL_FRAMEWORK_DIR)/audio \
 				$(CELL_FRAMEWORK_DIR)/threads $(CELL_FRAMEWORK_DIR)/logger $(CELL_FRAMEWORK_DIR)/network \
 				$(CELL_FRAMEWORK_DIR)/fileio \
+				$(CELL_FRAMEWORK_DIR)/utility \
 				$(SRC_DIR)/ $(SRC_DIR)/conf \
 				$(UTIL_DIR)/ $(UTIL_DIR)/7z_C $(UTIL_DIR)/zlib $(UTIL_DIR)/fex \
 				$(UTIL_DIR)/libpng $(UTIL_DIR)/SFML/src/SFML/Network $(UTIL_DIR)/SFML/src/SFML/Network/Unix

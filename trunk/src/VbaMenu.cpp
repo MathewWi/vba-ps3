@@ -47,9 +47,6 @@ typedef void (*curMenuPtr)();
 // menu stack
 std::stack<curMenuPtr> menuStack;
 
-// initial resolution
-static uint8_t initial_resolution = 0;
-
 // is the menu running
 bool menuRunning = false;
 
@@ -218,14 +215,6 @@ void do_pathChoice()
 // // return to ROM menu by pressing the CIRCLE button
 void do_settings()
 {
-	CellVideoOutState video_state;
-	int current_resolution;
-	if(initial_resolution == 0)
-	{
-		video_state = Graphics->GetVideoOutState();
-		initial_resolution = video_state.displayMode.resolutionId;
-	}
-
 	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
 	{
 		// back to ROM menu if CIRCLE is pressed
@@ -270,104 +259,26 @@ void do_settings()
 				break;
 
 			case SETTING_CHANGE_RESOLUTION:
-			   current_resolution = Graphics->GetVideoOutState().displayMode.resolutionId;
-			   if(CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
-			   {
-				   switch(initial_resolution)
-				   {
-					   case CELL_VIDEO_OUT_RESOLUTION_480:
-						   break;
-					  case CELL_VIDEO_OUT_RESOLUTION_720:
-						  break;
-					  case CELL_VIDEO_OUT_RESOLUTION_1080:
-						  if (current_resolution == CELL_VIDEO_OUT_RESOLUTION_720)
-						  {
-							  Emulator_SaveSettings();
-							  if (Graphics->ChangeResolution(CELL_VIDEO_OUT_RESOLUTION_1080, CELL_VIDEO_OUT_REFRESH_RATE_59_94HZ) != CELL_OK)
-							  {
-								  Emulator_Shutdown();
-							  }
-							  Emulator_GraphicsInit();
-							  Emulator_InitSettings();
-						  }
-						  if (current_resolution == CELL_VIDEO_OUT_RESOLUTION_480)
-						  {
-							  Emulator_SaveSettings();
-							  if (Graphics->ChangeResolution(CELL_VIDEO_OUT_RESOLUTION_720, CELL_VIDEO_OUT_REFRESH_RATE_59_94HZ) != CELL_OK)
-							  {
-								  Emulator_Shutdown();
-							  }
-							  Emulator_GraphicsInit();
-							  Emulator_InitSettings();
-						  }
-						  break;
-					  case CELL_VIDEO_OUT_RESOLUTION_576:
-						  break;
-					  case CELL_VIDEO_OUT_RESOLUTION_1600x1080:
-						  break;
-					  case CELL_VIDEO_OUT_RESOLUTION_1440x1080:
-						  break;
-					  case CELL_VIDEO_OUT_RESOLUTION_1280x1080:
-						  break;
-					  case CELL_VIDEO_OUT_RESOLUTION_960x1080:
-						  break;
-				  }
-			   }
-			   if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK))
-			   {
-				   switch(initial_resolution)
-				   {
-					   case CELL_VIDEO_OUT_RESOLUTION_480:
-						   break;
-					   case CELL_VIDEO_OUT_RESOLUTION_720:
-						   if (current_resolution == CELL_VIDEO_OUT_RESOLUTION_720)
-						   {
-							   Emulator_SaveSettings();
-							   if (Graphics->ChangeResolution(CELL_VIDEO_OUT_RESOLUTION_480, CELL_VIDEO_OUT_REFRESH_RATE_59_94HZ) != CELL_OK)
-							   {
-								   Emulator_Shutdown();
-							   }
-							  Emulator_GraphicsInit();
-							  Emulator_InitSettings();
-						   }
-						   break;
-					   case CELL_VIDEO_OUT_RESOLUTION_1080:
-						   if (current_resolution == CELL_VIDEO_OUT_RESOLUTION_720)
-						   {
-							   Emulator_SaveSettings();
-							   if (Graphics->ChangeResolution(CELL_VIDEO_OUT_RESOLUTION_480, CELL_VIDEO_OUT_REFRESH_RATE_59_94HZ) != CELL_OK)
-							   {
-								   Emulator_Shutdown();
-							   }
-							  Emulator_GraphicsInit();
-							  Emulator_InitSettings();
-						   }
-						   if (current_resolution == CELL_VIDEO_OUT_RESOLUTION_1080)
-						   {
-							   Emulator_SaveSettings();
-							   if (Graphics->ChangeResolution(CELL_VIDEO_OUT_RESOLUTION_720, CELL_VIDEO_OUT_REFRESH_RATE_59_94HZ) != CELL_OK)
-							   {
-								   Emulator_Shutdown();
-							   }
-							  Emulator_GraphicsInit();
-							  Emulator_InitSettings();
-						   }
-						   break;
-					   case CELL_VIDEO_OUT_RESOLUTION_576:
-						   break;
-					   case CELL_VIDEO_OUT_RESOLUTION_1600x1080:
-						   break;
-					   case CELL_VIDEO_OUT_RESOLUTION_1440x1080:
-						   break;
-					   case CELL_VIDEO_OUT_RESOLUTION_1280x1080:
-						   break;
-					   case CELL_VIDEO_OUT_RESOLUTION_960x1080:
-						   break;
-				   }
-			   }
+				/* FIXME: COMMENTED OUT FOR NOW
+				if(CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK))
+				{
+					Graphics->NextResolution();
+				}
+				if(CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK))
+				{
+					Graphics->PreviousResolution();
+				}
+				if(CellInput->WasButtonPressed(0, CTRL_CROSS))
+				{
+					Graphics->SwitchResolution();
+				}
+				if(CellInput->IsButtonPressed(0, CTRL_START))
+				{
+					Graphics->SwitchResolution(Graphics->GetInitialResolution());
+				}
+				*/
 			   break;
 			case SETTING_KEEP_ASPECT_RATIO:
-				cellVideoOutGetState(CELL_VIDEO_OUT_PRIMARY, 0, &video_state);
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) || CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
 				{
 					Settings.PS3KeepAspect = !Settings.PS3KeepAspect;
@@ -431,33 +342,39 @@ void do_settings()
 
 	cellDbgFontPuts(0.05f, 0.09f, FONT_SIZE, currently_selected_setting == SETTING_CHANGE_RESOLUTION ? YELLOW : WHITE, "Resolution");
 
-	// get the video state again with new resolution
-	cellVideoOutGetState(CELL_VIDEO_OUT_PRIMARY, 0, &video_state);
-	switch(video_state.displayMode.resolutionId)
+	switch(Graphics->GetCurrentResolution())
 	{
 		case CELL_VIDEO_OUT_RESOLUTION_480:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, GREEN, "480");
+			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_480 ? GREEN : RED, "480p (59.94Hz)");
+			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_720:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, GREEN, "720");
+			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_720 ? GREEN : RED, "720p (59.94Hz)");
+			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, GREEN, "1080");
+			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1080 ? GREEN : RED, "1080p (59.94Hz)");
+			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_576:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, GREEN, "576");
+			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_576 ? GREEN : RED, "576p (50Hz)");
+			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1600x1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, GREEN, "1600x1080");
+			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1600x1080 ? GREEN : RED, "1600x1080");
+			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1440x1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, GREEN, "1440x1080");
+			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1440x1080 ? GREEN : RED, "1440x1080");
+			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1280x1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, GREEN, "1280x1080");
+			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1280x1080 ? GREEN : RED, "1280x1080");
+			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_960x1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, GREEN, "960x1080");
+			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_960x1080 ? GREEN : RED, "960x1080");
+			Graphics->FlushDbgFont();
 			break;
 	}
 	Graphics->FlushDbgFont();
