@@ -177,9 +177,7 @@ void do_shaderChoice()
 
 				// load shader
 				Graphics->LoadFragmentShader(path);
-				//FIXME: This is hardcoded for Game Boy/Game Boy Color resolutions at the moment apparently
-				//160x144 is the GB's resolution, 240x160 is the GBA's resolution
-				Graphics->UpdateCgParams(160, 144, 160, 144);
+				Graphics->UpdateCgParams();
 
 				menuStack.pop();
 			}
