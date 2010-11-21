@@ -372,9 +372,6 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 
 		if (utilIsGBImage(filename.c_str()))
 		{
-			// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
-	        systemInit();
-
 			if (!gbLoadRom(filename.c_str()))
 			{
 				LOG("FAILED to GB load rom...\n");
@@ -383,12 +380,12 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 
 			cartridgeType = IMAGE_GB;
 			Vba = GBSystem;
+
+			// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
+	        //systemInit();
 		}
 		else if (utilIsGBAImage(filename.c_str()))
 		{
-			// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
-	        systemInit();
-
 			if (!CPULoadRom(filename.c_str()))
 			{
 				LOG("FAILED to GBA load rom\n");
@@ -397,6 +394,9 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 
 			cartridgeType = IMAGE_GBA;
 			Vba = GBASystem;
+
+			// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
+	        //systemInit();
 		}
 		else
 		{
@@ -473,6 +473,7 @@ int32_t VbaPs3::VbaInit()
         //srcPitch = 324;
 
         // VBA - init GB core and sound core
+    	soundInit();
         soundSetSampleRate(44100);
 
         gbGetHardwareType();
@@ -480,8 +481,6 @@ int32_t VbaPs3::VbaInit()
         gbSoundSetDeclicking(false);
 
         gbReset();
-
-    	soundInit();
 	}
 	else if (cartridgeType == IMAGE_GBA)
 	{
@@ -494,9 +493,6 @@ int32_t VbaPs3::VbaInit()
         srcWidth = 240;
         srcHeight = 160;
         //srcPitch = 484;
-
-        LOG("3:\n");
-        soundSetSampleRate(44100); //22050
 
         // vba - automatic type
         cpuSaveType = 0;
@@ -517,17 +513,14 @@ int32_t VbaPs3::VbaInit()
         // FIXME: take a moment to learn vba's per image settings interface
         // ie.  apparently Pokemon games need rtc enabled or anything that is based on time of day.
 
-        LOG("4:\n");
+    	soundInit();
+        soundSetSampleRate(44100); //22050
+
         CPUInit(NULL, false);
 
-        LOG("5:\n");
         CPUReset();
 
-        LOG("6:\n");
         soundReset();
-
-        LOG("7:\n");
-    	soundInit();
 	}
 	else
 	{
