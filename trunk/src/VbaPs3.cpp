@@ -502,17 +502,17 @@ int32_t VbaPs3::VbaInit()
         cpuSaveType = 0;
 
         // vba - set default flash size
-        //flashSetSize(0x10000); // 64K
+        flashSetSize(0x10000); // 64K
 
         // vba - real time clock
-        //rtcEnable(false);
+        rtcEnable(false);
 
         // vba - we explicitly do not want debug messages
-        //agbPrintEnable(false);
+        agbPrintEnable(false);
 
         // vba - default to this
-        //mirroringEnable = false;
-        //doMirroring(mirroringEnable);
+        mirroringEnable = false;
+        doMirroring(mirroringEnable);
 
         // FIXME: take a moment to learn vba's per image settings interface
         // ie.  apparently Pokemon games need rtc enabled or anything that is based on time of day.
