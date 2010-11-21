@@ -39,7 +39,7 @@
 #include "cellframework/utility/OSKUtil.h"
 
 #define SYS_CONFIG_FILE "/dev_hdd0/game/VBAM90000/USRDIR/vba.conf"
-
+SYS_PROCESS_PARAM(1001, 0x40000);
 
 
 VbaPs3* App = NULL;
