@@ -380,9 +380,6 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 
 			cartridgeType = IMAGE_GB;
 			Vba = GBSystem;
-
-			// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
-	        //systemInit();
 		}
 		else if (utilIsGBAImage(filename.c_str()))
 		{
@@ -394,9 +391,6 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 
 			cartridgeType = IMAGE_GBA;
 			Vba = GBASystem;
-
-			// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
-	        //systemInit();
 		}
 		else
 		{
@@ -449,6 +443,7 @@ int32_t VbaPs3::VbaInit()
 	{
 		//soundShutdown();
 
+		// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
         systemInit();
 
 		// FIXME: make this an option that is toggable, implement systemGbBorderOn
@@ -484,10 +479,9 @@ int32_t VbaPs3::VbaInit()
 	}
 	else if (cartridgeType == IMAGE_GBA)
 	{
-		LOG("1:\n");
 		//soundShutdown();
 
-		LOG("2:\n");
+		// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
         systemInit();
 
         srcWidth = 240;
@@ -531,7 +525,6 @@ int32_t VbaPs3::VbaInit()
 	// ROM SUCCESSFULLY LOADED AT THIS POINT
 
 	// PORT - init graphics for this rom
-	LOG("8:\n");
 	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
 
 	Rect r;
@@ -540,10 +533,8 @@ int32_t VbaPs3::VbaInit()
 	r.w = srcWidth;
 	r.h = srcHeight;
 
-	LOG("9:\n");
 	Graphics->SetRect(r);
 
-	LOG("10:\n");
 	Graphics->UpdateCgParams(srcWidth, srcHeight, srcWidth, srcHeight);
 
     vba_loaded = true;
