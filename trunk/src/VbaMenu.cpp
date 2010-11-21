@@ -30,16 +30,9 @@
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
 // if you add more settings to the screen, remember to change this value to the correct number
-#define MAX_NO_OF_SETTINGS      7
+#define MAX_NO_OF_SETTINGS      8
 
 #define NUM_ENTRY_PER_PAGE 24
-
-enum MENU_RESOLUTION_CHOICES
-{
-	RESOLUTION_480,
-	RESOLUTION_720,
-	RESOLUTION_1080
-};
 
 // function pointer for menu render functions
 typedef void (*curMenuPtr)();
@@ -184,6 +177,8 @@ void do_shaderChoice()
 
 				// load shader
 				Graphics->LoadFragmentShader(path);
+				//FIXME: This is hardcoded for Game Boy/Game Boy Color resolutions at the moment apparently
+				//160x144 is the GB's resolution, 240x160 is the GBA's resolution
 				Graphics->UpdateCgParams(160, 144, 160, 144);
 
 				menuStack.pop();
@@ -302,6 +297,42 @@ void do_settings()
 					Graphics->SetSmooth(true);
 				}
 				break;
+			case SETTING_HW_OVERSCAN_AMOUNT:
+				if(CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0,CTRL_CROSS))
+				{
+					if(Settings.PS3OverscanAmount > -40)
+					{
+						Settings.PS3OverscanAmount--;
+						Settings.PS3OverscanEnabled = true;
+						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+					}
+					if(Settings.PS3OverscanAmount == 0)
+					{
+						Settings.PS3OverscanEnabled = false;
+						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+					}
+				}
+				if(CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasAnalogPressedRight(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0,CTRL_CROSS))
+				{
+					if((Settings.PS3OverscanAmount < 40))
+					{
+						Settings.PS3OverscanAmount++;
+						Settings.PS3OverscanEnabled = true;
+						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+					}
+					if(Settings.PS3OverscanAmount == 0)
+					{
+						Settings.PS3OverscanEnabled = false;
+						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+					}
+				}
+				if(CellInput->IsButtonPressed(0, CTRL_START))
+				{
+					Settings.PS3OverscanAmount = 0;
+					Settings.PS3OverscanEnabled = false;
+					Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+				}
+				break;
 			case SETTING_CONTROL_STYLE:
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) || CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
 				{
@@ -326,9 +357,23 @@ void do_settings()
 				{
 					Settings.PS3KeepAspect = true;
 					Settings.PS3Smooth = true;
+					Settings.PS3OverscanAmount = 0;
+					Settings.PS3OverscanEnabled = false;
+					Settings.RSoundEnabled = false;
+					Settings.RSoundServerIPAddress = "0.0.0.0";
 					Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
-					Graphics->SetSmooth(true);
+					Graphics->SetSmooth(Settings.PS3Smooth);
+					Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
 					Settings.ControlStyle = CONTROL_STYLE_ORIGINAL;
+					Settings.PS3PALTemporalMode60Hz = false;
+					//FIXME: For when resolution switching works
+					/*
+					if(Graphics->CheckResolution(CELL_VIDEO_OUT_RESOLUTION_576))
+					{
+						Graphics->SetPAL60Hz(Settings.PS3PALTemporalMode60Hz);
+						Graphics->SwitchResolution();
+					}
+					*/
 				}
 				break;
 			default:
@@ -385,17 +430,23 @@ void do_settings()
 	cellDbgFontPuts(0.05f, 0.17f, FONT_SIZE, currently_selected_setting == SETTING_HW_TEXTURE_FILTER ? YELLOW : WHITE, "Hardware Filtering");
 	cellDbgFontPrintf(0.5f, 0.17f, FONT_SIZE, Settings.PS3Smooth == true ? GREEN : RED, "%s", Settings.PS3Smooth == true ? "Linear interpolation" : "Point filtering");
 
-	cellDbgFontPuts(0.05f, 0.21f, FONT_SIZE, currently_selected_setting == SETTING_CONTROL_STYLE ? YELLOW : WHITE, "Control Style");
-	cellDbgFontPrintf(0.5f, 0.21f, FONT_SIZE,
+	cellDbgFontPuts		(0.05f,	0.21f,	FONT_SIZE,	currently_selected_setting == SETTING_HW_OVERSCAN_AMOUNT ? YELLOW : WHITE,	"Overscan");
+	Graphics->FlushDbgFont();
+	cellDbgFontPrintf	(0.5f,	0.21f,	FONT_SIZE,	Settings.PS3OverscanAmount == 0 ? GREEN : RED, "%f", (float)Settings.PS3OverscanAmount/100);
+
+	Graphics->FlushDbgFont();
+
+	cellDbgFontPuts(0.05f, 0.25f, FONT_SIZE, currently_selected_setting == SETTING_CONTROL_STYLE ? YELLOW : WHITE, "Control Style");
+	cellDbgFontPrintf(0.5f, 0.25f, FONT_SIZE,
 			Settings.ControlStyle == CONTROL_STYLE_ORIGINAL ? GREEN : RED,
 			"%s", Settings.ControlStyle == CONTROL_STYLE_ORIGINAL ? "Original (X->B, O->A)" : "Better (X->A, []->B)");
 
-	cellDbgFontPuts(0.05f, 0.25f, FONT_SIZE, currently_selected_setting == SETTING_SHADER ? YELLOW : WHITE, "Shader: ");
-	cellDbgFontPrintf(0.5f, 0.25f, FONT_SIZE,
+	cellDbgFontPuts(0.05f, 0.29f, FONT_SIZE, currently_selected_setting == SETTING_SHADER ? YELLOW : WHITE, "Shader: ");
+	cellDbgFontPrintf(0.5f, 0.29f, FONT_SIZE,
 			GREEN,
 			"%s", Graphics->GetFragmentShaderPath().substr(Graphics->GetFragmentShaderPath().find_last_of('/')).c_str());
 
-	cellDbgFontPrintf(0.05f, 0.29f, FONT_SIZE, currently_selected_setting == SETTING_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");
+	cellDbgFontPrintf(0.05f, 0.33f, FONT_SIZE, currently_selected_setting == SETTING_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");
 	cellDbgFontPuts(0.01f, 0.88f, FONT_SIZE, YELLOW, "UP/DOWN - select, X/LEFT/RIGHT - change, START - default");
 	cellDbgFontPuts(0.01f, 0.92f, FONT_SIZE, YELLOW, "CIRCLE - return to menu, L2+R2 - resume game");
 	Graphics->FlushDbgFont();
