@@ -144,11 +144,7 @@ void RenderBrowser(FileBrowser* b)
 							i == current_index ? RED : (*b)[i]->d_type == CELL_FS_TYPE_DIRECTORY ? GREEN : WHITE,
 							(*b)[i]->d_name);
 
-			// draw every 10
-			if (i % 10 == 0)
-			{
-				Graphics->FlushDbgFont();
-			}
+			Graphics->FlushDbgFont();
 		}
 	}
 	Graphics->FlushDbgFont();
