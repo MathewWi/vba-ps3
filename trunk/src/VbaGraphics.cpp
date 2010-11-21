@@ -62,7 +62,7 @@ void VbaGraphics::Draw() const
 	glLoadIdentity();
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pitch/4.0, m_height, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0);
    // Dirty random hack is dirty. Check below ...
-   glTextureReferenceSCE(GL_TEXTURE_2D, 1, m_width, m_height, 0, GL_ARGB_SCE, ((unsigned)((m_pitch / 4.0) + 1)) * 4, 0);
+   glTextureReferenceSCE(GL_TEXTURE_2D, 1, m_width, m_height, 0, GL_ARGB_SCE, m_pitch, 0);
 
 	glDrawArrays(GL_QUADS, 0, 4);
 	glFlush();
@@ -79,8 +79,6 @@ void VbaGraphics::Draw(uint8_t *XBuf)
 	// get ps3 texture
 	//uint32_t* texture = MapPixels();
 
-	// calculate pitch for the VBA buffer, FIXME: verify the +1, which magically fixed it
-	unsigned pitch = (m_pitch / 4.0) + 1;
 
 	// convert VBA buf to systemDepth, which is 32
 	//u32 * palette = (u32 *)XBuf;
@@ -147,7 +145,9 @@ void VbaGraphics::SetDimensions(unsigned width, unsigned height, unsigned pitch)
 
 	m_width = width;
 	m_height = height;
-	m_pitch = pitch;
+
+	// calculate pitch for the VBA buffer, FIXME: verify the +1, which magically fixed it
+	m_pitch = ((unsigned)((pitch / 4.0) + 1)) * 4;
 
 	if (gl_buffer)
 		free(gl_buffer);
