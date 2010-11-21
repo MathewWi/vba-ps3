@@ -62,7 +62,6 @@ void VbaGraphics::Draw() const
 	glLoadIdentity();
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pitch/4.0, m_height, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0);
    // Dirty random hack is dirty. Check below ...
-   glTextureReferenceSCE(GL_TEXTURE_2D, 1, m_width, m_height, 0, GL_ARGB_SCE, m_pitch, 0);
 
 	glDrawArrays(GL_QUADS, 0, 4);
 	glFlush();
@@ -145,6 +144,7 @@ void VbaGraphics::SetDimensions(unsigned width, unsigned height, unsigned pitch)
 
 	m_width = width;
 	m_height = height;
+   SetAspectRatio((float)width / height);
 
 	// calculate pitch for the VBA buffer, FIXME: verify the +1, which magically fixed it
 	m_pitch = ((unsigned)((pitch / 4.0) + 1)) * 4;
@@ -154,6 +154,7 @@ void VbaGraphics::SetDimensions(unsigned width, unsigned height, unsigned pitch)
 	gl_buffer = (uint32_t*)memalign(128, m_height * m_pitch);
 	memset(gl_buffer, 0, m_height * m_pitch);
 	glBufferData(GL_TEXTURE_REFERENCE_BUFFER_SCE, m_height * m_pitch, gl_buffer, GL_STREAM_DRAW);
+   glTextureReferenceSCE(GL_TEXTURE_2D, 1, m_width, m_height, 0, GL_ARGB_SCE, m_pitch, 0);
 }
 
 
