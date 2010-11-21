@@ -551,6 +551,11 @@ void VbaGraphics::UpdateCgParams(unsigned width, unsigned height, unsigned tex_w
 	cgGLSetParameter2f(_cgpOutputSize, _cgViewWidth, _cgViewHeight);
 }
 
+void VbaGraphics::UpdateCgParams()
+{
+   UpdateCgParams(m_width, m_height, m_width, m_height);
+}
+
 void VbaGraphics::SetPAL60Hz(bool pal60Hz)
 {
 	m_pal60Hz = pal60Hz;

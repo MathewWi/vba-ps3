@@ -102,6 +102,7 @@ public:
 	int32_t InitCg();
 	int32_t LoadFragmentShader(string shaderPath);
 	void UpdateCgParams(unsigned width, unsigned height, unsigned tex_width, unsigned tex_height);
+	void UpdateCgParams();
 
 	pcpal Palette[256];
 private:
