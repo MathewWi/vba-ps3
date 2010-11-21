@@ -25,6 +25,8 @@
 #include "vba/Util.h"
 #include "vba/gba/GBA.h"
 #include "vba/gba/Sound.h"
+#include "vba/gba/RTC.h"
+#include "vba/gba/agbprint.h"
 #include "vba/gb/gb.h"
 #include "vba/gb/gbSound.h"
 #include "vba/gb/gbGlobals.h"
@@ -38,12 +40,12 @@
 
 #define SYS_CONFIG_FILE "/dev_hdd0/game/VBAM90000/USRDIR/vba.conf"
 
-SYS_PROCESS_PARAM(1001, 0x10000);
 
+
+VbaPs3* App = NULL;
 VbaGraphics* Graphics = NULL;
 CellInputFacade* CellInput = NULL;
 OSKUtil* oskutil = NULL;
-
 ConfigFile	*currentconfig = NULL;
 
 // VBA MUST
@@ -52,95 +54,86 @@ int emulating = 0;
 //define struct
 struct SSettings Settings;
 
-// current save slot
-int current_state_save = 0;
-
-// mode the main loop is in
-Emulator_Modes mode_switch = MODE_MENU;
-
-// is a ROM running
-bool emulation_running;
-
-// is fceu loaded
-bool vba_loaded = false;
-
-// needs settings loaded
-bool load_settings = true;
-
-// current rom loaded
-bool rom_loaded = false;
-
-// current rom being emulated
-string current_rom;
-
-// cart type
-IMAGE_TYPE cartridgeType = IMAGE_UNKNOWN;
-
-
-struct EmulatedSystem VbaEmulationSystem =
+VbaPs3::VbaPs3()
 {
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        false,
-        0
-};
+	vba_loaded = false;
+	load_settings = true;
+	rom_loaded = false;
+	cartridgeType = IMAGE_UNKNOWN;
+	mode_switch = MODE_MENU;
+	current_state_save = 0;
+	memset(&Vba, 0, sizeof(Vba));
+
+	Graphics = new VbaGraphics();
+	App->GraphicsInit();
+
+	CellInput = new CellInputFacade();
+	CellInput->Init();
+
+	oskutil = new OSKUtil();
+
+	//load settings
+	currentconfig = new ConfigFile();
+	if(App->InitSettings())
+	{
+		load_settings = false;
+	}
+}
 
 
-bool Emulator_Initialized()
+VbaPs3::~VbaPs3()
+{
+
+}
+
+
+bool VbaPs3::IsInitialized()
 {
 	return vba_loaded;
 }
 
 
-bool Emulator_IsROMLoaded()
+bool VbaPs3::IsROMLoaded()
 {
 	return rom_loaded;
 }
 
 
-bool Emulator_ROMRunning()
+bool VbaPs3::IsROMRunning()
 {
 	return emulation_running;
 }
 
 
-void Emulator_SwitchMode(Emulator_Modes m)
+void VbaPs3::SwitchMode(Emulator_Modes m)
 {
 	mode_switch = m;
 }
 
-void Emulator_OSKStart(const wchar_t* msg, const wchar_t* init)
+
+void VbaPs3::OSKStart(const wchar_t* msg, const wchar_t* init)
 {
 	oskutil->Start(msg,init);
 }
 
-const char * Emulator_OSKOutputString()
+
+const char * VbaPs3::OSKOutputString()
 {
 	return oskutil->OutputString();
 }
 
 
-void Emulator_Shutdown()
+void VbaPs3::Shutdown()
 {
 	// do any clean up... save stuff etc
 	// ...
 	if (rom_loaded)
 	{
-		VbaEmulationSystem.emuWriteBattery(Emulator_MakeFName(FILETYPE_BATTERY).c_str());
+		Vba.emuWriteBattery(this->MakeFName(FILETYPE_BATTERY).c_str());
 	}
 
 	//add saving back of conf file
-	Emulator_SaveSettings();
+	VbaPs3::SaveSettings();
 
 	// shutdown everything
 	Graphics->DeinitDbgFont();
@@ -164,9 +157,10 @@ void Emulator_Shutdown()
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_IO);
 	cellSysutilUnregisterCallback(0);
 
-	// force exit
+	// force exit --
 	exit(0);
 }
+
 
 static bool try_load_config_file (const char *fname, ConfigFile &conf)
 {
@@ -184,9 +178,10 @@ static bool try_load_config_file (const char *fname, ConfigFile &conf)
 	return (false);
 }
 
-bool Emulator_InitSettings()
+
+bool VbaPs3::InitSettings()
 {
-	LOG("Emulator_InitSettings()\n");
+	LOG("VbaPs3::InitSettings()\n");
 
 	if (currentconfig == NULL)
 	{
@@ -311,11 +306,12 @@ bool Emulator_InitSettings()
 	}
 	 */
 
-	LOG("SUCCESS - Emulator_InitSettings()\n");
+	LOG("SUCCESS - VbaPs3::InitSettings()\n");
 	return true;
 }
 
-bool Emulator_SaveSettings()
+
+bool VbaPs3::SaveSettings()
 {
 	if (currentconfig != NULL)
 	{
@@ -330,148 +326,88 @@ bool Emulator_SaveSettings()
 		currentconfig->SetBool("RSound::RSoundEnabled",Settings.RSoundEnabled);
 		return currentconfig->SaveTo(SYS_CONFIG_FILE);
 	}
+
+	return false;
 }
 
 
-int Emulator_CurrentSaveStateSlot()
+int VbaPs3::CurrentSaveStateSlot()
 {
 	return current_state_save;
 }
 
 
-void Emulator_DecrementCurrentSaveStateSlot()
+void VbaPs3::DecrementStateSlot()
 {
 	current_state_save = (current_state_save-1);
 	if (current_state_save < 0) current_state_save = 9;
-	//FIXME: add state select here
 }
 
 
-void Emulator_IncrementCurrentSaveStateSlot()
+void VbaPs3::IncrementStateSlot()
 {
 	current_state_save = (current_state_save+1) % 9;
-	//FIXME: add state select here
 }
 
 
-int Emulator_CloseGame()
+int VbaPs3::CloseROM()
 {
     if(!rom_loaded) {
-        return(0);
+        return(1);
     }
 
+    // FIXME: implement this!
+
+    return 0;
 }
 
 
-void Emulator_RequestLoadROM(string rom, bool forceReload)
+void VbaPs3::LoadROM(string filename, bool forceReload)
 {
-	if (!rom_loaded || forceReload || current_rom.empty() || current_rom.compare(rom) != 0)
+	if (!rom_loaded || forceReload || current_rom.empty() || current_rom.compare(filename) != 0)
 	{
-		int srcWidth = 0;
-		int srcHeight = 0;
-		//int srcPitch = 0;
+		current_rom = filename;
 
-		current_rom = rom;
+		this->CloseROM();
 
-		Emulator_CloseGame();
-
-		if (utilIsGBImage(rom.c_str()))
+		if (utilIsGBImage(filename.c_str()))
 		{
-	        // Port - init system (startime, palettes, etc) FIXME: startime should be set more accurately, fix once gb doesnt crash
+			// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
 	        systemInit();
 
-			gbCleanUp();
-
-			if (!gbLoadRom(rom.c_str()))
+			if (!gbLoadRom(filename.c_str()))
 			{
 				LOG("FAILED to GB load rom...\n");
-				Emulator_Shutdown();
+				this->Shutdown();
 			}
 
 			cartridgeType = IMAGE_GB;
-			VbaEmulationSystem = GBSystem;
-
-			// FIXME: make this an option that is toggable, implement systemGbBorderOn
-            gbBorderOn = 0;
-            if(gbBorderOn)
-            {
-                    srcWidth = 256;
-                    srcHeight = 224;
-                    gbBorderLineSkip = 256;
-                    gbBorderColumnSkip = 48;
-                    gbBorderRowSkip = 40;
-            }
-            else
-            {
-                    srcWidth = 160;
-                    srcHeight = 144;
-                    gbBorderLineSkip = 160;
-                    gbBorderColumnSkip = 0;
-                    gbBorderRowSkip = 0;
-            }
-
-            //srcPitch = 324;
-
-            // VBA - init GB core and sound core
-            soundSetSampleRate(44100);
-
-            gbGetHardwareType();
-            gbSoundReset();
-            gbSoundSetDeclicking(false);
-            gbReset();
-
-        	soundInit();
+			Vba = GBSystem;
 		}
-		else if (utilIsGBAImage(rom.c_str()))
+		else if (utilIsGBAImage(filename.c_str()))
 		{
-	        // Port - init system (startime, palettes, etc) FIXME: startime should be set more accurately, fix once gb doesnt crash
+			// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
 	        systemInit();
 
-			if (!CPULoadRom(rom.c_str()))
+			if (!CPULoadRom(filename.c_str()))
 			{
 				LOG("FAILED to GBA load rom\n");
-				Emulator_Shutdown();
+				this->Shutdown();
 			}
 
 			cartridgeType = IMAGE_GBA;
-			VbaEmulationSystem = GBASystem;
-
-            srcWidth = 240;
-            srcHeight = 160;
-            //srcPitch = 484;
-
-            soundSetSampleRate(44100); //22050
-
-            cpuSaveType = 0;
-
-            CPUInit("", false);
-
-            CPUReset();
-
-            soundReset();
-        	soundInit();
+			Vba = GBASystem;
 		}
 		else
 		{
 			cartridgeType = IMAGE_UNKNOWN;
 
 			LOG("Unsupported rom type!\n");
-			Emulator_Shutdown();
+			this->Shutdown();
 		}
 
-		// ROM SUCCESSFULLY LOADED AT THIS POINT
-
-    	// PORT - init graphics for this rom
-    	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
-
-    	Rect r;
-    	r.x = 0;
-    	r.y = 0;
-    	r.w = srcWidth;
-    	r.h = srcHeight;
-    	Graphics->SetRect(r);
-
-    	Graphics->UpdateCgParams(srcWidth, srcHeight, srcWidth, srcHeight);
+		// force a vba reload now
+		vba_loaded = false;
 
 		rom_loaded = true;
 		LOG("Successfully loaded rom!\n");
@@ -479,38 +415,154 @@ void Emulator_RequestLoadROM(string rom, bool forceReload)
 }
 
 
-void Emulator_StopROMRunning()
+void VbaPs3::StopROMRunning()
 {
 	// app
 	emulation_running = false;
 
-	// vba
+	// vba - doing this breaks VBA, do not uncomment this!
 	//emulating = 0;
 }
 
-void Emulator_StartROMRunning()
+
+void VbaPs3::StartROMRunning()
 {
-	Emulator_SwitchMode(MODE_EMULATION);
+	this->SwitchMode(MODE_EMULATION);
 }
 
 
-IMAGE_TYPE Emulator_GetVbaCartType()
+IMAGE_TYPE VbaPs3::GetVbaCartType()
 {
 	return cartridgeType;
 }
 
 
-void Emulator_VbaInit()
+int32_t VbaPs3::VbaInit()
 {
-	LOG("Emulator_VbaInit()\n");
+	LOG("VbaPs3::VbaInit()\n");
+
+	int srcWidth = 0;
+	int srcHeight = 0;
+	//int srcPitch = 0;
+
+	if (cartridgeType == IMAGE_GB)
+	{
+		//soundShutdown();
+
+        systemInit();
+
+		// FIXME: make this an option that is toggable, implement systemGbBorderOn
+        gbBorderOn = 0;
+        if(gbBorderOn)
+        {
+                srcWidth = 256;
+                srcHeight = 224;
+                gbBorderLineSkip = 256;
+                gbBorderColumnSkip = 48;
+                gbBorderRowSkip = 40;
+        }
+        else
+        {
+                srcWidth = 160;
+                srcHeight = 144;
+                gbBorderLineSkip = 160;
+                gbBorderColumnSkip = 0;
+                gbBorderRowSkip = 0;
+        }
+
+        //srcPitch = 324;
+
+        // VBA - init GB core and sound core
+        soundSetSampleRate(44100);
+
+        gbGetHardwareType();
+        gbSoundReset();
+        gbSoundSetDeclicking(false);
+
+        gbReset();
+
+    	soundInit();
+	}
+	else if (cartridgeType == IMAGE_GBA)
+	{
+		LOG("1:\n");
+		//soundShutdown();
+
+		LOG("2:\n");
+        systemInit();
+
+        srcWidth = 240;
+        srcHeight = 160;
+        //srcPitch = 484;
+
+        LOG("3:\n");
+        soundSetSampleRate(44100); //22050
+
+        // vba - automatic type
+        cpuSaveType = 0;
+
+        // vba - set default flash size
+        //flashSetSize(0x10000); // 64K
+
+        // vba - real time clock
+        //rtcEnable(false);
+
+        // vba - we explicitly do not want debug messages
+        //agbPrintEnable(false);
+
+        // vba - default to this
+        //mirroringEnable = false;
+        //doMirroring(mirroringEnable);
+
+        // FIXME: take a moment to learn vba's per image settings interface
+        // ie.  apparently Pokemon games need rtc enabled or anything that is based on time of day.
+
+        LOG("4:\n");
+        CPUInit(NULL, false);
+
+        LOG("5:\n");
+        CPUReset();
+
+        LOG("6:\n");
+        soundReset();
+
+        LOG("7:\n");
+    	soundInit();
+	}
+	else
+	{
+		LOG("Bad cart type!\n");
+		this->Shutdown(); //FIXME: be more graceful
+	}
+
+	// ROM SUCCESSFULLY LOADED AT THIS POINT
+
+	// PORT - init graphics for this rom
+	LOG("8:\n");
+	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
+
+	Rect r;
+	r.x = 0;
+	r.y = 0;
+	r.w = srcWidth;
+	r.h = srcHeight;
+
+	LOG("9:\n");
+	Graphics->SetRect(r);
+
+	LOG("10:\n");
+	Graphics->UpdateCgParams(srcWidth, srcHeight, srcWidth, srcHeight);
 
     vba_loaded = true;
+
+    LOG("SUCCESS - VbaPs3::VbaInit()\n");
+    return 0;
 }
 
 
-void Emulator_GraphicsInit()
+int32_t VbaPs3::GraphicsInit()
 {
-	LOG("Emulator_GraphicsInit()\n");
+	LOG("VbaPs3::GraphicsInit()\n");
 
 	if (Graphics == NULL)
 	{
@@ -522,17 +574,19 @@ void Emulator_GraphicsInit()
 	if (Graphics->InitCg() != CELL_OK)
 	{
 		LOG("Failed to InitCg: %d\n", __LINE__);
-		Emulator_Shutdown();
+		this->Shutdown();
 	}
 
-	LOG("Emulator_GraphicsInit->InitDebug Font\n");
+	LOG("VbaPs3::GraphicsInit->InitDebug Font\n");
 	Graphics->InitDbgFont();
+
+	return 0;
 }
 
 
-string Emulator_MakeFName(Emulator_FileTypes type)
+string VbaPs3::MakeFName(Emulator_FileTypes type)
 {
-	LOG_DBG("Emulator_MakeFName(%s, %d)\n", current_rom.c_str(), type);
+	LOG_DBG("VbaPs3::MakeFName(%s, %d)\n", current_rom.c_str(), type);
 
 	// strip out the filename from the path
 	string fn = current_rom.substr(0, current_rom.find_last_of('.'));
@@ -566,28 +620,29 @@ string Emulator_MakeFName(Emulator_FileTypes type)
 }
 
 
-void UpdateInput()
+void VbaPs3::EmulationLoop()
 {
-
-}
-
-
-void EmulationLoop()
-{
-	LOG("EmulationLoop()\n");
+	LOG("VbaPs3::EmulationLoop()\n");
 
 	if (!vba_loaded)
-		Emulator_VbaInit();
+	{
+		if (this->VbaInit() != 0)
+		{
+			LOG("VBA INIT FAILED");
+			this->SwitchMode(MODE_MENU);
+			return;
+		}
+	}
 
 	if (!rom_loaded)
 	{
 		LOG("No Rom Loaded!\n");
-		Emulator_SwitchMode(MODE_MENU);
+		this->SwitchMode(MODE_MENU);
 		return;
 	}
 
 	// Load the battery of the rom
-	VbaEmulationSystem.emuReadBattery(Emulator_MakeFName(FILETYPE_BATTERY).c_str());
+	Vba.emuReadBattery(this->MakeFName(FILETYPE_BATTERY).c_str());
 
 	// FIXME: implement for real
 	int fskip = 0;
@@ -599,7 +654,7 @@ void EmulationLoop()
 	emulation_running = true;
 	while (emulation_running)
 	{
-		VbaEmulationSystem.emuMain(VbaEmulationSystem.emuCount);
+		Vba.emuMain(Vba.emuCount);
 
 		//Graphics->Swap();
 
@@ -615,6 +670,30 @@ void EmulationLoop()
 }
 
 
+int VbaPs3::MainLoop()
+{
+	// main loop
+	while(1)
+	{
+		switch(mode_switch)
+		{
+			case MODE_MENU:
+				MenuMainLoop();
+				break;
+			case MODE_EMULATION:
+				this->EmulationLoop();
+				break;
+			case MODE_EXIT:
+				this->Shutdown();
+				return 0;
+		}
+	}
+}
+
+
+//
+// SONY PS3 - XMB EXIT CALLBACK
+//
 void sysutil_exit_callback (uint64_t status, uint64_t param, void *userdata) {
 	(void) param;
 	(void) userdata;
@@ -622,8 +701,8 @@ void sysutil_exit_callback (uint64_t status, uint64_t param, void *userdata) {
 	switch (status) {
 		case CELL_SYSUTIL_REQUEST_EXITGAME:
 			MenuStop();
-			Emulator_StopROMRunning();
-			mode_switch = MODE_EXIT;
+			App->StopROMRunning();
+			App->SwitchMode(MODE_EXIT);
 			break;
 		case CELL_SYSUTIL_DRAWING_BEGIN:
 		case CELL_SYSUTIL_DRAWING_END:
@@ -639,6 +718,10 @@ void sysutil_exit_callback (uint64_t status, uint64_t param, void *userdata) {
 	}
 }
 
+
+//
+// ENTRY POINT
+//
 int main()
 {
 	// Initialize 6 SPUs but reserve 1 SPU as a raw SPU for PSGL
@@ -652,39 +735,14 @@ int main()
 	LOG_INIT();
 	LOG("LOGGER LOADED!\n");
 
-	Graphics = new VbaGraphics();
-	Emulator_GraphicsInit();
+	int ret = 0;
+	App = new VbaPs3();
+	ret = App->MainLoop();
 
-	CellInput = new CellInputFacade();
-	CellInput->Init();
-
-	oskutil = new OSKUtil();
-
-	Emulator_VbaInit();
-
-	//load settings
-	currentconfig = new ConfigFile();
-	if(Emulator_InitSettings())
+	if (App != NULL)
 	{
-		load_settings = false;
+		delete App;
 	}
 
-	// main loop
-	while(1)
-	{
-		switch(mode_switch)
-		{
-			case MODE_MENU:
-				MenuMainLoop();
-				break;
-			case MODE_EMULATION:
-				EmulationLoop();
-				break;
-			case MODE_EXIT:
-				Emulator_Shutdown();
-				return 0;
-		}
-	}
-
-	return 0;
+	return ret;
 }

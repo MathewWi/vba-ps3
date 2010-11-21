@@ -39,37 +39,60 @@ enum Emulator_FileTypes
 	FILETYPE_BMP
 };
 
-void Emulator_RequestLoadROM(string rom, bool forceReload);
-bool Emulator_IsROMLoaded();
-void Emulator_SwitchMode(Emulator_Modes);
-void Emulator_Shutdown();
-void Emulator_StopROMRunning();
-void Emulator_StartROMRunning();
+class VbaPs3
+{
+public:
+	VbaPs3();
+	~VbaPs3();
 
-void Emulator_OSKStart(const wchar_t* msg, const wchar_t* init);
-const char * Emulator_OSKOutputString();
+	int MainLoop();
+	void Shutdown();
 
-bool Emulator_Snes9xInitialized();
-bool Emulator_RomRunning();
+	void SwitchMode(Emulator_Modes);
 
-void Emulator_GraphicsInit();
+	void LoadROM(string rom, bool forceReload);
 
-int Emulator_CurrentSaveStateSlot();
-void Emulator_IncrementCurrentSaveStateSlot();
-void Emulator_DecrementCurrentSaveStateSlot();
-bool Emulator_InitSettings();
-bool Emulator_SaveSettings();
+	void StopROMRunning();
+	void StartROMRunning();
+	int CloseROM();
 
-string Emulator_MakeFName(Emulator_FileTypes type);
+	bool IsInitialized();
+	bool IsROMRunning();
+	bool IsROMLoaded();
 
-IMAGE_TYPE Emulator_GetVbaCartType();
+	int32_t VbaInit();
+	int32_t GraphicsInit();
 
-extern Emulator_ControlStyle ControlStyle;
+	bool InitSettings();
+	bool SaveSettings();
 
+	int CurrentSaveStateSlot();
+	void IncrementStateSlot();
+	void DecrementStateSlot();
+
+	string MakeFName(Emulator_FileTypes type);
+
+	IMAGE_TYPE GetVbaCartType();
+
+	void OSKStart(const wchar_t* msg, const wchar_t* init);
+	const char * OSKOutputString();
+
+	struct EmulatedSystem Vba;
+private:
+	void EmulationLoop();
+
+	int current_state_save;
+	Emulator_Modes mode_switch;
+	bool emulation_running;
+	bool vba_loaded;
+	bool load_settings;
+	bool rom_loaded;
+	string current_rom;
+	IMAGE_TYPE cartridgeType;
+};
+
+extern VbaPs3* App;
 extern CellInputFacade* 		CellInput;
 extern VbaGraphics* 			Graphics;
-
-extern EmulatedSystem VbaEmulationSystem;
-
 
 #endif /* VBAPS3_H_ */

@@ -234,11 +234,11 @@ void do_settings()
 		if (CellInput->IsButtonPressed(0,CTRL_L2) && CellInput->IsButtonPressed(0,CTRL_R2))
 		{
 			// if a rom is loaded then resume it
-			if (Emulator_IsROMLoaded())
+			if (App->IsROMLoaded())
 			{
 				MenuStop();
 
-				Emulator_StartROMRunning();
+				App->StartROMRunning();
 			}
 
 			return;
@@ -248,9 +248,9 @@ void do_settings()
 		{
 			case SETTING_CURRENT_SAVE_STATE_SLOT:
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK))
-					   Emulator_DecrementCurrentSaveStateSlot();
+					   App->DecrementStateSlot();
 				if(CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
-					   Emulator_IncrementCurrentSaveStateSlot();
+					   App->IncrementStateSlot();
 				break;
 
 			case SETTING_CHANGE_RESOLUTION:
@@ -383,7 +383,7 @@ void do_settings()
 	}
 
 	cellDbgFontPuts(0.05f, 0.05f, FONT_SIZE, currently_selected_setting == SETTING_CURRENT_SAVE_STATE_SLOT ? YELLOW : WHITE, "Current save state slot");
-	cellDbgFontPrintf(0.5f, 0.05f, FONT_SIZE, Emulator_CurrentSaveStateSlot() == 0 ? GREEN : RED, "%d", Emulator_CurrentSaveStateSlot());
+	cellDbgFontPrintf(0.5f, 0.05f, FONT_SIZE, App->CurrentSaveStateSlot() == 0 ? GREEN : RED, "%d", App->CurrentSaveStateSlot());
 
 	cellDbgFontPuts(0.05f, 0.09f, FONT_SIZE, currently_selected_setting == SETTING_CHANGE_RESOLUTION ? YELLOW : WHITE, "Resolution");
 
@@ -484,10 +484,10 @@ void do_ROMMenu ()
 				MenuStop();
 
 				// switch emulator to emulate mode
-				Emulator_StartROMRunning();
+				App->StartROMRunning();
 
 				//FIXME: 1x dirty const char* to char* casts... menu sucks.
-				Emulator_RequestLoadROM((char*)rom_path.c_str(), true);
+				App->LoadROM((char*)rom_path.c_str(), true);
 
 				return;
 			}
@@ -495,11 +495,11 @@ void do_ROMMenu ()
 		if (CellInput->IsButtonPressed(0,CTRL_L2) && CellInput->IsButtonPressed(0,CTRL_R2))
 		{
 			// if a rom is loaded then resume it
-			if (Emulator_IsROMLoaded())
+			if (App->IsROMLoaded())
 			{
 				MenuStop();
 
-				Emulator_StartROMRunning();
+				App->StartROMRunning();
 			}
 
 			return;

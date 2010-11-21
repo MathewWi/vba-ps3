@@ -59,6 +59,10 @@ PPU_CXXFLAGS	+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./util
 					-I./utils/libpng -I./utils/zlib 
 PPU_CFLAGS		+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex \
 					-I./utils/libpng -I./utils/zlib 
+
+# compiler optimizations
+PPU_CXXFLAGS	+=	-funroll-loops
+PPU_CFLAGS		+=	-funroll-loops
 					
 # port must define					
 PPU_CXXFLAGS	+=	-DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024 -funroll-loops

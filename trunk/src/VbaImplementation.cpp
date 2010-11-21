@@ -47,7 +47,7 @@ int systemBlueShift = 0;
 int systemGreenShift = 0;
 int systemColorDepth = 32;
 int systemDebug = 0;
-int systemVerbose = 1;
+int systemVerbose = 0;
 int systemFrameSkip = 0;
 int systemSaveUpdateCounter = SYSTEM_SAVE_NOT_UPDATED;
 int systemSpeed = 0;
@@ -78,9 +78,8 @@ bool systemInit()
 
 	startTime = sys_time_get_system_time();
 
-    int i;
-
     // Build GBPalette
+    int i = 0;
     for( i = 0; i < 24; )
     {
             systemGbPalette[i++] = (0x1f) | (0x1f << 5) | (0x1f << 10);
@@ -91,7 +90,7 @@ bool systemInit()
 
     systemColorDepth = 32;
 
-    // offset by +3, FIXME: verify this is correct!
+    // GL_RGBA
     //systemRedShift    = 27;
     //systemGreenShift  = 19;
     //systemBlueShift   = 11;
@@ -101,14 +100,12 @@ bool systemInit()
     systemGreenShift  = 11;
     systemBlueShift   = 3;
 
-    //systemRedShift = 11;
-    //systemGreenShift = 6;
-    //systemBlueShift = 0;
+    // FIXME: add systemColorDepth = 16 shifts one day
 
     // VBA - used by the cpu filters only, not needed really
     //RGB_LOW_BITS_MASK = 0x00010101;
 
-    utilUpdateSystemColorMaps(Emulator_GetVbaCartType() == IMAGE_GBA && gbColorOption == 1);
+    utilUpdateSystemColorMaps(App->GetVbaCartType() == IMAGE_GBA && gbColorOption == 1);
 
 	return true;
 }
@@ -239,33 +236,33 @@ uint32_t systemReadJoypad(int pad)
 	// state shift
 	if (CellInput->WasAnalogPressedLeft(i, CTRL_RSTICK))
 	{
-		Emulator_DecrementCurrentSaveStateSlot();
+		App->DecrementStateSlot();
 	}
 	if (CellInput->WasAnalogPressedRight(i, CTRL_RSTICK))
 	{
-		Emulator_IncrementCurrentSaveStateSlot();
+		App->IncrementStateSlot();
 	}
 
 	// state save
 	if (CellInput->WasButtonHeld(i, CTRL_R2) && CellInput->WasButtonHeld(i, CTRL_R3))
 	{
 
-		VbaEmulationSystem.emuWriteState(Emulator_MakeFName(FILETYPE_STATE).c_str());
+		App->Vba.emuWriteState(App->MakeFName(FILETYPE_STATE).c_str());
 	}
 
 	// state load
 	if (CellInput->WasButtonHeld(i, CTRL_L2) && CellInput->WasButtonHeld(i, CTRL_L3))
 	{
-		VbaEmulationSystem.emuReadState(Emulator_MakeFName(FILETYPE_STATE).c_str());
+		App->Vba.emuReadState(App->MakeFName(FILETYPE_STATE).c_str());
 	}
 
 	// return to menu
 	if (CellInput->IsButtonPressed(i, CTRL_L3) && CellInput->IsButtonPressed(i, CTRL_R3))
 	{
-		VbaEmulationSystem.emuWriteBattery(Emulator_MakeFName(FILETYPE_BATTERY).c_str());
+		App->Vba.emuWriteBattery(App->MakeFName(FILETYPE_BATTERY).c_str());
 
-		Emulator_StopROMRunning();
-		Emulator_SwitchMode(MODE_MENU);
+		App->StopROMRunning();
+		App->SwitchMode(MODE_MENU);
 	}
 
 	return J;
