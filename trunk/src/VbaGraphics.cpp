@@ -57,7 +57,9 @@ void VbaGraphics::Draw() const
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pitch/4.0, m_height, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pitch/4.0, m_height, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0);
+   // Dirty random hack is dirty. Check below ...
+   glTextureReferenceSCE(GL_TEXTURE_2D, 1, m_width, m_height, 0, GL_ARGB_SCE, ((unsigned)((m_pitch / 4.0) + 1)) * 4, 0);
 
 	glDrawArrays(GL_QUADS, 0, 4);
 	glFlush();
@@ -72,26 +74,27 @@ void VbaGraphics::Draw(uint8_t *XBuf)
 	Clear();
 
 	// get ps3 texture
-	uint32_t* texture = MapPixels();
+	//uint32_t* texture = MapPixels();
 
 	// calculate pitch for the VBA buffer, FIXME: verify the +1, which magically fixed it
 	unsigned pitch = (m_pitch / 4.0) + 1;
 
 	// convert VBA buf to systemDepth, which is 32
-	u32 * palette = (u32 *)XBuf;
-	int palIndex = 0;
-	for (int i = 0; i < m_height; i++)
-	{
-		for (int j = 0; j < m_width; j++)
-		{
-			palIndex = (i*pitch) + j;
+	//u32 * palette = (u32 *)XBuf;
+	//int palIndex = 0;
+	//for (int i = 0; i < m_height; i++)
+	//{
+	//	for (int j = 0; j < m_width; j++)
+	//	{
+	//		palIndex = (i*pitch) + j;
 
 			//if (Emula)
-			texture[(i*m_width) + j] = palette[palIndex];
+	//		texture[(i*m_width) + j] = palette[palIndex];
 			//texture[(i*m_width) + j] = palette[palIndex] << 24 | palette[palIndex] << 16 | palette[palIndex] << 8 | 0xFF;
-		}
-	}
-	UnmapPixels();
+	//	}
+	//}
+   glBufferSubData(GL_TEXTURE_REFERENCE_BUFFER_SCE, 0, m_height * m_pitch, XBuf);
+	//UnmapPixels();
 
 	Draw();
 }
@@ -147,18 +150,26 @@ void VbaGraphics::SetDimensions(unsigned width, unsigned height, unsigned pitch)
 		free(gl_buffer);
 	gl_buffer = (uint32_t*)memalign(128, m_height * m_pitch);
 	memset(gl_buffer, 0, m_height * m_pitch);
-	glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, m_height * m_pitch, gl_buffer, GL_STREAM_DRAW);
+	glBufferData(GL_TEXTURE_REFERENCE_BUFFER_SCE, m_height * m_pitch, gl_buffer, GL_STREAM_DRAW);
 }
 
 
 void VbaGraphics::SetRect(const Rect &view)
 {
+#if old_pitchypitch
    unsigned pitch = m_pitch >> 2;
    GLfloat tex_coords[] = {
       (float)view.x / pitch, (float)(view.y + view.h) / m_height,            // Upper Left
       (float)view.x / pitch, (float)view.y / m_height,                       // Lower Left
       (float)(view.x + view.w) / pitch, (float)view.y / m_height,            // Lower Right
       (float)(view.x + view.w) / pitch, (float)(view.y + view.h) / m_height  // Upper Right
+   };
+#endif
+   GLfloat tex_coords[] = {
+      (float)view.x / m_width, (float)(view.y + view.h) / m_height,            // Upper Left
+      (float)view.x / m_width, (float)view.y / m_height,                       // Lower Left
+      (float)(view.x + view.w) / m_width, (float)view.y / m_height,            // Lower Right
+      (float)(view.x + view.w) / m_width, (float)(view.y + view.h) / m_height  // Upper Right
    };
    memcpy(vertex_buf + 128, tex_coords, 8 * sizeof(GLfloat));
 	glBufferData(GL_ARRAY_BUFFER, 256, vertex_buf, GL_STATIC_DRAW);
@@ -276,7 +287,7 @@ void VbaGraphics::Init()
 	glEnable(GL_TEXTURE_2D);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
+	glBindBuffer(GL_TEXTURE_REFERENCE_BUFFER_SCE, pbo);
 	SetSmooth(true);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

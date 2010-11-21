@@ -92,13 +92,14 @@ bool systemInit()
     systemColorDepth = 32;
 
     // offset by +3, FIXME: verify this is correct!
-    systemRedShift    = 27;
-    systemGreenShift  = 19;
-    systemBlueShift   = 11;
+    //systemRedShift    = 27;
+    //systemGreenShift  = 19;
+    //systemBlueShift   = 11;
 
-    //systemRedShift    = 19;
-    //systemGreenShift  = 11;
-    //systemBlueShift   = 3;
+    // GL_ARGB
+    systemRedShift    = 19;
+    systemGreenShift  = 11;
+    systemBlueShift   = 3;
 
     //systemRedShift = 11;
     //systemGreenShift = 6;

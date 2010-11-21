@@ -506,7 +506,7 @@ void do_ROMMenu ()
 			{
 				browser->PushDirectory(	browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name,
 										CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY,
-										"gb|gbc|gba");
+										"gb|gbc|gba|GBA|GB|GBC");
 			}
 			else if (browser->IsCurrentAFile())
 			{
