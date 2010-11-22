@@ -4,6 +4,8 @@
 #ifndef MULTI_BUFFER_H
 #define MULTI_BUFFER_H
 
+#include "System.h"
+
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
 

@@ -525,6 +525,7 @@ int32_t VbaPs3::VbaInit()
 	// ROM SUCCESSFULLY LOADED AT THIS POINT
 
 	// PORT - init graphics for this rom
+	LOG("VbaPs3::VbaInit() -- SETUP GRAPHICS\n");
 	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
 
 	Rect r;

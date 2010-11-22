@@ -191,6 +191,9 @@ static inline void gfxDrawTextScreen(u16 control, u16 hofs, u16 vofs,
       int tileX = (xxx & 7);
       int tileY = yyy & 7;
 
+      // Halsafar - lantus op, using isel
+      int tileXOdd = 0;
+
       if(tileX == 7)
         screenSource++;
 
@@ -201,11 +204,15 @@ static inline void gfxDrawTextScreen(u16 control, u16 hofs, u16 vofs,
 
       u8 color = charBase[(tile<<5) + (tileY<<2) + (tileX>>1)];
 
-      if(tileX & 1) {
+      // Halsafar - lantus op, isel
+      tileXOdd = (tileX & 1) - 1;
+      color = isel(tileXOdd, color >> 4, color & 0x0F);
+
+      /*if(tileX & 1) {
         color = (color >> 4);
       } else {
         color &= 0x0F;
-      }
+      }*/
 
       int pal = (data>>8) & 0xF0;
       line[x] = color ? (READ16LE(&palette[pal + color])|prio): 0x80000000;

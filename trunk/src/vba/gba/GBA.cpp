@@ -1344,13 +1344,13 @@ int CPULoadRom(const char *szFile)
 
   systemSaveUpdateCounter = SYSTEM_SAVE_NOT_UPDATED;
 
-  rom = (u8 *)malloc(0x2000000);
+  rom = (u8 *)SystemMalloc(0x2000000);
   if(rom == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "ROM");
     return 0;
   }
-  workRAM = (u8 *)calloc(1, 0x40000);
+  workRAM = (u8 *)SystemCalloc(1, 0x40000);
   if(workRAM == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "WRAM");
@@ -1403,49 +1403,49 @@ int CPULoadRom(const char *szFile)
     temp++;
   }
 
-  bios = (u8 *)calloc(1,0x4000);
+  bios = (u8 *)SystemCalloc(1,0x4000);
   if(bios == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "BIOS");
     CPUCleanUp();
     return 0;
   }
-  internalRAM = (u8 *)calloc(1,0x8000);
+  internalRAM = (u8 *)SystemCalloc(1,0x8000);
   if(internalRAM == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "IRAM");
     CPUCleanUp();
     return 0;
   }
-  paletteRAM = (u8 *)calloc(1,0x400);
+  paletteRAM = (u8 *)SystemCalloc(1,0x400);
   if(paletteRAM == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "PRAM");
     CPUCleanUp();
     return 0;
   }
-  vram = (u8 *)calloc(1, 0x20000);
+  vram = (u8 *)SystemCalloc(1, 0x20000);
   if(vram == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "VRAM");
     CPUCleanUp();
     return 0;
   }
-  oam = (u8 *)calloc(1, 0x400);
+  oam = (u8 *)SystemCalloc(1, 0x400);
   if(oam == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "OAM");
     CPUCleanUp();
     return 0;
   }
-  pix = (u8 *)calloc(1, 4 * 241 * 162);
+  pix = (u8 *)SystemCalloc(1, 4 * 241 * 162);
   if(pix == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "PIX");
     CPUCleanUp();
     return 0;
   }
-  ioMem = (u8 *)calloc(1, 0x400);
+  ioMem = (u8 *)SystemCalloc(1, 0x400);
   if(ioMem == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "IO");

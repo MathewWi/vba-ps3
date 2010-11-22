@@ -2184,9 +2184,9 @@ void gbReset()
 
   if(gbCgbMode == 1) {
       if (gbVram == NULL)
-        gbVram = (u8 *)malloc(0x4000);
+        gbVram = (u8 *)SystemMalloc(0x4000);
       if (gbWram == NULL)
-        gbWram = (u8 *)malloc(0x8000);
+        gbWram = (u8 *)SystemMalloc(0x8000);
       memset(gbVram,0,0x4000);
       memset(gbPalette,0, 2*128);
   }
@@ -3239,11 +3239,11 @@ void gbInit()
   gbGenFilter();
   gbSgbInit();
 
-  gbMemory = (u8 *)malloc(65536);
+  gbMemory = (u8 *)SystemMalloc(65536);
 
-  pix = (u8 *)calloc(1,4*257*226);
+  pix = (u8 *)SystemCalloc(1,4*257*226);
 
-  gbLineBuffer = (u16 *)malloc(160 * sizeof(u16));
+  gbLineBuffer = (u16 *)SystemMalloc(160 * sizeof(u16));
 }
 
 bool gbWriteBatteryFile(const char *file, bool extendedSave)
@@ -3680,9 +3680,9 @@ static bool gbReadSaveState(gzFile gzFile)
   else
   {
     if(gbVram == NULL)
-      gbVram = (u8 *)malloc(0x4000);
+      gbVram = (u8 *)SystemMalloc(0x4000);
     if(gbWram == NULL)
-      gbWram = (u8 *)malloc(0x8000);
+      gbWram = (u8 *)SystemMalloc(0x8000);
     memset(gbVram,0,0x4000);
     memset(gbPalette,0, 2*128);
   }
@@ -4101,7 +4101,7 @@ bool gbLoadRom(const char *szFile)
     free(bios);
     bios = NULL;
   }
-  bios = (u8 *)calloc(1,0x100);
+  bios = (u8 *)SystemCalloc(1,0x100);
 
   return gbUpdateSizes();
 }
@@ -4286,7 +4286,7 @@ bool gbUpdateSizes()
     gbTAMA5ramSize = 0x100;
 
     if (gbTAMA5ram == NULL)
-      gbTAMA5ram = (u8 *)malloc(gbTAMA5ramSize);
+      gbTAMA5ram = (u8 *)SystemMalloc(gbTAMA5ramSize);
     memset(gbTAMA5ram, 0x0, gbTAMA5ramSize);
 
     mapperRAM = mapperTAMA5RAM;
@@ -4311,7 +4311,7 @@ bool gbUpdateSizes()
   }
 
   if(gbRamSize) {
-    gbRam = (u8 *)malloc(gbRamSize);
+    gbRam = (u8 *)SystemMalloc(gbRamSize);
     memset(gbRam, gbRamFill, gbRamSize);
   }
 

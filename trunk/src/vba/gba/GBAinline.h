@@ -47,7 +47,7 @@ extern int cpuTotalTicks;
 #define CPUReadMemoryQuick(addr) \
   READ32LE(((u32*)&map[(addr)>>24].address[(addr) & map[(addr)>>24].mask]))
 
-static inline u32 CPUReadMemory(u32 address)
+__attribute__ ((__always_inline__)) static inline u32 CPUReadMemory(u32 address)
 {
 #ifdef GBA_LOGGING
   if(address & 3) {
@@ -178,7 +178,7 @@ unreadable:
 
 extern u32 myROM[];
 
-static inline u32 CPUReadHalfWord(u32 address)
+__attribute__ ((__always_inline__)) static inline u32 CPUReadHalfWord(u32 address)
 {
 #ifdef GBA_LOGGING
   if(address & 1) {
@@ -297,7 +297,7 @@ unreadable:
   return value;
 }
 
-static inline u16 CPUReadHalfWordSigned(u32 address)
+__attribute__ ((__always_inline__)) static inline u16 CPUReadHalfWordSigned(u32 address)
 {
   u16 value = CPUReadHalfWord(address);
   if((address & 1))
@@ -305,7 +305,7 @@ static inline u16 CPUReadHalfWordSigned(u32 address)
   return value;
 }
 
-static inline u8 CPUReadByte(u32 address)
+__attribute__ ((__always_inline__)) static inline u8 CPUReadByte(u32 address)
 {
   switch(address >> 24) {
   case 0:
@@ -387,7 +387,7 @@ unreadable:
   }
 }
 
-static inline void CPUWriteMemory(u32 address, u32 value)
+__attribute__ ((__always_inline__)) static inline void CPUWriteMemory(u32 address, u32 value)
 {
 
 #ifdef GBA_LOGGING
@@ -485,7 +485,7 @@ unwritable:
   }
 }
 
-static inline void CPUWriteHalfWord(u32 address, u16 value)
+__attribute__ ((__always_inline__)) static inline void CPUWriteHalfWord(u32 address, u16 value)
 {
 #ifdef GBA_LOGGING
   if(address & 1) {
@@ -587,7 +587,7 @@ unwritable:
   }
 }
 
-static inline void CPUWriteByte(u32 address, u8 b)
+__attribute__ ((__always_inline__)) static inline void CPUWriteByte(u32 address, u8 b)
 {
   switch(address >> 24) {
   case 2:
