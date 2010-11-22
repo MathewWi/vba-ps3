@@ -61,12 +61,25 @@ PPU_CFLAGS		+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils
 					-I./utils/libpng -I./utils/zlib 
 
 # compiler optimizations
-PPU_CXXFLAGS	+=	-funroll-loops
-PPU_CFLAGS		+=	-funroll-loops
+PPU_CXXFLAGS	+=	-funroll-loops \
+					-finline-functions \
+					-funit-at-a-time \
+					-finline-functions-called-once \
+					--param inline-unit-growth=200 \
+					--param large-function-growth=1000 \
+					--param max-inline-insns-single=900
+					
+PPU_CFLAGS		+=	-funroll-loops \
+					-finline-functions \
+					-funit-at-a-time \
+					-finline-functions-called-once \
+					--param inline-unit-growth=200 \
+					--param large-function-growth=1000 \
+					--param max-inline-insns-single=900
 					
 # port must define					
-PPU_CXXFLAGS	+=	-DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024 -funroll-loops
-PPU_CFLAGS		+=	-DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024 -funroll-loops		
+PPU_CXXFLAGS	+=	-DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024
+PPU_CFLAGS		+=	-DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024		
 
 # VBA must define
 PPU_CXXFLAGS	+= 	-DC_CORE -DWORDS_BIGENDIAN -Dlinux -DHAVE_NETINET_IN_H -DHAVE_ARPA_INET_H
@@ -105,6 +118,10 @@ PPU_LDLIBS		+= 	-L. -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt \
 
 include $(CELL_MK_DIR)/sdk.target.mk
 
+profile:
+	PPU_CXXFLAGS		+=	-fprofile-arcs
+	PPU_CFLAGS		+=	-fprofile-arcs
+	all
 
 .PHONY: pkg
 pkg: $(PPU_TARGET)
