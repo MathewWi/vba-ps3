@@ -56,7 +56,7 @@ void (*dbgOutput)(const char *s, u32 addr);
 void (*dbgSignal)(int sig,int number);
 
 // start time of the system
-uint32_t startTime = 0;
+uint64_t startTime = 0;
 
 uint32_t renderedFrames = 0;
 
@@ -78,7 +78,7 @@ bool systemInit()
 {
 	LOG_DBG("systemInit()\n");
 
-	startTime = sys_time_get_system_time();
+	startTime = get_usec();
 	renderedFrames = 0;
 
     // Build GBPalette
@@ -290,19 +290,12 @@ uint32_t systemReadJoypad(int pad)
 }
 
 
-// FIXME: fix this
+// Returns msecs since startup.
 uint32_t systemGetClock()
 {
-	//LOG_DBG("systemGetClock()\n");
-
-	/*uint32_t time = get_usec() * 1000;
-	LOG("TIME: %u", time);
-	return time;*/
-
-    uint32_t now = sys_time_get_system_time();
-    return now - startTime;
-
-    //return diff_usec(start, now) / 1000;
+   //LOG_DBG("systemGetClock()\n");
+   uint64_t now = get_usec();
+   return (now - startTime) / 1000;
 }
 
 
