@@ -558,7 +558,7 @@ void elfExecuteCFAInstructions(ELFFrameState *state, u8 *data, u32 len,
         data += bytes;
         break;
       case DW_CFA_remember_state:
-        fs = (ELFFrameStateRegisters *)calloc(1,
+        fs = (ELFFrameStateRegisters *)SystemCalloc(1,
                                               sizeof(ELFFrameStateRegisters));
         memcpy(fs, &state->registers, sizeof(ELFFrameStateRegisters));
         state->registers.previous = fs;
@@ -603,7 +603,7 @@ void elfExecuteCFAInstructions(ELFFrameState *state, u8 *data, u32 len,
 
 ELFFrameState *elfGetFrameState(ELFfde *fde, u32 address)
 {
-  ELFFrameState *state = (ELFFrameState *)calloc(1, sizeof(ELFFrameState));
+  ELFFrameState *state = (ELFFrameState *)SystemCalloc(1, sizeof(ELFFrameState));
   state->pc = fde->address;
   state->dataAlign = fde->cie->dataAlign;
   state->codeAlign = fde->cie->codeAlign;
@@ -916,14 +916,14 @@ u8 *elfReadAttribute(u8 *data, ELFAttr *attr)
     data += 4;
     break;
   case DW_FORM_block:
-    attr->block = (ELFBlock *)malloc(sizeof(ELFBlock));
+    attr->block = (ELFBlock *)SystemMalloc(sizeof(ELFBlock));
     attr->block->length = elfReadLEB128(data, &bytes);
     data += bytes;
     attr->block->data = data;
     data += attr->block->length;
     break;
   case DW_FORM_block1:
-    attr->block = (ELFBlock *)malloc(sizeof(ELFBlock));
+    attr->block = (ELFBlock *)SystemMalloc(sizeof(ELFBlock));
     attr->block->length = *data++;
     attr->block->data = data;
     data += attr->block->length;
@@ -982,12 +982,12 @@ ELFAbbrev *elfGetAbbrev(ELFAbbrev **table, u32 number)
 ELFAbbrev **elfReadAbbrevs(u8 *data, u32 offset)
 {
   data += offset;
-  ELFAbbrev **abbrevs = (ELFAbbrev **)calloc(sizeof(ELFAbbrev *)*121,1);
+  ELFAbbrev **abbrevs = (ELFAbbrev **)SystemCalloc(sizeof(ELFAbbrev *)*121,1);
   int bytes = 0;
   u32 number = elfReadLEB128(data, &bytes);
   data += bytes;
   while(number) {
-    ELFAbbrev *abbrev = (ELFAbbrev *)calloc(sizeof(ELFAbbrev),1);
+    ELFAbbrev *abbrev = (ELFAbbrev *)SystemCalloc(sizeof(ELFAbbrev),1);
 
     // read tag information
     abbrev->number = number;
@@ -1060,7 +1060,7 @@ void elfParseCFA(u8 *top)
       // skip version
       *data++;
 
-      ELFcie *cie = (ELFcie *)calloc(1, sizeof(ELFcie));
+      ELFcie *cie = (ELFcie *)SystemCalloc(1, sizeof(ELFcie));
 
       cie->next = cies;
       cies = cie;
@@ -1089,7 +1089,7 @@ void elfParseCFA(u8 *top)
       cie->data = data;
       cie->dataLen = (u32)(dataEnd - data);
     } else {
-      ELFfde *fde = (ELFfde *)calloc(1, sizeof(ELFfde));
+      ELFfde *fde = (ELFfde *)SystemCalloc(1, sizeof(ELFfde));
 
       ELFcie *cie = cies;
 
@@ -1147,10 +1147,10 @@ void elfParseLineInfo(CompileUnit *unit, u8 *top)
     fprintf(stderr, "No line information found\n");
     return;
   }
-  LineInfo *l = unit->lineInfoTable = (LineInfo *)calloc(1, sizeof(LineInfo));
+  LineInfo *l = unit->lineInfoTable = (LineInfo *)SystemCalloc(1, sizeof(LineInfo));
   l->number = 0;
   int max = 1000;
-  l->lines = (LineInfoItem *)malloc(1000*sizeof(LineInfoItem));
+  l->lines = (LineInfoItem *)SystemMalloc(1000*sizeof(LineInfoItem));
 
   u8 *data = elfReadSection(top, h);
   data += unit->lineInfo;
@@ -1166,7 +1166,7 @@ void elfParseLineInfo(CompileUnit *unit, u8 *top)
   int lineBase = (s8)*data++;
   int lineRange = *data++;
   int opcodeBase = *data++;
-  u8 *stdOpLen = (u8 *)malloc(opcodeBase * sizeof(u8));
+  u8 *stdOpLen = (u8 *)SystemMalloc(opcodeBase * sizeof(u8));
   stdOpLen[0] = 1;
   int i;
   for(i = 1; i < opcodeBase; i++)
@@ -1183,7 +1183,7 @@ void elfParseLineInfo(CompileUnit *unit, u8 *top)
   data += bytes;
   int count = 4;
   int index = 0;
-  l->files = (char **)malloc(sizeof(char *)*count);
+  l->files = (char **)SystemMalloc(sizeof(char *)*count);
 
   while((s = elfReadString(data, &bytes)) != NULL) {
     l->files[index++] = s;
@@ -1378,13 +1378,13 @@ void elfParseType(u8 *data, u32 offset, ELFAbbrev *abbrev, CompileUnit *unit,
   case DW_TAG_union_type:
   case DW_TAG_structure_type:
     {
-      Type *t = (Type *)calloc(sizeof(Type), 1);
+      Type *t = (Type *)SystemCalloc(sizeof(Type), 1);
       if(abbrev->tag == DW_TAG_structure_type)
         t->type = TYPE_struct;
       else
         t->type = TYPE_union;
 
-      Struct *s = (Struct *)calloc(sizeof(Struct), 1);
+      Struct *s = (Struct *)SystemCalloc(sizeof(Struct), 1);
       t->structure = s;
       elfAddType(t, unit, offset);
 
@@ -1504,7 +1504,7 @@ void elfParseType(u8 *data, u32 offset, ELFAbbrev *abbrev, CompileUnit *unit,
     break;
   case DW_TAG_base_type:
     {
-      Type *t = (Type *)calloc(sizeof(Type), 1);
+      Type *t = (Type *)SystemCalloc(sizeof(Type), 1);
 
       t->type = TYPE_base;
       elfAddType(t, unit, offset);
@@ -1538,7 +1538,7 @@ void elfParseType(u8 *data, u32 offset, ELFAbbrev *abbrev, CompileUnit *unit,
     break;
   case DW_TAG_pointer_type:
     {
-      Type *t = (Type *)calloc(sizeof(Type), 1);
+      Type *t = (Type *)SystemCalloc(sizeof(Type), 1);
 
       t->type = TYPE_pointer;
 
@@ -1567,7 +1567,7 @@ void elfParseType(u8 *data, u32 offset, ELFAbbrev *abbrev, CompileUnit *unit,
     break;
   case DW_TAG_reference_type:
     {
-      Type *t = (Type *)calloc(sizeof(Type), 1);
+      Type *t = (Type *)SystemCalloc(sizeof(Type), 1);
 
       t->type = TYPE_reference;
 
@@ -1642,9 +1642,9 @@ void elfParseType(u8 *data, u32 offset, ELFAbbrev *abbrev, CompileUnit *unit,
     break;
   case DW_TAG_enumeration_type:
     {
-      Type *t = (Type *)calloc(sizeof(Type), 1);
+      Type *t = (Type *)SystemCalloc(sizeof(Type), 1);
       t->type = TYPE_enum;
-      Enum *e = (Enum *)calloc(sizeof(Enum), 1);
+      Enum *e = (Enum *)SystemCalloc(sizeof(Enum), 1);
       t->enumeration = e;
       elfAddType(t, unit, offset);
       int count = 0;
@@ -1713,9 +1713,9 @@ void elfParseType(u8 *data, u32 offset, ELFAbbrev *abbrev, CompileUnit *unit,
     break;
   case DW_TAG_subroutine_type:
     {
-      Type *t = (Type *)calloc(sizeof(Type), 1);
+      Type *t = (Type *)SystemCalloc(sizeof(Type), 1);
       t->type = TYPE_function;
-      FunctionType *f = (FunctionType *)calloc(sizeof(FunctionType), 1);
+      FunctionType *f = (FunctionType *)SystemCalloc(sizeof(FunctionType), 1);
       t->function = f;
       elfAddType(t, unit, offset);
       for(int i = 0; i < abbrev->numAttrs; i++) {
@@ -1777,8 +1777,8 @@ void elfParseType(u8 *data, u32 offset, ELFAbbrev *abbrev, CompileUnit *unit,
     {
       u32 typeref = 0;
       int i;
-      Array *array = (Array *)calloc(sizeof(Array), 1);
-      Type *t = (Type *)calloc(sizeof(Type), 1);
+      Array *array = (Array *)SystemCalloc(sizeof(Array), 1);
+      Type *t = (Type *)SystemCalloc(sizeof(Type), 1);
       t->type = TYPE_array;
       elfAddType(t, unit, offset);
 
@@ -1864,7 +1864,7 @@ Type *elfParseType(CompileUnit *unit, u32 offset)
     t = t->next;
   }
   if(offset == 0) {
-    Type *t = (Type *)calloc(sizeof(Type), 1);
+    Type *t = (Type *)SystemCalloc(sizeof(Type), 1);
     t->type = TYPE_void;
     t->offset = 0;
     elfAddType(t, unit, 0);
@@ -1940,7 +1940,7 @@ void elfGetObjectAttributes(CompileUnit *unit, u32 offset, Object *o)
 u8 *elfParseObject(u8 *data, ELFAbbrev *abbrev, CompileUnit *unit,
                    Object **object)
 {
-  Object *o = (Object *)calloc(sizeof(Object), 1);
+  Object *o = (Object *)SystemCalloc(sizeof(Object), 1);
 
   o->next = NULL;
 
@@ -2158,7 +2158,7 @@ void elfGetFunctionAttributes(CompileUnit *unit, u32 offset, Function *func)
 u8 *elfParseFunction(u8 *data, ELFAbbrev *abbrev, CompileUnit *unit,
                      Function **f)
 {
-  Function *func = (Function *)calloc(sizeof(Function), 1);
+  Function *func = (Function *)SystemCalloc(sizeof(Function), 1);
   *f = func;
 
   int bytes;
@@ -2458,7 +2458,7 @@ CompileUnit *elfParseCompUnit(u8 *data, u8 *abbrevData)
 
   ELFAbbrev *abbrev = elfGetAbbrev(abbrevs, abbrevNum);
 
-  CompileUnit *unit = (CompileUnit *)calloc(sizeof(CompileUnit), 1);
+  CompileUnit *unit = (CompileUnit *)SystemCalloc(sizeof(CompileUnit), 1);
   unit->top = top;
   unit->length = length;
   unit->abbrevs = abbrevs;
@@ -2519,7 +2519,7 @@ void elfParseAranges(u8 *data)
   u8 *end = data + READ32LE(&sh->size);
 
   int max = 4;
-  ARanges *ranges = (ARanges *)calloc(sizeof(ARanges), 4);
+  ARanges *ranges = (ARanges *)SystemCalloc(sizeof(ARanges), 4);
 
   int index = 0;
 
@@ -2536,7 +2536,7 @@ void elfParseAranges(u8 *data)
     data += 4;
     ranges[index].count = (len-20)/8;
     ranges[index].offset = offset;
-    ranges[index].ranges = (ARange *)calloc(sizeof(ARange), (len-20)/8);
+    ranges[index].ranges = (ARange *)SystemCalloc(sizeof(ARange), (len-20)/8);
     int i = 0;
     while(true) {
       u32 addr = elfRead4Bytes(data);
@@ -2571,7 +2571,7 @@ void elfReadSymtab(u8 *data)
   int count = READ32LE(&sh->size) / sizeof(ELFSymbol);
   elfSymbolsCount = 0;
 
-  elfSymbols = (Symbol *)malloc(sizeof(Symbol)*count);
+  elfSymbols = (Symbol *)SystemMalloc(sizeof(Symbol)*count);
 
   int i;
 
@@ -2656,7 +2656,7 @@ bool elfReadProgram(ELFHeader *eh, u8 *data, int& size, bool parseDebug)
   count = READ16LE(&eh->e_shnum);
 
   ELFSectionHeader **sh = (ELFSectionHeader **)
-    malloc(sizeof(ELFSectionHeader *) * count);
+    SystemMalloc(sizeof(ELFSectionHeader *) * count);
 
   for(i = 0; i < count; i++) {
     sh[i] = (ELFSectionHeader *)p;
@@ -2715,7 +2715,7 @@ bool elfReadProgram(ELFHeader *eh, u8 *data, int& size, bool parseDebug)
       goto end;
     }
 
-    elfDebugInfo = (DebugInfo *)calloc(sizeof(DebugInfo), 1);
+    elfDebugInfo = (DebugInfo *)SystemCalloc(sizeof(DebugInfo), 1);
     u8 *abbrevdata = elfReadSection(data, h);
 
     h = elfGetSectionByName(".debug_str");
@@ -2780,7 +2780,7 @@ bool elfRead(const char *name, int& siz, FILE *f)
 {
   fseek(f, 0, SEEK_END);
   long size = ftell(f);
-  elfFileData = (u8 *)malloc(size);
+  elfFileData = (u8 *)SystemMalloc(size);
   fseek(f, 0, SEEK_SET);
   int res = fread(elfFileData, 1, size, f);
   fclose(f);

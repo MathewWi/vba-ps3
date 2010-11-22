@@ -479,7 +479,7 @@ u8 *utilLoad(const char *file,
 
 	if(image == NULL) {
 		// allocate buffer memory if none was passed to the function
-		image = (u8 *)malloc(utilGetSize(size));
+		image = (u8 *)SystemMalloc(utilGetSize(size));
 		if(image == NULL) {
 			fex_close(fe);
 			systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),

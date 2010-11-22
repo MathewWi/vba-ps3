@@ -94,8 +94,8 @@ void gbSgbReset()
 
 void gbSgbInit()
 {
-  gbSgbBorderChar = (u8 *)malloc(32 * 256);
-  gbSgbBorder = (u8 *)malloc(2048);
+  gbSgbBorderChar = (u8 *)SystemMalloc(32 * 256);
+  gbSgbBorder = (u8 *)SystemMalloc(2048);
 
   gbSgbReset();
 }

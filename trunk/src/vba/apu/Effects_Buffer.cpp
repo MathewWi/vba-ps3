@@ -2,6 +2,7 @@
 
 #include "Effects_Buffer.h"
 
+#include "System.h"
 #include <string.h>
 
 /* Copyright (C) 2006-2007 Shay Green. This module is free software; you
@@ -59,7 +60,7 @@ Effects_Buffer::~Effects_Buffer()
 // avoid using new []
 blargg_err_t Effects_Buffer::new_bufs( int size )
 {
-	bufs = (buf_t*) malloc( size * sizeof *bufs );
+	bufs = (buf_t*) SystemMalloc( size * sizeof *bufs );
 	CHECK_ALLOC( bufs );
 	for ( int i = 0; i < size; i++ )
 		new (bufs + i) buf_t;

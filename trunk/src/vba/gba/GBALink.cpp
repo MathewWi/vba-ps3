@@ -87,7 +87,7 @@ char *MakeInstanceFilename(const char *Input)
 	if (result!=NULL)
 		free(result);
 
-	result = (char *)malloc(strlen(Input)+3);
+	result = (char *)SystemMalloc(strlen(Input)+3);
 	char *p = strrchr((char *)Input, '.');
 	sprintf(result, "%.*s-%d.%s", (int)(p-Input), Input, vbaid+1, p+1);
 	return result;

@@ -40,6 +40,10 @@ struct EmulatedSystem {
 
 extern void log(const char *,...);
 
+extern void *SystemMalloc(size_t size);
+extern void *SystemCalloc(size_t nelem, size_t elsize);
+extern void *SystemRealloc(void *ptr, size_t size);
+
 extern bool systemPauseOnFrame();
 extern void systemGbPrint(u8 *,int,int,int,int);
 extern void systemScreenCapture(int);

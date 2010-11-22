@@ -111,6 +111,21 @@ bool systemInit()
 }
 
 
+__attribute__ ((__always_inline__)) void *SystemMalloc(size_t size)
+{
+	return malloc(size);
+}
+
+__attribute__ ((__always_inline__)) extern void *SystemCalloc(size_t nelem, size_t elsize)
+{
+	return calloc(nelem, elsize);
+}
+
+__attribute__ ((__always_inline__)) extern void *SystemRealloc(void *ptr, size_t size)
+{
+	return realloc(ptr, size);
+}
+
 bool systemPauseOnFrame()
 {
 	LOG_DBG("systemPauseOnFrame()\n");

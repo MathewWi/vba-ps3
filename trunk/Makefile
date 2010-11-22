@@ -118,11 +118,6 @@ PPU_LDLIBS		+= 	-L. -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt \
 
 include $(CELL_MK_DIR)/sdk.target.mk
 
-profile:
-	PPU_CXXFLAGS		+=	-fprofile-arcs
-	PPU_CFLAGS		+=	-fprofile-arcs
-	all
-
 .PHONY: pkg
 pkg: $(PPU_TARGET)
 	$(STRIP) $(PPU_TARGET) 
