@@ -14,6 +14,8 @@
 #include <cell/dbgfont.h>
 #include <sysutil/sysutil_sysparam.h>
 
+#include "utils/fex/Zip7_Extractor.h"
+
 #include "VbaPs3.h"
 #include "VbaMenu.h"
 
@@ -468,22 +470,37 @@ void do_ROMMenu ()
 			{
 				browser->PushDirectory(	browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name,
 										CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY,
-										"gb|gbc|gba|GBA|GB|GBC");
+										"gb|gbc|gba|GBA|GB|GBC|7z");
 			}
 			else if (browser->IsCurrentAFile())
 			{
 				//load game (standard controls), go back to main loop
 				rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
 
-				MenuStop();
+				if (FileBrowser::GetExtension(rom_path).compare("7z") == 0)
+				{
+					Zip7_Extractor z7;
+					z7.open(rom_path.c_str());
 
-				// switch emulator to emulate mode
-				App->StartROMRunning();
+					while (!z7.done())
+					{
+						LOG("%s\n", z7.name());
 
-				//FIXME: 1x dirty const char* to char* casts... menu sucks.
-				App->LoadROM((char*)rom_path.c_str(), true);
+						z7.next();
+					}
+				}
+				else
+				{
+					MenuStop();
 
-				return;
+					// switch emulator to emulate mode
+					App->StartROMRunning();
+
+					//FIXME: 1x dirty const char* to char* casts... menu sucks.
+					App->LoadROM((char*)rom_path.c_str(), true);
+
+					return;
+				}
 			}
 		}
 		if (CellInput->IsButtonPressed(0,CTRL_L2) && CellInput->IsButtonPressed(0,CTRL_R2))
