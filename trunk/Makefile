@@ -118,9 +118,29 @@ PPU_LDLIBS		+= 	-L. -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt \
 
 include $(CELL_MK_DIR)/sdk.target.mk
 
+
+
 .PHONY: pkg
 pkg: $(PPU_TARGET)
 	$(STRIP) $(PPU_TARGET) 
 	$(MKFSELF_NPDRM) $(PPU_TARGET) pkg/USRDIR/EBOOT.BIN
 	$(COPY) -r ./src/cellframework/extra/shaders pkg/USRDIR/
 	$(MKPKG_NPDRM) pkg/package.conf pkg
+
+	
+set_genProfile_flags: 
+	$(eval PPU_CXXFLAGS += -fprofile-arcs) 
+	$(eval PPU_CFLAGS += -fprofile-arcs)
+	$(eval PPU_LDLIBS += -lgcov)
+	
+	
+.PHONY: genProfile
+genProfile: set_genProfile_flags all
+
+
+set_useProfile_flags: 
+	$(eval PPU_CXXFLAGS += -fprofile-use) 
+	$(eval PPU_CFLAGS += -fprofile-use)
+
+.PHONY: useProfile
+useProfile: set_useProfile_flags all
