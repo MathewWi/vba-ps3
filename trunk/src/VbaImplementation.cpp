@@ -58,6 +58,8 @@ void (*dbgSignal)(int sig,int number);
 // start time of the system
 uint32_t startTime = 0;
 
+uint32_t renderedFrames = 0;
+
 extern void log(const char * fmt,...)
 {
 	LOG("VbaLog:\n\t");
@@ -77,6 +79,7 @@ bool systemInit()
 	LOG_DBG("systemInit()\n");
 
 	startTime = sys_time_get_system_time();
+	renderedFrames = 0;
 
     // Build GBPalette
     int i = 0;
@@ -126,10 +129,10 @@ __attribute__ ((__always_inline__)) extern void *SystemRealloc(void *ptr, size_t
 	return realloc(ptr, size);
 }
 
-bool systemPauseOnFrame()
-{
-	LOG_DBG("systemPauseOnFrame()\n");
 
+// VBA - TELLS IF IT SHOULD PAUSE THIS FRAME
+__attribute__ ((__always_inline__)) bool systemPauseOnFrame()
+{
 	return false;
 }
 
@@ -150,6 +153,9 @@ void systemDrawScreen()
 {
 	//LOG_DBG("systemDrawScreen()\n");
 	Graphics->Draw(pix);
+
+	renderedFrames++;
+
 }
 
 
@@ -284,9 +290,10 @@ uint32_t systemReadJoypad(int pad)
 }
 
 
+// FIXME: fix this
 uint32_t systemGetClock()
 {
-	LOG_DBG("systemGetClock()\n");
+	//LOG_DBG("systemGetClock()\n");
 
 	/*uint32_t time = get_usec() * 1000;
 	LOG("TIME: %u", time);
@@ -370,13 +377,15 @@ bool systemCanChangeSoundQuality()
 {
 	LOG_DBG("systemCanChangeSoundQuality()\n");
 
-	return false;
+	return true;
 }
 
 
 void systemShowSpeed(int speed)
 {
-	LOG_DBG("systemShowSpeed(%d)\n", speed);
+	systemSpeed = speed;
+	LOG_DBG("systemShowSpeed: %3d%%(%d, %d fps)\n", systemSpeed, systemFrameSkip, renderedFrames );
+	renderedFrames = 0;
 }
 
 
