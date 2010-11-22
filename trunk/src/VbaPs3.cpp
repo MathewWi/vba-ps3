@@ -469,7 +469,7 @@ int32_t VbaPs3::VbaInit()
 
         // VBA - init GB core and sound core
     	soundInit();
-        soundSetSampleRate(44100);
+        soundSetSampleRate(48000); //44100
 
         gbGetHardwareType();
         gbSoundReset();
@@ -492,7 +492,7 @@ int32_t VbaPs3::VbaInit()
         cpuSaveType = 0;
 
         // vba - set default flash size
-        flashSetSize(0x10000); // 64K
+        flashSetSize(0x20000); // 64K
 
         // vba - real time clock
         rtcEnable(false);
@@ -508,7 +508,7 @@ int32_t VbaPs3::VbaInit()
         // ie.  apparently Pokemon games need rtc enabled or anything that is based on time of day.
 
     	soundInit();
-        soundSetSampleRate(44100); //22050
+        soundSetSampleRate(48000); //22050
 
         CPUInit(NULL, false);
 
