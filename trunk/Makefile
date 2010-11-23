@@ -135,8 +135,8 @@ pkg: $(PPU_TARGET)
 
 	
 set_genProfile_flags: 
-	$(eval PPU_CXXFLAGS += -fprofile-arcs) 
-	$(eval PPU_CFLAGS += -fprofile-arcs)
+	$(eval PPU_CXXFLAGS += -fprofile-generate -fprofile-arcs) 
+	$(eval PPU_CFLAGS += -fprofile-generate -fprofile-arcs)
 	$(eval PPU_LDLIBS += -lgcov)
 	
 	
@@ -147,7 +147,7 @@ genProfile: set_genProfile_flags all
 set_useProfile_flags: 
 	$(eval PPU_CXXFLAGS += -fprofile-use) 
 	$(eval PPU_CFLAGS += -fprofile-use)
-	$(eval PPU_LDLIBS += -lgcov)
+	$(eval PPU_LDLIBS += -fprofile-use)
 
 .PHONY: useProfile
 useProfile: set_useProfile_flags all
