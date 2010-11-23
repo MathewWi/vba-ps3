@@ -5,10 +5,8 @@
 #else
 #include <memory.h>
 #endif
-
 #include <stdarg.h>
 #include <string.h>
-
 #include "GBA.h"
 #include "GBAcpu.h"
 #include "GBAinline.h"
@@ -27,6 +25,8 @@
 #ifdef PROFILING
 #include "prof/prof.h"
 #endif
+
+#include <ppu_intrinsics.h>
 
 #ifdef _MSC_VER
  // Disable "empty statement" warnings
@@ -2589,6 +2589,8 @@ static INSN_REGPARM void arm9F0(u32 opcode)
 // B <offset>
 static INSN_REGPARM void armA00(u32 opcode)
 {
+	int codeTicksVal = 0;
+	int ct = 0;
     int offset = opcode & 0x00FFFFFF;
     if (offset & 0x00800000)
         offset |= 0xFF000000;  // negative offset
@@ -2596,15 +2598,21 @@ static INSN_REGPARM void armA00(u32 opcode)
     armNextPC = reg[15].I;
     reg[15].I += 4;
     ARM_PREFETCH;
-    clockTicks = codeTicksAccessSeq32(armNextPC) + 1;
-    clockTicks += 2 + codeTicksAccess32(armNextPC)
-                    + codeTicksAccessSeq32(armNextPC);
+	 
+    codeTicksVal = codeTicksAccessSeq32(armNextPC);
+	ct = codeTicksVal + 3;
+    ct += 2 + codeTicksAccess32(armNextPC) + codeTicksVal;
+
     busPrefetchCount = 0;
+	clockTicks = ct;
 }
 
 // BL <offset>
 static INSN_REGPARM void armB00(u32 opcode)
 {
+	int codeTicksVal = 0;
+	int ct = 0;
+
     int offset = opcode & 0x00FFFFFF;
     if (offset & 0x00800000)
         offset |= 0xFF000000;  // negative offset
@@ -2613,10 +2621,13 @@ static INSN_REGPARM void armB00(u32 opcode)
     armNextPC = reg[15].I;
     reg[15].I += 4;
     ARM_PREFETCH;
-    clockTicks = codeTicksAccessSeq32(armNextPC) + 1;
-    clockTicks += 2 + codeTicksAccess32(armNextPC)
-                    + codeTicksAccessSeq32(armNextPC);
+
+    codeTicksVal = codeTicksAccessSeq32(armNextPC);
+	ct = codeTicksVal + 3;
+    ct += 2 + codeTicksAccess32(armNextPC) + codeTicksVal;
+
     busPrefetchCount = 0;
+	clockTicks = ct;
 }
 
 
@@ -2633,11 +2644,22 @@ static INSN_REGPARM void armE01(u32 opcode)
 // SWI <comment>
 static INSN_REGPARM void armF00(u32 opcode)
 {
-    clockTicks = codeTicksAccessSeq32(armNextPC) + 1;
-    clockTicks += 2 + codeTicksAccess32(armNextPC)
-                    + codeTicksAccessSeq32(armNextPC);
+	int codeTicksVal = 0;
+	int ct = 0;
+
+    //clockTicks = codeTicksAccessSeq32(armNextPC) + 1;
+    //clockTicks += 2 + codeTicksAccess32(armNextPC)
+    //                + codeTicksAccessSeq32(armNextPC);
+
+    codeTicksVal = codeTicksAccessSeq32(armNextPC);
+	ct = codeTicksVal + 3;
+    ct += 2 + codeTicksAccess32(armNextPC) + codeTicksVal;
+
     busPrefetchCount = 0;
+
+	clockTicks = ct;
     CPUSoftwareInterrupt(opcode & 0x00FFFFFF);
+
 }
 
 // Instruction table //////////////////////////////////////////////////////
@@ -2853,7 +2875,18 @@ static void tester(void) {
 
 int armExecute()
 {
+	// cache the clockTicks, its used during operations and generates LHS without it
+	 __dcbt(&clockTicks);
+
+	u32 cond1;
+	u32 cond2;
+
+	int ct = 0;
+
     do {
+		
+		clockTicks = 0;
+		
 		if( cheatsEnabled ) {
 			cpuMasterCodeCheck();
 		}
@@ -2868,7 +2901,7 @@ int armExecute()
         if (busPrefetchCount & 0xFFFFFE00)
             busPrefetchCount = 0x100 | (busPrefetchCount & 0xFF);
 
-        clockTicks = 0;
+       
         int oldArmNextPC = armNextPC;
 
 #ifndef FINAL_VERSION
@@ -2939,14 +2972,29 @@ int armExecute()
         }
 
         if (cond_res)
-            (*armInsnTable[((opcode>>16)&0xFF0) | ((opcode>>4)&0x0F)])(opcode);
+		{
+			cond1 = (opcode>>16)&0xFF0;
+			cond2 = (opcode>>4)&0x0F;
+
+            (*armInsnTable[(cond1| cond2)])(opcode);
+
+		}
 #ifdef INSN_COUNTER
         count(opcode, cond_res);
-#endif
-        if (clockTicks < 0)
+#endif		
+		ct = clockTicks;
+
+        if (ct < 0)
             return 0;
-        if (clockTicks == 0)
+
+		/// better pipelining
+
+        if (ct == 0)
+		{
             clockTicks = 1 + codeTicksAccessSeq32(oldArmNextPC);
+		}
+
+
         cpuTotalTicks += clockTicks;
 
     } while (cpuTotalTicks<cpuNextEvent && armState && !holdState && !SWITicks);

@@ -36,7 +36,7 @@ UTIL_DIR = ./utils
 
 # build list of source directories
 SOURCES		:=	$(VBA_API_DIR)/ $(VBA_API_DIR)/gb $(VBA_API_DIR)/gba \
-				$(VBA_API_DIR)/apu $(VBA_API_DIR)/common $(VBA_API_DIR)/filters \
+				$(VBA_API_DIR)/apu $(VBA_API_DIR)/common  \
 				$(CELL_FRAMEWORK_DIR)/graphics $(CELL_FRAMEWORK_DIR)/input $(CELL_FRAMEWORK_DIR)/audio \
 				$(CELL_FRAMEWORK_DIR)/threads $(CELL_FRAMEWORK_DIR)/logger $(CELL_FRAMEWORK_DIR)/network \
 				$(CELL_FRAMEWORK_DIR)/fileio \
@@ -61,25 +61,31 @@ PPU_CFLAGS		+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils
 					-I./utils/libpng -I./utils/zlib 
 
 # compiler optimizations
-PPU_CXXFLAGS	+=	-funroll-loops \
+PPU_CXXFLAGS	+=	-ffast-math \
+					-funroll-loops \
 					-finline-functions \
 					-funit-at-a-time \
 					-finline-functions-called-once \
 					--param inline-unit-growth=200 \
 					--param large-function-growth=1000 \
-					--param max-inline-insns-single=900
+					--param max-inline-insns-single=1000
 					
-PPU_CFLAGS		+=	-funroll-loops \
+PPU_CFLAGS		+=	-ffast-math \
+					-funroll-loops \
 					-finline-functions \
 					-funit-at-a-time \
 					-finline-functions-called-once \
 					--param inline-unit-growth=200 \
 					--param large-function-growth=1000 \
-					--param max-inline-insns-single=900
+					--param max-inline-insns-single=1000
 					
 # port must define					
 PPU_CXXFLAGS	+=	-DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024
 PPU_CFLAGS		+=	-DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024		
+
+# VBA optimization flags
+PPU_CXXFLAGS	+=	-DFINAL_VERSION -D__ppc__ -DSPEEDHAX
+PPU_CFLAGS		+=	-DFINAL_VERSION -D__ppc__ -DSPEEDHAX
 
 # VBA must define
 PPU_CXXFLAGS	+= 	-DC_CORE -DWORDS_BIGENDIAN -Dlinux -DHAVE_NETINET_IN_H -DHAVE_ARPA_INET_H
@@ -141,6 +147,7 @@ genProfile: set_genProfile_flags all
 set_useProfile_flags: 
 	$(eval PPU_CXXFLAGS += -fprofile-use) 
 	$(eval PPU_CFLAGS += -fprofile-use)
+	$(eval PPU_LDLIBS += -lgcov)
 
 .PHONY: useProfile
 useProfile: set_useProfile_flags all

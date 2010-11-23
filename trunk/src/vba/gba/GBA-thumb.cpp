@@ -1,13 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #ifdef GEKKO
 #include <string.h>
 #else
 #include <memory.h>
 #endif
-
-#include <stdarg.h>
-#include <string.h>
 
 #include "GBA.h"
 #include "GBAcpu.h"
@@ -28,13 +26,15 @@
 #include "prof/prof.h"
 #endif
 
+#include <ppu_intrinsics.h>
+
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #endif
 
 ///////////////////////////////////////////////////////////////////////////
 
-static int clockTicks;
+static int clockTicks = 0;
 
 static INSN_REGPARM void thumbUnknownInsn(u32 opcode)
 {
@@ -859,9 +859,11 @@ static INSN_REGPARM void thumbBreakpoint(u32 opcode)
 #ifndef MOV_RN_O8
  #define MOV_RN_O8(d) \
    {\
-     reg[d].I = opcode & 255;\
+     u32 val;\
+	 val = (opcode & 255);\
+     reg[d].I = val;\
      N_FLAG = false;\
-     Z_FLAG = (reg[d].I ? false : true);\
+     Z_FLAG = (val ? false : true);\
    }
 #endif
 #ifndef CMP_RN_O8
@@ -1161,9 +1163,14 @@ static INSN_REGPARM void thumb3F(u32 opcode) { SUB_RN_O8(7); }
 static INSN_REGPARM void thumb40_0(u32 opcode)
 {
   int dest = opcode & 7;
-  reg[dest].I &= reg[(opcode >> 3)&7].I;
-  N_FLAG = reg[dest].I & 0x80000000 ? true : false;
-  Z_FLAG = reg[dest].I ? false : true;
+  u32 val = (reg[dest].I & reg[(opcode >> 3)&7].I);
+  
+  //reg[dest].I &= reg[(opcode >> 3)&7].I;
+  N_FLAG = val & 0x80000000 ? true : false;
+  Z_FLAG = val ? false : true;
+
+  reg[dest].I = val;
+
   THUMB_CONSOLE_OUTPUT(NULL, reg[2].I);
 }
 
@@ -1181,11 +1188,12 @@ static INSN_REGPARM void thumb40_2(u32 opcode)
 {
   int dest = opcode & 7;
   u32 value = reg[(opcode >> 3)&7].B.B0;
-  if(value) {
-    if(value == 32) {
+  u32 val = value;
+  if(val) {
+    if(val == 32) {
       value = 0;
       C_FLAG = (reg[dest].I & 1 ? true : false);
-    } else if(value < 32) {
+    } else if(val < 32) {
       LSL_RD_RS;
     } else {
       value = 0;
@@ -1203,11 +1211,12 @@ static INSN_REGPARM void thumb40_3(u32 opcode)
 {
   int dest = opcode & 7;
   u32 value = reg[(opcode >> 3)&7].B.B0;
-  if(value) {
-    if(value == 32) {
+  u32 val = value;
+  if(val) {
+    if(val == 32) {
       value = 0;
       C_FLAG = (reg[dest].I & 0x80000000 ? true : false);
-    } else if(value < 32) {
+    } else if(val < 32) {
       LSR_RD_RS;
     } else {
       value = 0;
@@ -1225,6 +1234,8 @@ static INSN_REGPARM void thumb41_0(u32 opcode)
 {
   int dest = opcode & 7;
   u32 value = reg[(opcode >> 3)&7].B.B0;
+  u32 val = value;
+  
   if(value) {
     if(value < 32) {
       ASR_RD_RS;
@@ -1265,10 +1276,10 @@ static INSN_REGPARM void thumb41_3(u32 opcode)
 {
   int dest = opcode & 7;
   u32 value = reg[(opcode >> 3)&7].B.B0;
-
-  if(value) {
+  u32 val = value;
+  if(val) {
     value = value & 0x1f;
-    if(value == 0) {
+    if(val == 0) {
       C_FLAG = (reg[dest].I & 0x80000000 ? true : false);
     } else {
       ROR_RD_RS;
@@ -1379,7 +1390,7 @@ static INSN_REGPARM void thumb44_2(u32 opcode)
     armNextPC = reg[15].I;
     reg[15].I += 2;
     THUMB_PREFETCH;
-    clockTicks = codeTicksAccessSeq16(armNextPC)*2
+    clockTicks = codeTicksAccessSeq16(armNextPC)<<1
         + codeTicksAccess16(armNextPC) + 3;
   }
 }
@@ -1393,7 +1404,7 @@ static INSN_REGPARM void thumb44_3(u32 opcode)
     armNextPC = reg[15].I;
     reg[15].I += 2;
     THUMB_PREFETCH;
-    clockTicks = codeTicksAccessSeq16(armNextPC)*2
+    clockTicks = codeTicksAccessSeq16(armNextPC)<<1
         + codeTicksAccess16(armNextPC) + 3;
   }
 }
@@ -1438,7 +1449,7 @@ static INSN_REGPARM void thumb46_2(u32 opcode)
     armNextPC = reg[15].I;
     reg[15].I += 2;
     THUMB_PREFETCH;
-    clockTicks = codeTicksAccessSeq16(armNextPC)*2
+    clockTicks = codeTicksAccessSeq16(armNextPC)<<1
         + codeTicksAccess16(armNextPC) + 3;
   }
 }
@@ -1453,7 +1464,7 @@ static INSN_REGPARM void thumb46_3(u32 opcode)
     armNextPC = reg[15].I;
     reg[15].I += 2;
     THUMB_PREFETCH;
-    clockTicks = codeTicksAccessSeq16(armNextPC)*2
+    clockTicks = codeTicksAccessSeq16(armNextPC)<<1
         + codeTicksAccess16(armNextPC) + 3;
   }
 }
@@ -1880,14 +1891,19 @@ static INSN_REGPARM void thumbC8(u32 opcode)
 // BEQ offset
 static INSN_REGPARM void thumbD0(u32 opcode)
 {
+  int val;
   UPDATE_OLDREG;
   if(Z_FLAG) {
     reg[15].I += ((s8)(opcode & 0xFF)) << 1;
     armNextPC = reg[15].I;
     reg[15].I += 2;
     THUMB_PREFETCH;
+#if defined (SPEEDHAX)
+	clockTicks = 30;
+#else
     clockTicks = codeTicksAccessSeq16(armNextPC) + codeTicksAccessSeq16(armNextPC) +
         codeTicksAccess16(armNextPC)+3;
+#endif
     busPrefetchCount=0;
   }
 }
@@ -2287,12 +2303,17 @@ static insnfunc_t thumbInsnTable[1024] = {
 
 // Wrapper routine (execution loop) ///////////////////////////////////////
 
+
 int thumbExecute()
-{
+{	 
+  	 __dcbt(&clockTicks);
+	 
+	 
+	int ct = 0;
+	
   do {
-	  if( cheatsEnabled ) {
-		  cpuMasterCodeCheck();
-	  }
+    
+    clockTicks = 0;
 
     //if ((armNextPC & 0x0803FFFF) == 0x08020000)
     //    busPrefetchCount=0x100;
@@ -2303,7 +2324,7 @@ int thumbExecute()
     busPrefetch = false;
     if (busPrefetchCount & 0xFFFFFF00)
       busPrefetchCount = 0x100 | (busPrefetchCount & 0xFF);
-    clockTicks = 0;
+    
     u32 oldArmNextPC = armNextPC;
 #ifndef FINAL_VERSION
     if(armNextPC == stop) {
@@ -2317,11 +2338,17 @@ int thumbExecute()
 
     (*thumbInsnTable[opcode>>6])(opcode);
 
-    if (clockTicks < 0)
+	ct = clockTicks;
+
+	if (ct < 0)
       return 0;
-    if (clockTicks==0)
+
+	/// better pipelining
+    if (ct==0)
       clockTicks = codeTicksAccessSeq16(oldArmNextPC) + 1;
+
     cpuTotalTicks += clockTicks;
+
 
   } while (cpuTotalTicks < cpuNextEvent && !armState && !holdState && !SWITicks);
   return 1;

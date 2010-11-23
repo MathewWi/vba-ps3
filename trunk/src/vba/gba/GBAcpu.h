@@ -9,7 +9,7 @@ extern int thumbExecute();
 # define LIKELY(x) __builtin_expect(!!(x),1)
 # define UNLIKELY(x) __builtin_expect(!!(x),0)
 #else
-# define INSN_REGPARM /*nothing*/
+# define INSN_REGPARM __declspec(passinreg)
 # define LIKELY(x) (x)
 # define UNLIKELY(x) (x)
 #endif
@@ -36,8 +36,7 @@ extern int thumbExecute();
 
 #define THUMB_PREFETCH_NEXT\
   cpuPrefetch[1] = CPUReadHalfWordQuick(armNextPC+2);
-
-
+ 
 extern int SWITicks;
 extern u32 mastercode;
 extern bool busPrefetch;
@@ -79,7 +78,8 @@ inline int dataTicksAccess16(u32 address) // DATA 8/16bits NON SEQ
     int waitState = value;
     if (!waitState)
       waitState = 1;
-    busPrefetchCount = ((busPrefetchCount+1)<<waitState) - 1;
+
+	busPrefetchCount = ((busPrefetchCount+1)<<waitState) - 1; 
   }
 
   return value;
@@ -150,7 +150,7 @@ inline int dataTicksAccessSeq32(u32 address)// DATA 32bits SEQ
 
 
 // Waitstates when executing opcode
-inline int codeTicksAccess16(u32 address) // THUMB NON SEQ
+static int __attribute__((always_inline)) codeTicksAccess16(u32 address) // THUMB NON SEQ
 {
   int addr = (address>>24)&15;
 
@@ -179,7 +179,7 @@ inline int codeTicksAccess16(u32 address) // THUMB NON SEQ
   }
 }
 
-inline int codeTicksAccess32(u32 address) // ARM NON SEQ
+static int __attribute__((always_inline)) codeTicksAccess32(u32 address) // ARM NON SEQ
 {
   int addr = (address>>24)&15;
 
@@ -208,7 +208,7 @@ inline int codeTicksAccess32(u32 address) // ARM NON SEQ
   }
 }
 
-inline int codeTicksAccessSeq16(u32 address) // THUMB SEQ
+static int __attribute__((always_inline)) codeTicksAccessSeq16(u32 address) // THUMB SEQ
 {
   int addr = (address>>24)&15;
 
@@ -235,7 +235,7 @@ inline int codeTicksAccessSeq16(u32 address) // THUMB SEQ
   }
 }
 
-inline int codeTicksAccessSeq32(u32 address) // ARM SEQ
+static int __attribute__((always_inline)) codeTicksAccessSeq32(u32 address) // ARM SEQ
 {
   int addr = (address>>24)&15;
 
@@ -268,7 +268,7 @@ inline int codeTicksAccessSeq32(u32 address) // ARM SEQ
 
 
 // Emulates the Cheat System (m) code
-inline void cpuMasterCodeCheck()
+static void __attribute__((always_inline)) cpuMasterCodeCheck()
 {
   if((mastercode) && (mastercode == armNextPC))
   {
