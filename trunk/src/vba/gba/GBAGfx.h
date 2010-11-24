@@ -1164,12 +1164,12 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
   if((layerEnable & 0x9000) == 0x9000) {
     u16 *sprites = (u16 *)oam;
     // u16 *spritePalette = &((u16 *)paletteRAM)[256];
-    for(int x = 0; x < 128 ; ++x) {
+    for(int x = 0; x < 128 ; x++) {
       int lineOBJpix = lineOBJpixleft[x];
       u16 a0 = READ16LE(sprites++);
       u16 a1 = READ16LE(sprites++);
       u16 a2 = READ16LE(sprites++);
-      ++sprites;
+      sprites++;
 
       if (lineOBJpix<=0)
         continue;
@@ -1187,8 +1187,8 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
         a1 &= 0x3FFF;
       }
 
-      u32 sizeX = 8<<(a1>>14);
-      u32 sizeY = sizeX;
+      int sizeX = 8<<(a1>>14);
+      int sizeY = sizeX;
 
       if ((a0>>14) & 1)
       {
@@ -1209,7 +1209,7 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
 
       if(a0 & 0x0100) {
         int fieldX = sizeX;
-        u32 fieldY = sizeY;
+        int fieldY = sizeY;
         if(a0 & 0x0200) {
           fieldX <<= 1;
           fieldY <<= 1;
@@ -1217,7 +1217,7 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
         if((sy+fieldY) > 256)
           sy -= 256;
         int t = VCOUNT - sy;
-		if(unsigned(t) < fieldY) {
+        if((t >= 0) && (t < fieldY)) {
           int sx = (a1 & 0x1FF);
           int startpix = 0;
           if ((sx+fieldX)> 512)
@@ -1227,23 +1227,25 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
           if((sx < 240) || startpix) {
             lineOBJpix-=8;
             // int t2 = t - (fieldY >> 1);
-			int rot = ((a1 >> 9) & 0x1F) << 4;
+            int rot = (a1 >> 9) & 0x1F;
             u16 *OAM = (u16 *)oam;
-            int dx = READ16LE(&OAM[3 + rot]);
+            int dx = READ16LE(&OAM[3 + (rot << 4)]);
             if(dx & 0x8000)
               dx |= 0xFFFF8000;
-            int dmx = READ16LE(&OAM[7 + rot]);
+            int dmx = READ16LE(&OAM[7 + (rot << 4)]);
             if(dmx & 0x8000)
               dmx |= 0xFFFF8000;
-            int dy = READ16LE(&OAM[11 + rot]);
+            int dy = READ16LE(&OAM[11 + (rot << 4)]);
             if(dy & 0x8000)
               dy |= 0xFFFF8000;
-            int dmy = READ16LE(&OAM[15 + rot]);
+            int dmy = READ16LE(&OAM[15 + (rot << 4)]);
             if(dmy & 0x8000)
               dmy |= 0xFFFF8000;
 
-			int realX = ((sizeX) << 7) - (fieldX >> 1)*dx + (dmx*(t - (fieldY>>1)));
-            int realY = ((sizeY) << 7) - (fieldX >> 1)*dy + (dmy*(t - (fieldY>>1)));
+            int realX = ((sizeX) << 7) - (fieldX >> 1)*dx - (fieldY>>1)*dmx
+              + t * dmx;
+            int realY = ((sizeY) << 7) - (fieldX >> 1)*dy - (fieldY>>1)*dmy
+              + t * dmy;
 
             // u32 prio = (((a2 >> 10) & 3) << 25) | ((a0 & 0x0c00)<<6);
 
@@ -1256,7 +1258,7 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
                 inc = sizeX >> 2;
               else
                 c &= 0x3FE;
-              for(int x = 0; x < fieldX; ++x) {
+              for(int x = 0; x < fieldX; x++) {
                 if (x >= startpix)
                   lineOBJpix-=2;
                 if (lineOBJpix<0)
@@ -1264,9 +1266,10 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
                 int xxx = realX >> 8;
                 int yyy = realY >> 8;
 
-				if(unsigned(xxx) < sizeX &&
-                   unsigned(yyy) < sizeY && sx < 240){
-
+                if(xxx < 0 || xxx >= sizeX ||
+                   yyy < 0 || yyy >= sizeY ||
+                   sx >= 240) {
+                } else {
                   u32 color = vram[0x10000 + ((((c + (yyy>>3) * inc)<<5)
                                     + ((yyy & 7)<<3) + ((xxx >> 3)<<6) +
                                    (xxx & 7))&0x7fff)];
@@ -1287,7 +1290,7 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
               if(DISPCNT & 0x40)
                 inc = sizeX >> 3;
               // int palette = (a2 >> 8) & 0xF0;
-              for(int x = 0; x < fieldX; ++x) {
+              for(int x = 0; x < fieldX; x++) {
                 if (x >= startpix)
                   lineOBJpix-=2;
                 if (lineOBJpix<0)
@@ -1299,9 +1302,10 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
                 //                 t == 0 || t == (sizeY-1)) {
                 //                lineOBJ[sx] = 0x001F | prio;
                 //              } else {
-				  if(unsigned(xxx) < sizeX &&
-					 unsigned(yyy) < sizeY && sx < 240){
-
+                  if(xxx < 0 || xxx >= sizeX ||
+                     yyy < 0 || yyy >= sizeY ||
+                     sx >= 240) {
+                  } else {
                     u32 color = vram[0x10000 + ((((c + (yyy>>3) * inc)<<5)
                                      + ((yyy & 7)<<2) + ((xxx >> 3)<<5) +
                                      ((xxx & 7)>>1))&0x7fff)];
@@ -1326,9 +1330,9 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
         if((sy+sizeY) > 256)
           sy -= 256;
         int t = VCOUNT - sy;
-		if(unsigned(t) < sizeY) {
+        if((t >= 0) && (t < sizeY)) {
           int sx = (a1 & 0x1FF);
-          u32 startpix = 0;
+          int startpix = 0;
           if ((sx+sizeX)> 512)
           {
             startpix=512-sx;
@@ -1356,9 +1360,9 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
               if(a1 & 0x1000)
                 xxx = 7;
               // u32 prio = (((a2 >> 10) & 3) << 25) | ((a0 & 0x0c00)<<6);
-              for(u32 xx = 0; xx < sizeX; ++xx) {
+              for(int xx = 0; xx < sizeX; xx++) {
                 if (xx >= startpix)
-                  --lineOBJpix;
+                  lineOBJpix--;
                 if (lineOBJpix<0)
                   continue;
                 if(sx < 240) {
@@ -1370,8 +1374,8 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
 
                 sx = (sx+1) & 511;
                 if(a1 & 0x1000) {
-                  --xxx;
-                  --address;
+                  xxx--;
+                  address--;
                   if(xxx == -1) {
                     address -= 56;
                     xxx = 7;
@@ -1379,8 +1383,8 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
                   if(address < 0x10000)
                     address += 0x8000;
                 } else {
-                  ++xxx;
-                  ++address;
+                  xxx++;
+                  address++;
                   if(xxx == 8) {
                     address += 56;
                     xxx = 0;
@@ -1409,10 +1413,9 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
               // int palette = (a2 >> 8) & 0xF0;
               if(a1 & 0x1000) {
                 xxx = 7;
-				int xx = sizeX - 1;
-				do{
-                  if (xx >= (int)(startpix))
-                    --lineOBJpix;
+                for(int xx = sizeX - 1; xx >= 0; xx--) {
+                  if (xx >= startpix)
+                    lineOBJpix--;
                   if (lineOBJpix<0)
                     continue;
                   if(sx < 240) {
@@ -1427,27 +1430,26 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
                     }
                   }
                   sx = (sx+1) & 511;
-                  --xxx;
+                  xxx--;
                   if(!(xx & 1))
-                    --address;
+                    address--;
                   if(xxx == -1) {
                     xxx = 7;
                     address -= 28;
                   }
                   if(address < 0x10000)
                     address += 0x8000;
-				--xx;
-				}while(xx >= 0); 
+                }
               } else {
-                for(u32 xx = 0; xx < sizeX; ++xx) {
+                for(int xx = 0; xx < sizeX; xx++) {
                   if (xx >= startpix)
-                    --lineOBJpix;
+                    lineOBJpix--;
                   if (lineOBJpix<0)
                     continue;
                   if(sx < 240) {
                     u8 color = vram[address];
                     if(xx & 1) {
-                      color >>= 4;
+                      color = (color >> 4);
                     } else
                       color &= 0x0F;
 
@@ -1456,9 +1458,9 @@ static inline void gfxDrawOBJWin(u32 *lineOBJWin)
                     }
                   }
                   sx = (sx+1) & 511;
-                  ++xxx;
+                  xxx++;
                   if(xx & 1)
-                    ++address;
+                    address++;
                   if(xxx == 8) {
                     address += 28;
                     xxx = 0;
