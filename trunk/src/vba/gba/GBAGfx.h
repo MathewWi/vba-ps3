@@ -305,6 +305,18 @@ static inline void gfxDrawRotScreen(u16 control,
   int yshift = ((control >> 14) & 3)+4;
 
   int dx = pa & 0x7FFF;
+  dx |= isel(-(pa & 0x8000), 0, 0xFFFF8000);
+
+  int dmx = pb & 0x7FFF;
+  dmx |= isel(-(pb & 0x8000), 0, 0xFFFF8000);
+
+  int dy = pc & 0x7FFF;
+  dy |= isel(-(pc & 0x8000), 0, 0xFFFF8000);
+
+  int dmy = pd & 0x7FFF;
+  dmy |= isel(-(pd & 0x8000), 0, 0xFFFF8000);
+
+  /*int dx = pa & 0x7FFF;
   if(pa & 0x8000)
     dx |= 0xFFFF8000;
   int dmx = pb & 0x7FFF;
@@ -315,7 +327,7 @@ static inline void gfxDrawRotScreen(u16 control,
     dy |= 0xFFFF8000;
   int dmy = pd & 0x7FFF;
   if(pd & 0x8000)
-    dmy |= 0xFFFF8000;
+    dmy |= 0xFFFF8000;*/
 
   if(VCOUNT == 0)
     changed = 3;
@@ -424,6 +436,18 @@ static inline void gfxDrawRotScreen16Bit(u16 control,
     startY |= 0xF8000000;
 
   int dx = pa & 0x7FFF;
+  dx |= isel(-(pa & 0x8000), 0, 0xFFFF8000);
+
+  int dmx = pb & 0x7FFF;
+  dmx |= isel(-(pb & 0x8000), 0, 0xFFFF8000);
+
+  int dy = pc & 0x7FFF;
+  dy |= isel(-(pc & 0x8000), 0, 0xFFFF8000);
+
+  int dmy = pd & 0x7FFF;
+  dmy |= isel(-(pd & 0x8000), 0, 0xFFFF8000);
+
+  /*int dx = pa & 0x7FFF;
   if(pa & 0x8000)
     dx |= 0xFFFF8000;
   int dmx = pb & 0x7FFF;
@@ -434,7 +458,7 @@ static inline void gfxDrawRotScreen16Bit(u16 control,
     dy |= 0xFFFF8000;
   int dmy = pd & 0x7FFF;
   if(pd & 0x8000)
-    dmy |= 0xFFFF8000;
+    dmy |= 0xFFFF8000;*/
 
   if(VCOUNT == 0)
     changed = 3;
@@ -520,6 +544,18 @@ static inline void gfxDrawRotScreen256(u16 control,
     startY |= 0xF8000000;
 
   int dx = pa & 0x7FFF;
+  dx |= isel(-(pa & 0x8000), 0, 0xFFFF8000);
+
+  int dmx = pb & 0x7FFF;
+  dmx |= isel(-(pb & 0x8000), 0, 0xFFFF8000);
+
+  int dy = pc & 0x7FFF;
+  dy |= isel(-(pc & 0x8000), 0, 0xFFFF8000);
+
+  int dmy = pd & 0x7FFF;
+  dmy |= isel(-(pd & 0x8000), 0, 0xFFFF8000);
+
+  /*int dx = pa & 0x7FFF;
   if(pa & 0x8000)
     dx |= 0xFFFF8000;
   int dmx = pb & 0x7FFF;
@@ -530,7 +566,7 @@ static inline void gfxDrawRotScreen256(u16 control,
     dy |= 0xFFFF8000;
   int dmy = pd & 0x7FFF;
   if(pd & 0x8000)
-    dmy |= 0xFFFF8000;
+    dmy |= 0xFFFF8000;*/
 
   if(VCOUNT == 0)
     changed = 3;
@@ -617,6 +653,18 @@ static inline void gfxDrawRotScreen16Bit160(u16 control,
     startY |= 0xF8000000;
 
   int dx = pa & 0x7FFF;
+  dx |= isel(-(pa & 0x8000), 0, 0xFFFF8000);
+
+  int dmx = pb & 0x7FFF;
+  dmx |= isel(-(pb & 0x8000), 0, 0xFFFF8000);
+
+  int dy = pc & 0x7FFF;
+  dy |= isel(-(pc & 0x8000), 0, 0xFFFF8000);
+
+  int dmy = pd & 0x7FFF;
+  dmy |= isel(-(pd & 0x8000), 0, 0xFFFF8000);
+
+  /*int dx = pa & 0x7FFF;
   if(pa & 0x8000)
     dx |= 0xFFFF8000;
   int dmx = pb & 0x7FFF;
@@ -627,7 +675,7 @@ static inline void gfxDrawRotScreen16Bit160(u16 control,
     dy |= 0xFFFF8000;
   int dmy = pd & 0x7FFF;
   if(pd & 0x8000)
-    dmy |= 0xFFFF8000;
+    dmy |= 0xFFFF8000;*/
 
   if(VCOUNT == 0)
     changed = 3;
@@ -739,17 +787,23 @@ static inline void gfxDrawSprites(u32 *lineOBJ)
 
       if ((a0val) & 1)
       {
-        if (sizeX<32)
+    	  sizeX <<= isel(-(sizeX & (~31u)), 1, 0);
+    	  sizeY >>= isel(-(sizeY>8), 0, 1);
+
+        /*if (sizeX<32)
           sizeX<<=1;
         if (sizeY>8)
-          sizeY>>=1;
+          sizeY>>=1;*/
       }
       else if ((a0val) & 2)
       {
-        if (sizeX>8)
-          sizeX>>=1;
-        if (sizeY<32)
-          sizeY<<=1;
+    	  sizeX >>= isel(-(sizeX>8), 0, 1);
+    	  sizeY <<= isel(-(sizeY & (~31u)), 1, 0);
+
+		/*if (sizeX>8)
+		  sizeX>>=1;
+		if (sizeY<32)
+		  sizeY<<=1;*/
       }
 
 #ifdef SPRITE_DEBUG
@@ -768,10 +822,17 @@ static inline void gfxDrawSprites(u32 *lineOBJ)
           sizeX<<=1;
           sizeY<<=1;
         }
-        if((sy+sizeY) > 256)
+
+        sy -= isel(256 - sy - sizeY, 0, 256);
+        sx -= isel(512 - sx - sizeX, 0, 512);
+        //sx -= isel(-((sx+sizeX)>512), 0, 512);
+        //sy -= isel(-((sy+sizeY)>256), 0, 256);
+
+        /*if((sy+sizeY) > 256)
           sy -= 256;
         if ((sx+sizeX)> 512)
-          sx -= 512;
+          sx -= 512;*/
+
         if (sx<0)
         {
             sizeX+=sx;
@@ -779,6 +840,7 @@ static inline void gfxDrawSprites(u32 *lineOBJ)
         }
         else if ((sx+sizeX)>240)
             sizeX=240-sx;
+
         if ((VCOUNT>=sy) && (VCOUNT<sy+sizeY) && (sx<240))
         {
 			lineOBJpix -= (sizeX-2);
@@ -790,8 +852,10 @@ static inline void gfxDrawSprites(u32 *lineOBJ)
       }
       // else ignores OBJ-WIN if OBJWIN is disabled, and ignored disabled OBJ
       else
-      if(((a0 & 0x0c00) == 0x0800) || ((a0 & 0x0300) == 0x0200))
-        continue;
+      {
+    	  if(((a0 & 0x0c00) == 0x0800) || ((a0 & 0x0300) == 0x0200))
+    		  continue;
+      }
 
       if (lineOBJpix<0)
         continue;
