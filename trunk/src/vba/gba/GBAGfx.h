@@ -5,6 +5,7 @@
 #include "Globals.h"
 
 #include "../common/Port.h"
+#include <altivec.h>
  
 
 template <typename T>  __attribute__((always_inline))  T VariableShiftLeft(T nVal, int nShift)
@@ -122,9 +123,14 @@ extern int gfxLastVCOUNT;
 
 static inline void gfxClearArray(u32 *array)
 {
-	for(unsigned i = 0; i < 240u; ++i) {
-		*array++ = 0x80000000;
-	}
+	//for(unsigned i = 0; i < 240u; ++i) {
+	//	*array++ = 0x80000000;
+	//}
+   vector unsigned val = vec_splats(0x80000000);
+   for (uint64_t i = 0; i < 960u; i += 16)
+   {
+      vec_stvlx(val, i, array);
+   }
 }
 
 static inline void gfxDrawTextScreen(u16 control, u16 hofs, u16 vofs,
