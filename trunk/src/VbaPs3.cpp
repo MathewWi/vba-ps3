@@ -362,6 +362,149 @@ int VbaPs3::CloseROM()
 }
 
 
+void VbaPs3::StopROMRunning()
+{
+	// app
+	emulation_running = false;
+
+	// vba - doing this breaks VBA, do not uncomment this!
+	//emulating = 0;
+}
+
+
+void VbaPs3::StartROMRunning()
+{
+	this->SwitchMode(MODE_EMULATION);
+}
+
+
+void VbaPs3::LoadImagePreferences()
+{
+	LOG("VbaPs3::LoadImagePreferences()");
+	FILE *f = fopen(MakeFName(FILETYPE_IMAGE_PREFS).c_str(), "r");
+	if(!f)
+	{
+		LOG("vba-over.ini NOT FOUND (using emulator settings)\n");
+		return;
+	}
+	else
+	{
+		LOG("Reading vba-over.ini\n");
+	}
+
+	char buffer[7];
+	buffer[0] = '[';
+	buffer[1] = rom[0xac];
+	buffer[2] = rom[0xad];
+	buffer[3] = rom[0xae];
+	buffer[4] = rom[0xaf];
+	buffer[5] = ']';
+	buffer[6] = 0;
+
+	char readBuffer[2048];
+
+	bool found = false;
+
+	while(1)
+	{
+		char *s = fgets(readBuffer, 2048, f);
+
+		if(s == NULL)
+		{
+		  break;
+		}
+
+		char *p  = strchr(s, ';');
+
+		if(p)
+		{
+		  *p = 0;
+		}
+
+		char *token = strtok(s, " \t\n\r=");
+
+		if(!token)
+		{
+		  continue;
+		}
+		if(strlen(token) == 0)
+		{
+		  continue;
+		}
+
+		if(!strcmp(token, buffer))
+		{
+		  found = true;
+		  break;
+		}
+	}
+
+	if(found)
+	{
+		while(1)
+		{
+			char *s = fgets(readBuffer, 2048, f);
+			if(s == NULL)
+			{
+				break;
+			}
+
+			char *p = strchr(s, ';');
+			if(p)
+			{
+				*p = 0;
+			}
+
+			char *token = strtok(s, " \t\n\r=");
+			if(!token)
+			{
+				continue;
+			}
+			if(strlen(token) == 0)
+			{
+				continue;
+			}
+			if(token[0] == '[') // starting another image settings
+			{
+				break;
+			}
+
+			char *value = strtok(NULL, "\t\n\r=");
+			if(value == NULL)
+			{
+				continue;
+			}
+
+			if(!strcmp(token, "rtcEnabled"))
+			{
+				rtcEnable(atoi(value) == 0 ? false : true);
+			}
+			else if(!strcmp(token, "flashSize"))
+			{
+				int size = atoi(value);
+				if(size == 0x10000 || size == 0x20000)
+				{
+					flashSetSize(size);
+				}
+			}
+			else if(!strcmp(token, "saveType"))
+			{
+				int save = atoi(value);
+				if(save >= 0 && save <= 5)
+				{
+					cpuSaveType = save;
+				}
+			}
+			else if(!strcmp(token, "mirroringEnabled"))
+			{
+				mirroringEnable = (atoi(value) == 0 ? false : true);
+			}
+		}
+	}
+	fclose(f);
+}
+
+
 void VbaPs3::LoadROM(string filename, bool forceReload)
 {
 	if (!rom_loaded || forceReload || current_rom.empty() || current_rom.compare(filename) != 0)
@@ -406,22 +549,6 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 		rom_loaded = true;
 		LOG("Successfully loaded rom!\n");
 	}
-}
-
-
-void VbaPs3::StopROMRunning()
-{
-	// app
-	emulation_running = false;
-
-	// vba - doing this breaks VBA, do not uncomment this!
-	//emulating = 0;
-}
-
-
-void VbaPs3::StartROMRunning()
-{
-	this->SwitchMode(MODE_EMULATION);
 }
 
 
@@ -472,6 +599,11 @@ int32_t VbaPs3::VbaInit()
         soundSetSampleRate(48000); //44100
 
         gbGetHardwareType();
+
+        // support for
+        //if (gbHardware & 5)
+		//	gbCPUInit(gbBiosFileName, useBios);
+
         gbSoundReset();
         gbSoundSetDeclicking(false);
 
@@ -488,24 +620,16 @@ int32_t VbaPs3::VbaInit()
         srcHeight = 160;
         //srcPitch = 484;
 
-        // vba - automatic type
-        cpuSaveType = 0;
+        // VBA - set all the defaults
+        cpuSaveType = 0;			//automatic
+        flashSetSize(0x20000);		//1m
+        rtcEnable(false);			//realtime clock
+        agbPrintEnable(false);		//?
+        mirroringEnable = false;	//?
+        doMirroring(false);
 
-        // vba - set default flash size
-        flashSetSize(0x20000); // 64K
-
-        // vba - real time clock
-        rtcEnable(false);
-
-        // vba - we explicitly do not want debug messages
-        agbPrintEnable(false);
-
-        // vba - default to this
-        mirroringEnable = false;
-        doMirroring(mirroringEnable);
-
-        // FIXME: take a moment to learn vba's per image settings interface
-        // ie.  apparently Pokemon games need rtc enabled or anything that is based on time of day.
+        // Load per image compatibility prefs from vba-over.ini
+        LoadImagePreferences();
 
     	soundInit();
         soundSetSampleRate(48000); //22050
@@ -594,6 +718,10 @@ string VbaPs3::MakeFName(Emulator_FileTypes type)
 			break;
 		case FILETYPE_BMP:
 			ss << EMULATOR_PATH_STATES << fn << ".bmp";
+			fn = ss.str();
+			break;
+		case FILETYPE_IMAGE_PREFS:
+			ss << EMULATOR_PATH_STATES << "vba-over.ini";
 			fn = ss.str();
 			break;
 		default:
@@ -731,3 +859,5 @@ int main()
 
 	return ret;
 }
+
+

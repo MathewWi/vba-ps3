@@ -36,7 +36,8 @@ enum Emulator_FileTypes
 	FILETYPE_STATE,
 	FILETYPE_BATTERY,
 	FILETYPE_PNG,
-	FILETYPE_BMP
+	FILETYPE_BMP,
+	FILETYPE_IMAGE_PREFS
 };
 
 class VbaPs3
@@ -73,6 +74,8 @@ public:
 	string MakeFName(Emulator_FileTypes type);
 
 	IMAGE_TYPE GetVbaCartType();
+
+	void LoadImagePreferences();
 
 	void OSKStart(const wchar_t* msg, const wchar_t* init);
 	const char * OSKOutputString();
