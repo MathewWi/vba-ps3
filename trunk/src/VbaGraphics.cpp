@@ -26,6 +26,7 @@ VbaGraphics::VbaGraphics() : PSGLGraphics(), gl_buffer(NULL), vertex_buf(NULL)
 	m_pal60Hz = false;
 	m_overscan = false;
 	m_overscan_amount = 0.0f;
+	m_ratio = 4.0/3.0;
 }
 
 
@@ -159,7 +160,7 @@ void VbaGraphics::SetDimensions(unsigned width, unsigned height, unsigned pitch)
 
 	m_width = width;
 	m_height = height;
-   SetAspectRatio((float)width / height);
+   SetAspectRatio(m_ratio);
 
 	// calculate pitch for the VBA buffer, FIXME: verify the +1, which magically fixed it
 	m_pitch = ((unsigned)((pitch / 4.0) + 1)) * 4;
