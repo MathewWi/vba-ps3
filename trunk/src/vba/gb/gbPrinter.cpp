@@ -101,19 +101,19 @@ void gbPrinterReceiveData()
       if(control & 0x80) { // repeated data
         control &= 0x7f;
         control += 2;
-        memset(dest, *data++, control);
+        SystemMemSet(dest, *data++, control);
         len += control;
         dest += control;
       } else { // raw data
         control++;
-        memcpy(dest, data, control);
+        SystemMemCpy(dest, data, control);
         dest += control;
         data += control;
         len += control;
       }
     }
   } else {
-    memcpy(&gbPrinterData[gbPrinterDataCount],
+    SystemMemCpy(&gbPrinterData[gbPrinterDataCount],
            &gbPrinterPacket[6],
            gbPrinterDataSize);
     gbPrinterDataCount += gbPrinterDataSize;

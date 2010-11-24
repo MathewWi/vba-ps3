@@ -220,7 +220,7 @@ void Gba_Pcm_Fifo::write_control( int data )
 		readIndex  = 0;
 		count      = 0;
 		dac        = 0;
-		memset( fifo, 0, sizeof fifo );
+		SystemMemSet( fifo, 0, sizeof fifo );
 	}
 
 	pcm.apply_control( which );
@@ -749,7 +749,7 @@ void soundSaveGame( gzFile out )
 	gb_apu->save_state( &state.apu );
 
 	// Be sure areas for expansion get written as zero
-	memset( dummy_state, 0, sizeof dummy_state );
+	SystemMemSet( dummy_state, 0, sizeof dummy_state );
 
 	utilWriteData( out, gba_state );
 }
@@ -775,8 +775,8 @@ static void soundReadGameOld( gzFile in, int version )
 		state.apu.regs [gba_to_gb_sound( regs_to_copy [i] ) - 0xFF10] = ioMem [regs_to_copy [i]];
 
 	// Copy wave RAM to both banks
-	memcpy( &state.apu.regs [0x20], &ioMem [0x90], 0x10 );
-	memcpy( &state.apu.regs [0x30], &ioMem [0x90], 0x10 );
+	SystemMemCpy( &state.apu.regs [0x20], &ioMem [0x90], 0x10 );
+	SystemMemCpy( &state.apu.regs [0x30], &ioMem [0x90], 0x10 );
 
 	// Read both banks of wave RAM if available
 	if ( version >= SAVE_GAME_VERSION_3 )

@@ -6,6 +6,8 @@
 #include "Patch.h"
 
 
+#include "../System.h"
+
 #ifdef __GNUC__
 #if defined(__APPLE__) || defined (BSD)
 typedef off_t __off64_t; /* off_t is 64 bits on BSD. */
@@ -255,7 +257,7 @@ static bool patchApplyUPS(const char *patchname, u8 **rom, int *size)
   }
   if (dataSize > *size) {
     *rom = (u8*)realloc(*rom, dataSize);
-    memset(*rom + *size, 0, dataSize - *size);
+    SystemMemSet(*rom + *size, 0, dataSize - *size);
     *size = dataSize;
   }
 

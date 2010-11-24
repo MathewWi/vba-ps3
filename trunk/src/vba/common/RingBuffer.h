@@ -71,14 +71,14 @@ void RingBuffer<T>::read(T *out, std::size_t num) {
 	if (rpos + num > sz) {
 		const std::size_t n = sz - rpos;
 
-		std::memcpy(out, buf + rpos, n * sizeof(T));
+		std::SystemMemCpy(out, buf + rpos, n * sizeof(T));
 
 		rpos = 0;
 		num -= n;
 		out += n;
 	}
 
-	std::memcpy(out, buf + rpos, num * sizeof(T));
+	std::SystemMemCpy(out, buf + rpos, num * sizeof(T));
 
 	if ((rpos += num) == sz)
 		rpos = 0;
@@ -96,14 +96,14 @@ void RingBuffer<T>::write(const T *in, std::size_t num) {
 	if (wpos + num > sz) {
 		const std::size_t n = sz - wpos;
 
-		std::memcpy(buf + wpos, in, n * sizeof(T));
+		std::SystemMemCpy(buf + wpos, in, n * sizeof(T));
 
 		wpos = 0;
 		num -= n;
 		in += n;
 	}
 
-	std::memcpy(buf + wpos, in, num * sizeof(T));
+	std::SystemMemCpy(buf + wpos, in, num * sizeof(T));
 
 	if ((wpos += num) == sz)
 		wpos = 0;

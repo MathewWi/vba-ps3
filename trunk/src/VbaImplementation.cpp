@@ -118,6 +118,18 @@ bool systemInit()
 }
 
 
+__attribute__ ((__always_inline__)) void * SystemMemCpy( void * destination, const void * source, size_t num )
+{
+	return memcpy(destination, source, num);
+}
+
+
+__attribute__ ((__always_inline__)) void * SystemMemSet ( void * ptr, int value, size_t num )
+{
+	return memset(ptr, value, num);
+}
+
+
 __attribute__ ((__always_inline__)) void *SystemMalloc(size_t size)
 {
 	return malloc(size);

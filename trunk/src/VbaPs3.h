@@ -9,6 +9,7 @@
 #define VBAPS3_H_
 
 #include <vector>
+#include <deque>
 
 #include "vba/Util.h"
 
@@ -97,7 +98,7 @@ private:
 	string current_rom;
 	IMAGE_TYPE cartridgeType;
 
-	std::vector<string> _messages;
+	std::deque<string> _messages;
 	float _messageTimer;
 };
 

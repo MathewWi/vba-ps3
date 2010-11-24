@@ -191,7 +191,7 @@ bool rtcWrite(u32 address, u16 value)
 
 void rtcReset()
 {
-  memset(&rtcClockData, 0, sizeof(rtcClockData));
+  SystemMemSet(&rtcClockData, 0, sizeof(rtcClockData));
 
   rtcClockData.byte0 = 0;
   rtcClockData.byte1 = 0;

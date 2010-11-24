@@ -72,12 +72,12 @@ void gbSgbReset()
   gbSgbNextController = 0x0f;
   gbSgbReadingController = 0;
 
-  memset(gbSgbSCPPalette, 0, 512*4);
-  memset(gbSgbATF, 0, 20*18);
-  memset(gbSgbATFList, 0, 45 * 20 * 18);
-  memset(gbSgbPacket, 0, 16 * 7);
-  memset(gbSgbBorderChar, 0, 32*256);
-  memset(gbSgbBorder, 0, 2048);
+  SystemMemSet(gbSgbSCPPalette, 0, 512*4);
+  SystemMemSet(gbSgbATF, 0, 20*18);
+  SystemMemSet(gbSgbATFList, 0, 45 * 20 * 18);
+  SystemMemSet(gbSgbPacket, 0, 16 * 7);
+  SystemMemSet(gbSgbBorderChar, 0, 32*256);
+  SystemMemSet(gbSgbBorder, 0, 2048);
 
   int i;
   for(i = 1; i < 2048; i+=2) {
@@ -301,7 +301,7 @@ void gbSgbPicture()
 {
   gbSgbRenderScreenToBuffer();
 
-  memcpy(gbSgbBorder, gbSgbScreenBuffer, 2048);
+  SystemMemCpy(gbSgbBorder, gbSgbScreenBuffer, 2048);
 
   u16 *paletteAddr = (u16 *)&gbSgbScreenBuffer[2048];
 
@@ -366,7 +366,7 @@ void gbSgbSetATF(int n)
     n = 0;
   if(n > 44)
     n = 44;
-  memcpy(gbSgbATF,&gbSgbATFList[n * 20 * 18], 20 * 18);
+  SystemMemCpy(gbSgbATF,&gbSgbATFList[n * 20 * 18], 20 * 18);
 
   if(gbSgbPacket[1] & 0x40) {
     gbSgbMask = 0;
@@ -378,16 +378,16 @@ void gbSgbSetATF(int n)
 void gbSgbSetPalette()
 {
   u16 pal = READ16LE((((u16 *)&gbSgbPacket[1])))&511;
-  memcpy(&gbPalette[0], &gbSgbSCPPalette[pal*4], 4 * sizeof(u16));
+  SystemMemCpy(&gbPalette[0], &gbSgbSCPPalette[pal*4], 4 * sizeof(u16));
 
   pal = READ16LE((((u16 *)&gbSgbPacket[3])))&511;
-  memcpy(&gbPalette[4], &gbSgbSCPPalette[pal*4], 4 * sizeof(u16));
+  SystemMemCpy(&gbPalette[4], &gbSgbSCPPalette[pal*4], 4 * sizeof(u16));
 
   pal = READ16LE((((u16 *)&gbSgbPacket[5])))&511;
-  memcpy(&gbPalette[8], &gbSgbSCPPalette[pal*4], 4 * sizeof(u16));
+  SystemMemCpy(&gbPalette[8], &gbSgbSCPPalette[pal*4], 4 * sizeof(u16));
 
   pal = READ16LE((((u16 *)&gbSgbPacket[7])))&511;
-  memcpy(&gbPalette[12], &gbSgbSCPPalette[pal*4], 4 * sizeof(u16));
+  SystemMemCpy(&gbPalette[12], &gbSgbSCPPalette[pal*4], 4 * sizeof(u16));
 
   u8 atf = gbSgbPacket[9];
 
@@ -632,7 +632,7 @@ void gbSgbMaskEnable()
     break;
   case 2:
     gbSgbFillScreen(0x0000);
-    //    memset(&gbPalette[0], 0, 128*sizeof(u16));
+    //    SystemMemSet(&gbPalette[0], 0, 128*sizeof(u16));
     break;
   case 3:
     gbSgbFillScreen(gbPalette[0]);
@@ -655,7 +655,7 @@ void gbSgbChrTransfer()
   else
     gbSgbCGBSupport |= 1;
 
-  memcpy(&gbSgbBorderChar[address], gbSgbScreenBuffer, 128 * 32);
+  SystemMemCpy(&gbSgbBorderChar[address], gbSgbScreenBuffer, 128 * 32);
 
   if(gbBorderAutomatic && !gbBorderOn && gbSgbCGBSupport > 4) {
     gbBorderOn = 1;

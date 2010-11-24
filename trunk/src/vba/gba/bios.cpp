@@ -866,23 +866,23 @@ void BIOS_RegisterRamReset(u32 flags)
   if(flags) {
     if(flags & 0x01) {
       // clear work RAM
-      memset(workRAM, 0, 0x40000);
+      SystemMemSet(workRAM, 0, 0x40000);
     }
     if(flags & 0x02) {
       // clear internal RAM
-      memset(internalRAM, 0, 0x7e00); // don't clear 0x7e00-0x7fff
+      SystemMemSet(internalRAM, 0, 0x7e00); // don't clear 0x7e00-0x7fff
     }
     if(flags & 0x04) {
       // clear palette RAM
-      memset(paletteRAM, 0, 0x400);
+      SystemMemSet(paletteRAM, 0, 0x400);
     }
     if(flags & 0x08) {
       // clear VRAM
-      memset(vram, 0, 0x18000);
+      SystemMemSet(vram, 0, 0x18000);
     }
     if(flags & 0x10) {
       // clean OAM
-      memset(oam, 0, 0x400);
+      SystemMemSet(oam, 0, 0x400);
     }
 
     if(flags & 0x80) {
@@ -1084,7 +1084,7 @@ void BIOS_SoftReset()
   reg[SPSR_SVC].I = 0x00000000;
   u8 b = internalRAM[0x7ffa];
 
-  memset(&internalRAM[0x7e00], 0, 0x200);
+  SystemMemSet(&internalRAM[0x7e00], 0, 0x200);
 
   if(b) {
     armNextPC = 0x02000000;

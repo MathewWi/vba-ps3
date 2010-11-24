@@ -56,7 +56,7 @@ static variable_desc flashSaveData3[] = {
 
 void flashInit()
 {
-  memset(flashSaveMemory, 0xff, sizeof(flashSaveMemory));
+  SystemMemSet(flashSaveMemory, 0xff, sizeof(flashSaveMemory));
 }
 
 void flashReset()
@@ -109,7 +109,7 @@ void flashSetSize(int size)
   // Added to make 64k saves compatible with 128k ones
   // (allow wrongfuly set 64k saves to work for Pokemon games)
   if ((size == 0x20000) && (flashSize == 0x10000))
-    memcpy((u8 *)(flashSaveMemory+0x10000), (u8 *)(flashSaveMemory), 0x10000);
+    SystemMemCpy((u8 *)(flashSaveMemory+0x10000), (u8 *)(flashSaveMemory), 0x10000);
   flashSize = size;
 }
 
@@ -219,14 +219,14 @@ void flashWrite(u32 address, u8 byte)
   case FLASH_CMD_5:
     if(byte == 0x30) {
       // SECTOR ERASE
-      memset(&flashSaveMemory[(flashBank << 16) + (address & 0xF000)],
+      SystemMemSet(&flashSaveMemory[(flashBank << 16) + (address & 0xF000)],
              0,
              0x1000);
       systemSaveUpdateCounter = SYSTEM_SAVE_UPDATED;
       flashReadState = FLASH_ERASE_COMPLETE;
     } else if(byte == 0x10) {
       // CHIP ERASE
-      memset(flashSaveMemory, 0, flashSize);
+      SystemMemSet(flashSaveMemory, 0, flashSize);
       systemSaveUpdateCounter = SYSTEM_SAVE_UPDATED;
       flashReadState = FLASH_ERASE_COMPLETE;
     } else {

@@ -127,7 +127,8 @@ const char * VbaPs3::OSKOutputString()
 
 void VbaPs3::PushScreenMessage(string msg)
 {
-	_messages.push_back(msg);
+	//_messages.insert(_messages.begin(), msg);
+	_messages.push_front(msg);
 }
 
 
@@ -779,9 +780,6 @@ void VbaPs3::EmulationLoop()
 	// Load the battery of the rom
 	Vba.emuReadBattery(this->MakeFName(FILETYPE_BATTERY).c_str());
 
-	// FIXME: implement for real
-	int fskip = 0;
-
 	// Tell VBA we are emulating
 	emulating = 1;
 
@@ -793,12 +791,13 @@ void VbaPs3::EmulationLoop()
 		if (!_messages.empty())
 		{
 			_messageTimer += systemGetClock();
-			LOG("timer: %u\n", _messageTimer);
+			//LOG("timer: %f\n", _messageTimer);
 			if (_messageTimer > 5000000)
 			{
 				_messages.pop_back();
 				_messageTimer = 0;
 			}
+
 			for (int i = 0; i < _messages.size(); i++)
 			{
 				cellDbgFontPuts(0.05f, 0.80f + (i*0.04f), FONT_SIZE * 1.5f, BLUE, _messages[i].c_str());

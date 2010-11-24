@@ -560,7 +560,7 @@ void elfExecuteCFAInstructions(ELFFrameState *state, u8 *data, u32 len,
       case DW_CFA_remember_state:
         fs = (ELFFrameStateRegisters *)SystemCalloc(1,
                                               sizeof(ELFFrameStateRegisters));
-        memcpy(fs, &state->registers, sizeof(ELFFrameStateRegisters));
+        SystemMemCpy(fs, &state->registers, sizeof(ELFFrameStateRegisters));
         state->registers.previous = fs;
         break;
       case DW_CFA_restore_state:
@@ -569,7 +569,7 @@ void elfExecuteCFAInstructions(ELFFrameState *state, u8 *data, u32 len,
           return;
         }
         fs = state->registers.previous;
-        memcpy(&state->registers, fs, sizeof(ELFFrameStateRegisters));
+        SystemMemCpy(&state->registers, fs, sizeof(ELFFrameStateRegisters));
         free(fs);
         break;
       case DW_CFA_def_cfa:
@@ -628,7 +628,7 @@ void elfPrintCallChain(u32 address)
   reg_pair regs[15];
   reg_pair newRegs[15];
 
-  memcpy(&regs[0], &reg[0], sizeof(reg_pair) * 15);
+  SystemMemCpy(&regs[0], &reg[0], sizeof(reg_pair) * 15);
 
   while(count < 20) {
     const char *addr = elfGetAddressSymbol(address);
@@ -650,7 +650,7 @@ void elfPrintCallChain(u32 address)
     }
 
     if(state->cfaMode == CFA_REG_OFFSET) {
-      memcpy(&newRegs[0], &regs[0], sizeof(reg_pair) * 15);
+      SystemMemCpy(&newRegs[0], &regs[0], sizeof(reg_pair) * 15);
       u32 addr = 0;
       for(int i = 0; i < 15; i++) {
         ELFFrameStateRegister *r = &state->registers.
@@ -673,7 +673,7 @@ void elfPrintCallChain(u32 address)
           break;
         }
       }
-      memcpy(regs, newRegs, sizeof(reg_pair)*15);
+      SystemMemCpy(regs, newRegs, sizeof(reg_pair)*15);
       addr = newRegs[14].I;
       addr &= 0xfffffffe;
       address = addr;
@@ -2633,7 +2633,7 @@ bool elfReadProgram(ELFHeader *eh, u8 *data, int& size, bool parseDebug)
     if(cpuIsMultiBoot) {
       if(READ32LE(&ph->paddr) >= 0x2000000 &&
          READ32LE(&ph->paddr) <= 0x203ffff) {
-        memcpy(&workRAM[READ32LE(&ph->paddr) & 0x3ffff],
+        SystemMemCpy(&workRAM[READ32LE(&ph->paddr) & 0x3ffff],
                data + READ32LE(&ph->offset),
                READ32LE(&ph->filesz));
         size += READ32LE(&ph->filesz);
@@ -2641,7 +2641,7 @@ bool elfReadProgram(ELFHeader *eh, u8 *data, int& size, bool parseDebug)
     } else {
       if(READ32LE(&ph->paddr) >= 0x8000000 &&
          READ32LE(&ph->paddr) <= 0x9ffffff) {
-        memcpy(&rom[READ32LE(&ph->paddr) & 0x1ffffff],
+        SystemMemCpy(&rom[READ32LE(&ph->paddr) & 0x1ffffff],
                data + READ32LE(&ph->offset),
                READ32LE(&ph->filesz));
         size += READ32LE(&ph->filesz);
@@ -2683,7 +2683,7 @@ bool elfReadProgram(ELFHeader *eh, u8 *data, int& size, bool parseDebug)
       if(cpuIsMultiBoot) {
         if(READ32LE(&sh[i]->addr) >= 0x2000000 &&
            READ32LE(&sh[i]->addr) <= 0x203ffff) {
-          memcpy(&workRAM[READ32LE(&sh[i]->addr) & 0x3ffff], data +
+          SystemMemCpy(&workRAM[READ32LE(&sh[i]->addr) & 0x3ffff], data +
                  READ32LE(&sh[i]->offset),
                  READ32LE(&sh[i]->size));
                    size += READ32LE(&sh[i]->size);
@@ -2691,7 +2691,7 @@ bool elfReadProgram(ELFHeader *eh, u8 *data, int& size, bool parseDebug)
       } else {
         if(READ32LE(&sh[i]->addr) >= 0x8000000 &&
            READ32LE(&sh[i]->addr) <= 0x9ffffff) {
-          memcpy(&rom[READ32LE(&sh[i]->addr) & 0x1ffffff],
+          SystemMemCpy(&rom[READ32LE(&sh[i]->addr) & 0x1ffffff],
                  data + READ32LE(&sh[i]->offset),
                  READ32LE(&sh[i]->size));
           size += READ32LE(&sh[i]->size);

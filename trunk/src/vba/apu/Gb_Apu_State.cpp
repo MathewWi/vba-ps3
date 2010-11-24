@@ -4,6 +4,8 @@
 
 #include <string.h>
 
+#include "../System.h"
+
 /* Copyright (C) 2007 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
 General Public License as published by the Free Software Foundation; either
@@ -53,9 +55,9 @@ inline const char* Gb_Apu::save_load( gb_apu_state_t* io, bool save )
 	// Registers and wave RAM
 	assert( regs_size == sizeof io->regs );
 	if ( save )
-		memcpy( io->regs, regs, sizeof io->regs );
+		SystemMemCpy( io->regs, regs, sizeof io->regs );
 	else
-		memcpy( regs, io->regs, sizeof     regs );
+		SystemMemCpy( regs, io->regs, sizeof     regs );
 
 	// Frame sequencer
 	REFLECT( frame_time,  frame_time  );
@@ -100,7 +102,7 @@ void Gb_Apu::save_state( gb_apu_state_t* out )
 	save_load2( out, true );
 
 	#if !GB_APU_CUSTOM_STATE
-		memset( out->unused, 0, sizeof out->unused );
+		SystemMemSet( out->unused, 0, sizeof out->unused );
 	#endif
 }
 

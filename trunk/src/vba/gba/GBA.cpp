@@ -957,7 +957,7 @@ bool CPUReadGSASnapshot(const char *fileName)
   for(i = 0; i < 16; i++)
     if(buffer[i] < 32)
       buffer[i] = 32;
-  memcpy(buffer2, &rom[0xa0], 16);
+  SystemMemCpy(buffer2, &rom[0xa0], 16);
   buffer2[16] = 0;
   for(i = 0; i < 16; i++)
     if(buffer2[i] < 32)
@@ -1007,7 +1007,7 @@ bool CPUReadGSASPSnapshot(const char *fileName)
   fread(savename, 1, namesz, file);
   savename[namesz] = 0;
 
-  memcpy(romname, &rom[0xa0], namesz);
+  SystemMemCpy(romname, &rom[0xa0], namesz);
   romname[namesz] = 0;
 
   if(memcmp(romname, savename, namesz)) {
@@ -1081,14 +1081,14 @@ bool CPUWriteGSASnapshot(const char *fileName,
   fwrite(buffer, 1, 4, file);
 
   char *temp = new char[0x2001c];
-  memset(temp, 0, 28);
-  memcpy(temp, &rom[0xa0], 16); // copy internal name
+  SystemMemSet(temp, 0, 28);
+  SystemMemCpy(temp, &rom[0xa0], 16); // copy internal name
   temp[0x10] = rom[0xbe]; // reserved area (old checksum)
   temp[0x11] = rom[0xbf]; // reserved area (old checksum)
   temp[0x12] = rom[0xbd]; // complement check
   temp[0x13] = rom[0xb0]; // maker
   temp[0x14] = 1; // 1 save ?
-  memcpy(&temp[0x1c], flashSaveMemory, saveSize); // copy save
+  SystemMemCpy(&temp[0x1c], flashSaveMemory, saveSize); // copy save
   fwrite(temp, 1, totalSize, file); // write save + header
   u32 crc = 0;
 
@@ -1472,7 +1472,7 @@ void doMirroring (bool b)
         mirroredRomSize=0x100000;
     while (mirroredRomAddress<0x01000000)
     {
-      memcpy ((u16 *)(rom+mirroredRomAddress), (u16 *)(rom), mirroredRomSize);
+      SystemMemCpy ((u16 *)(rom+mirroredRomAddress), (u16 *)(rom), mirroredRomSize);
       mirroredRomAddress+=mirroredRomSize;
     }
   }
@@ -3064,7 +3064,7 @@ void CPUInit(const char *biosFileName, bool useBiosFile)
   }
 
   if(!useBios) {
-    memcpy(bios, myROM, sizeof(myROM));
+    SystemMemCpy(bios, myROM, sizeof(myROM));
   }
 
   int i = 0;
@@ -3148,17 +3148,17 @@ void CPUReset()
   }
   rtcReset();
   // clean registers
-  memset(&reg[0], 0, sizeof(reg));
+  SystemMemSet(&reg[0], 0, sizeof(reg));
   // clean OAM
-  memset(oam, 0, 0x400);
+  SystemMemSet(oam, 0, 0x400);
   // clean palette
-  memset(paletteRAM, 0, 0x400);
+  SystemMemSet(paletteRAM, 0, 0x400);
   // clean picture
-  memset(pix, 0, 4*160*240);
+  SystemMemSet(pix, 0, 4*160*240);
   // clean vram
-  memset(vram, 0, 0x20000);
+  SystemMemSet(vram, 0, 0x20000);
   // clean io memory
-  memset(ioMem, 0, 0x400);
+  SystemMemSet(ioMem, 0, 0x400);
 
   DISPCNT  = 0x0080;
   DISPSTAT = 0x0000;
