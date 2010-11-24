@@ -15,6 +15,7 @@ static inline u32 swap32(u32 v)
   return (v<<24)|((v<<8)&0xff0000)|((v>>8)&0xff00)|(v>>24);
 }
 
+// if a >= 0 return x else y
 static __inline int isel( int a, int x, int y )
 {
 	int mask = (a >> 31); // arithmetic shift right, splat out the sign bit
