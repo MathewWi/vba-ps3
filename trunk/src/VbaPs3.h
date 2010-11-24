@@ -8,6 +8,8 @@
 #ifndef VBAPS3_H_
 #define VBAPS3_H_
 
+#include <vector>
+
 #include "vba/Util.h"
 
 #include "VbaImplementation.h"
@@ -80,6 +82,8 @@ public:
 	void OSKStart(const wchar_t* msg, const wchar_t* init);
 	const char * OSKOutputString();
 
+	void PushScreenMessage(string msg);
+
 	struct EmulatedSystem Vba;
 private:
 	void EmulationLoop();
@@ -92,6 +96,9 @@ private:
 	bool rom_loaded;
 	string current_rom;
 	IMAGE_TYPE cartridgeType;
+
+	std::vector<string> _messages;
+	float _messageTimer;
 };
 
 extern VbaPs3* App;

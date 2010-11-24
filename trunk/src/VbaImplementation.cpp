@@ -6,6 +6,9 @@
  */
 #include "VbaImplementation.h"
 
+#include <string>
+#include <sstream>
+
 #include "vba/gba/Sound.h"
 #include "vba/common/SoundDriver.h"
 #include "vba/gba/Globals.h"
@@ -59,6 +62,7 @@ void (*dbgSignal)(int sig,int number);
 uint64_t startTime = 0;
 
 uint32_t renderedFrames = 0;
+
 
 extern void log(const char * fmt,...)
 {
@@ -154,7 +158,7 @@ __attribute__ ((__always_inline__)) void systemDrawScreen()
 	//LOG_DBG("systemDrawScreen()\n");
 	Graphics->Draw(pix);
 
-	++renderedFrames;
+	//++renderedFrames;
 }
 
 
@@ -257,23 +261,38 @@ __attribute__ ((__always_inline__)) uint32_t systemReadJoypad(int pad)
 	if (CellInput->WasAnalogPressedLeft(i, CTRL_RSTICK))
 	{
 		App->DecrementStateSlot();
+		std::stringstream ss;
+		ss << "Select state slot: " << App->CurrentSaveStateSlot();
+		App->PushScreenMessage(ss.str());
 	}
 	if (CellInput->WasAnalogPressedRight(i, CTRL_RSTICK))
 	{
 		App->IncrementStateSlot();
+		std::stringstream ss;
+		ss << "Select state slot: " << App->CurrentSaveStateSlot();
+		App->PushScreenMessage(ss.str());
 	}
 
 	// state save
-	if (CellInput->WasButtonHeld(i, CTRL_R2) && CellInput->WasButtonHeld(i, CTRL_R3))
+	if (CellInput->WasButtonHeld(i, CTRL_R2) && CellInput->WasButtonPressed(i, CTRL_R3))
 	{
-
-		App->Vba.emuWriteState(App->MakeFName(FILETYPE_STATE).c_str());
+		if (App->Vba.emuWriteState(App->MakeFName(FILETYPE_STATE).c_str()))
+		{
+			std::stringstream ss;
+			ss << "State Saved - slot " << App->CurrentSaveStateSlot();
+			App->PushScreenMessage(ss.str());
+		}
 	}
 
 	// state load
-	if (CellInput->WasButtonHeld(i, CTRL_L2) && CellInput->WasButtonHeld(i, CTRL_L3))
+	if (CellInput->WasButtonHeld(i, CTRL_L2) && CellInput->WasButtonPressed(i, CTRL_L3))
 	{
-		App->Vba.emuReadState(App->MakeFName(FILETYPE_STATE).c_str());
+		if (App->Vba.emuReadState(App->MakeFName(FILETYPE_STATE).c_str()))
+		{
+			std::stringstream ss;
+			ss << "State Loaded - slot " << App->CurrentSaveStateSlot();
+			App->PushScreenMessage(ss.str());
+		}
 	}
 
 	// return to menu
@@ -300,14 +319,19 @@ uint32_t systemGetClock()
 
 void systemMessage(int id, const char * fmt, ...)
 {
+#ifdef CELL_DEBUG
 	LOG_DBG("systemMessage(%d)\n\t", id);
 
 	va_list args;
 	va_start(args,fmt);
-	LOG(fmt, args);
+	LOG_DBG(fmt, args);
 	va_end(args);
 
-	LOG("\n");
+	LOG_DBG("\n");
+#endif
+
+	// FIXME: really implement this...
+	App->PushScreenMessage(fmt);
 }
 
 
@@ -377,7 +401,7 @@ void systemShowSpeed(int speed)
 {
 	systemSpeed = speed;
 	//LOG_DBG("systemShowSpeed: %3d%%(%d, %d fps)\n", systemSpeed, systemFrameSkip, renderedFrames );
-	renderedFrames = 0;
+	//renderedFrames = 0;
 }
 
 

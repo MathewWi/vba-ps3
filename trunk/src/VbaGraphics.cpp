@@ -10,7 +10,7 @@
 #include <limits>
 #include <assert.h>
 
-
+#include "conf/conffile.h"
 
 #include "cellframework/logger/Logger.h"
 #include "cellframework/utility/utils.h"
@@ -54,19 +54,21 @@ void VbaGraphics::DeInit()
 
 void VbaGraphics::Swap() const
 {
-   // TODO: Make this a setting!
-   m_frames++;
-
-   if (m_frames >= 100)
+   if (Settings.DrawFps)
    {
-      uint64_t new_time = get_usec();
-      m_fps = 100000000.0 / (new_time - last_time);
+	   m_frames++;
 
-      last_time = new_time;
-      m_frames = 0;
+	   if (m_frames >= 100)
+	   {
+		  uint64_t new_time = get_usec();
+		  m_fps = 100000000.0 / (new_time - last_time);
+
+		  last_time = new_time;
+		  m_frames = 0;
+	   }
+	   cellDbgFontPrintf(0.03, 0.03, 0.75, 0xffffffff, "FPS: %.2f\n", m_fps);
+	   cellDbgFontDraw();
    }
-   cellDbgFontPrintf(0.03, 0.03, 0.75, 0xffffffff, "FPS: %.2f\n", m_fps);
-   cellDbgFontDraw();
 
    psglSwap();
 }
@@ -74,13 +76,14 @@ void VbaGraphics::Swap() const
 
 void VbaGraphics::Draw() const
 {
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	//glMatrixMode(GL_MODELVIEW);
+	//glLoadIdentity();
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pitch/4.0, m_height, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0);
    // Dirty random hack is dirty. Check below ...
 
 	glDrawArrays(GL_QUADS, 0, 4);
 	glFlush();
+	FlushDbgFont();
 	Swap();
 }
 
