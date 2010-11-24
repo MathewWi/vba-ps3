@@ -44,6 +44,10 @@ extern void *SystemMalloc(size_t size);
 extern void *SystemCalloc(size_t nelem, size_t elsize);
 extern void *SystemRealloc(void *ptr, size_t size);
 
+void * SystemMemCpy( void * destination, const void * source, size_t num );
+void * SystemMemSet ( void * ptr, int value, size_t num );
+
+
 extern bool systemPauseOnFrame();
 extern void systemGbPrint(u8 *,int,int,int,int);
 extern void systemScreenCapture(int);

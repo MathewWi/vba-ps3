@@ -1407,7 +1407,7 @@ void cheatsDelete(int number, bool restore)
       }
     }
     if((x+1) <  cheatsNumber) {
-      memcpy(&cheatsList[x], &cheatsList[x+1], sizeof(CheatsData)*
+      SystemMemCpy(&cheatsList[x], &cheatsList[x+1], sizeof(CheatsData)*
              (cheatsNumber-x-1));
     }
     cheatsNumber--;

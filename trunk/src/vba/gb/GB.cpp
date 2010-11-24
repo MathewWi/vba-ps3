@@ -1130,7 +1130,7 @@ void  gbWriteMemory(register u16 address, register u8 value)
       }
 
       else
-        memset(gbSCYLine, value, sizeof(gbSCYLine));
+        SystemMemSet(gbSCYLine, value, sizeof(gbSCYLine));
 
       gbMemory[0xff42] = register_SCY = value;
       return;
@@ -1152,7 +1152,7 @@ void  gbWriteMemory(register u16 address, register u8 value)
       }
 
       else
-        memset(gbSCXLine, value, sizeof(gbSCXLine));
+        SystemMemSet(gbSCXLine, value, sizeof(gbSCXLine));
 
       gbMemory[0xff43] = register_SCX = value;
       return;
@@ -1205,7 +1205,7 @@ void  gbWriteMemory(register u16 address, register u8 value)
             gbBgpLine[i] = value;
       }
       else
-        memset(gbBgpLine,value,sizeof(gbBgpLine));
+        SystemMemSet(gbBgpLine,value,sizeof(gbBgpLine));
 
       gbBgp[0] = value & 0x03;
       gbBgp[1] = (value & 0x0c)>>2;
@@ -1231,7 +1231,7 @@ void  gbWriteMemory(register u16 address, register u8 value)
             gbObp0Line[i] = value;
       }
       else
-        memset(gbObp0Line,value,sizeof(gbObp0Line));
+        SystemMemSet(gbObp0Line,value,sizeof(gbObp0Line));
 
       gbObp0[0] = value & 0x03;
       gbObp0[1] = (value & 0x0c)>>2;
@@ -1257,7 +1257,7 @@ void  gbWriteMemory(register u16 address, register u8 value)
             gbObp1Line[i] = value;
       }
       else
-        memset(gbObp1Line,value,sizeof(gbObp1Line));
+        SystemMemSet(gbObp1Line,value,sizeof(gbObp1Line));
 
       gbObp1[0] = value & 0x03;
       gbObp1[1] = (value & 0x0c)>>2;
@@ -1314,7 +1314,7 @@ void  gbWriteMemory(register u16 address, register u8 value)
       if (useBios && inBios && !skipBios && (value & 1))
       {
         gbMemoryMap[0x00] = &gbRom[0x0000];
-        memcpy ((u8 *)(gbRom+0x100), (u8 *)(gbMemory + 0x100), 0xF00);
+        SystemMemCpy ((u8 *)(gbRom+0x100), (u8 *)(gbMemory + 0x100), 0xF00);
         inBios = false;
       }
     }
@@ -2187,8 +2187,8 @@ void gbReset()
         gbVram = (u8 *)SystemMalloc(0x4000);
       if (gbWram == NULL)
         gbWram = (u8 *)SystemMalloc(0x8000);
-      memset(gbVram,0,0x4000);
-      memset(gbPalette,0, 2*128);
+      SystemMemSet(gbVram,0,0x4000);
+      SystemMemSet(gbPalette,0, 2*128);
   }
   else
   {
@@ -2223,7 +2223,7 @@ void gbReset()
   // Karamuchou ha Oosawagi!.
   if (gbMemory != NULL)
   {
-    memset(gbMemory,0xff, 65536);
+    SystemMemSet(gbMemory,0xff, 65536);
     for (int temp = 0xC000; temp < 0xE000; temp++)
       if ((temp & 0x8) ^((temp & 0x800)>>8))
       {
@@ -2240,18 +2240,18 @@ void gbReset()
   // GB bios set this memory area to 0
   // Fixes Pitman (J) title screen
   if (gbHardware & 0x1) {
-    memset(&gbMemory[0x8000], 0x0, 0x2000);
+    SystemMemSet(&gbMemory[0x8000], 0x0, 0x2000);
   }
 
   // clean LineBuffer
   if (gbLineBuffer != NULL)
-    memset(gbLineBuffer, 0, sizeof(gbLineBuffer));
+    SystemMemSet(gbLineBuffer, 0, sizeof(gbLineBuffer));
   // clean Pix
   if (pix != NULL)
-    memset(pix, 0, sizeof(pix));
+    SystemMemSet(pix, 0, sizeof(pix));
   // clean Vram
   if (gbVram != NULL)
-    memset(gbVram, 0, 0x4000);
+    SystemMemSet(gbVram, 0, 0x4000);
   // clean Wram 2
   // This kinda emulates the startup state of Wram on GBC (not very accurate,
   // but way closer to the reality than filling it with 00es or FFes).
@@ -2263,23 +2263,23 @@ void gbReset()
   {
       for (int i = 0; i<8; i++)
           if (i != 2)
-      memcpy ((u16 *)(gbWram+i*0x1000), (u16 *)(gbMemory+0xC000), 0x1000);
+      SystemMemCpy ((u16 *)(gbWram+i*0x1000), (u16 *)(gbMemory+0xC000), 0x1000);
   }
 
-  memset(gbSCYLine,0,sizeof(gbSCYLine));
-  memset(gbSCXLine,0,sizeof(gbSCXLine));
-  memset(gbBgpLine,0xfc,sizeof(gbBgpLine));
+  SystemMemSet(gbSCYLine,0,sizeof(gbSCYLine));
+  SystemMemSet(gbSCXLine,0,sizeof(gbSCXLine));
+  SystemMemSet(gbBgpLine,0xfc,sizeof(gbBgpLine));
   if (gbHardware & 5)
   {
-    memset(gbObp0Line,0xff,sizeof(gbObp0Line));
-    memset(gbObp1Line,0xff,sizeof(gbObp1Line));
+    SystemMemSet(gbObp0Line,0xff,sizeof(gbObp0Line));
+    SystemMemSet(gbObp1Line,0xff,sizeof(gbObp1Line));
   }
   else
   {
-    memset(gbObp0Line,0x0,sizeof(gbObp0Line));
-    memset(gbObp1Line,0x0,sizeof(gbObp1Line));
+    SystemMemSet(gbObp0Line,0x0,sizeof(gbObp0Line));
+    SystemMemSet(gbObp1Line,0x0,sizeof(gbObp1Line));
   }
-  memset(gbSpritesTicks,0x0,sizeof(gbSpritesTicks));
+  SystemMemSet(gbSpritesTicks,0x0,sizeof(gbSpritesTicks));
 
   SP.W = 0xfffe;
   AF.W = 0x01b0;
@@ -2440,8 +2440,8 @@ void gbReset()
     // used for the handling of the gb Boot Rom
     if ((gbHardware & 5) && (bios != NULL) && useBios && !skipBios)
     {
-      memcpy ((u8 *)(gbMemory), (u8 *)(gbRom), 0x1000);
-      memcpy ((u8 *)(gbMemory), (u8 *)(bios), 0x100);
+      SystemMemCpy ((u8 *)(gbMemory), (u8 *)(gbRom), 0x1000);
+      SystemMemCpy ((u8 *)(gbMemory), (u8 *)(bios), 0x100);
       gbWhiteScreen = 0;
 
       gbInternalTimer = 0x3e;
@@ -2639,28 +2639,28 @@ void gbReset()
   for(i = 0; i < 4; i++)
     gbBgp[i] = gbObp0[i] = gbObp1[i] = i;
 
-  memset(&gbDataMBC1,0, sizeof(gbDataMBC1));
+  SystemMemSet(&gbDataMBC1,0, sizeof(gbDataMBC1));
   gbDataMBC1.mapperROMBank = 1;
 
   gbDataMBC2.mapperRAMEnable = 0;
   gbDataMBC2.mapperROMBank = 1;
 
-  memset(&gbDataMBC3,0, 6 * sizeof(int));
+  SystemMemSet(&gbDataMBC3,0, 6 * sizeof(int));
   gbDataMBC3.mapperROMBank = 1;
 
-  memset(&gbDataMBC5, 0, sizeof(gbDataMBC5));
+  SystemMemSet(&gbDataMBC5, 0, sizeof(gbDataMBC5));
   gbDataMBC5.mapperROMBank = 1;
 
-  memset(&gbDataHuC1, 0, sizeof(gbDataHuC1));
+  SystemMemSet(&gbDataHuC1, 0, sizeof(gbDataHuC1));
   gbDataHuC1.mapperROMBank = 1;
 
-  memset(&gbDataHuC3, 0, sizeof(gbDataHuC3));
+  SystemMemSet(&gbDataHuC3, 0, sizeof(gbDataHuC3));
   gbDataHuC3.mapperROMBank = 1;
 
-  memset(&gbDataTAMA5,0, 26*sizeof(int));
+  SystemMemSet(&gbDataTAMA5,0, 26*sizeof(int));
   gbDataTAMA5.mapperROMBank = 1;
 
-  memset(&gbDataMMM01,0, sizeof(gbDataMMM01));
+  SystemMemSet(&gbDataMMM01,0, sizeof(gbDataMMM01));
   gbDataMMM01.mapperROMBank = 1;
 
   if (useBios && !skipBios && (gbHardware & 5))
@@ -3398,7 +3398,7 @@ bool gbReadGSASnapshot(const char *fileName)
   char buffer2[16];
   fread(buffer, 1, 15, file);
   buffer[15] = 0;
-  memcpy(buffer2, &gbRom[0x134], 15);
+  SystemMemCpy(buffer2, &gbRom[0x134], 15);
   buffer2[15] = 0;
   if(memcmp(buffer, buffer2, 15)) {
     systemMessage(MSG_CANNOT_IMPORT_SNAPSHOT_FOR,
@@ -3683,8 +3683,8 @@ static bool gbReadSaveState(gzFile gzFile)
       gbVram = (u8 *)SystemMalloc(0x4000);
     if(gbWram == NULL)
       gbWram = (u8 *)SystemMalloc(0x8000);
-    memset(gbVram,0,0x4000);
-    memset(gbPalette,0, 2*128);
+    SystemMemSet(gbVram,0,0x4000);
+    SystemMemSet(gbPalette,0, 2*128);
   }
 
 
@@ -3729,7 +3729,7 @@ static bool gbReadSaveState(gzFile gzFile)
   if(version < GBSAVE_GAME_VERSION_5) {
     utilGzRead(gzFile, pix, 256*224*sizeof(u16));
   }
-  memset(pix, 0, 257*226*sizeof(u32));
+  SystemMemSet(pix, 0, 257*226*sizeof(u32));
 
   if(version < GBSAVE_GAME_VERSION_6) {
     utilGzRead(gzFile, gbPalette, 64 * sizeof(u16));
@@ -3768,21 +3768,21 @@ static bool gbReadSaveState(gzFile gzFile)
     }
   }
 
-  memset(gbSCYLine, register_SCY, sizeof(gbSCYLine));
-  memset(gbSCXLine, register_SCX, sizeof(gbSCXLine));
-  memset(gbBgpLine, (gbBgp[0] | (gbBgp[1]<<2) | (gbBgp[2]<<4) |
+  SystemMemSet(gbSCYLine, register_SCY, sizeof(gbSCYLine));
+  SystemMemSet(gbSCXLine, register_SCX, sizeof(gbSCXLine));
+  SystemMemSet(gbBgpLine, (gbBgp[0] | (gbBgp[1]<<2) | (gbBgp[2]<<4) |
          (gbBgp[3]<<6)), sizeof(gbBgpLine));
-  memset(gbObp0Line, (gbObp0[0] | (gbObp0[1]<<2) | (gbObp0[2]<<4) |
+  SystemMemSet(gbObp0Line, (gbObp0[0] | (gbObp0[1]<<2) | (gbObp0[2]<<4) |
          (gbObp0[3]<<6)), sizeof(gbObp0Line));
-  memset(gbObp1Line, (gbObp1[0] | (gbObp1[1]<<2) | (gbObp1[2]<<4) |
+  SystemMemSet(gbObp1Line, (gbObp1[0] | (gbObp1[1]<<2) | (gbObp1[2]<<4) |
          (gbObp1[3]<<6)), sizeof(gbObp1Line));
-  memset(gbSpritesTicks, 0x0, sizeof(gbSpritesTicks));
+  SystemMemSet(gbSpritesTicks, 0x0, sizeof(gbSpritesTicks));
 
   if (inBios)
   {
     gbMemoryMap[0x00] = &gbMemory[0x0000];
-    memcpy ((u8 *)(gbMemory), (u8 *)(gbRom), 0x1000);
-    memcpy ((u8 *)(gbMemory), (u8 *)(bios), 0x100);
+    SystemMemCpy ((u8 *)(gbMemory), (u8 *)(gbRom), 0x1000);
+    SystemMemCpy ((u8 *)(gbMemory), (u8 *)(bios), 0x100);
   }
   else
     gbMemoryMap[0x00] = &gbRom[0x0000];
@@ -3955,7 +3955,7 @@ static bool gbReadSaveState(gzFile gzFile)
     gbLcdTicksDelayed = gbLcdTicks--;
     gbLcdLYIncrementTicksDelayed = gbLcdLYIncrementTicks--;
     gbInterruptWait = 0;
-    memset(gbSpritesTicks,0,sizeof(gbSpritesTicks));
+    SystemMemSet(gbSpritesTicks,0,sizeof(gbSpritesTicks));
   }
   else
   {
@@ -4287,7 +4287,7 @@ bool gbUpdateSizes()
 
     if (gbTAMA5ram == NULL)
       gbTAMA5ram = (u8 *)SystemMalloc(gbTAMA5ramSize);
-    memset(gbTAMA5ram, 0x0, gbTAMA5ramSize);
+    SystemMemSet(gbTAMA5ram, 0x0, gbTAMA5ramSize);
 
     mapperRAM = mapperTAMA5RAM;
     mapperReadRAM = mapperTAMA5ReadRAM;
@@ -4312,7 +4312,7 @@ bool gbUpdateSizes()
 
   if(gbRamSize) {
     gbRam = (u8 *)SystemMalloc(gbRamSize);
-    memset(gbRam, gbRamFill, gbRamSize);
+    SystemMemSet(gbRam, gbRamFill, gbRamSize);
   }
 
   switch(gbRomType) {
@@ -4889,12 +4889,12 @@ void gbEmulate(int ticksToStop)
             {
               // H-Blank
 
-              memset(gbSCYLine,gbSCYLine[299],sizeof(gbSCYLine));
-              memset(gbSCXLine,gbSCXLine[299],sizeof(gbSCXLine));
-              memset(gbBgpLine,gbBgpLine[299],sizeof(gbBgpLine));
-              memset(gbObp0Line,gbObp0Line[299],sizeof(gbObp0Line));
-              memset(gbObp1Line,gbObp1Line[299],sizeof(gbObp1Line));
-              memset(gbSpritesTicks,gbSpritesTicks[299],sizeof(gbSpritesTicks));
+              SystemMemSet(gbSCYLine,gbSCYLine[299],sizeof(gbSCYLine));
+              SystemMemSet(gbSCXLine,gbSCXLine[299],sizeof(gbSCXLine));
+              SystemMemSet(gbBgpLine,gbBgpLine[299],sizeof(gbBgpLine));
+              SystemMemSet(gbObp0Line,gbObp0Line[299],sizeof(gbObp0Line));
+              SystemMemSet(gbObp1Line,gbObp1Line[299],sizeof(gbObp1Line));
+              SystemMemSet(gbSpritesTicks,gbSpritesTicks[299],sizeof(gbSpritesTicks));
 
               if (gbWindowLine <0)
                 oldRegister_WY = register_WY;

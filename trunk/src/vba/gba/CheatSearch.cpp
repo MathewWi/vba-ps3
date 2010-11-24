@@ -111,8 +111,8 @@ void cheatSearchStart(const CheatSearchData *cs)
   for(int i = 0; i < count; i++) {
     CheatSearchBlock *block = &cs->blocks[i];
 
-    memset(block->bits, 0xff, block->size >> 3);
-    memcpy(block->saved, block->data, block->size);
+    SystemMemSet(block->bits, 0xff, block->size >> 3);
+    SystemMemCpy(block->saved, block->data, block->size);
   }
 }
 
@@ -310,7 +310,7 @@ void cheatSearchUpdateValues(const CheatSearchData *cs)
   for(int i = 0; i < cs->count; i++) {
     CheatSearchBlock *block = &cs->blocks[i];
 
-    memcpy(block->saved, block->data, block->size);
+    SystemMemCpy(block->saved, block->data, block->size);
   }
 }
 

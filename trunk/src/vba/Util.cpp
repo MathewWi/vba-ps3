@@ -219,7 +219,7 @@ bool utilWriteBMPFile(const char *fileName, int w, int h, u8 *pix)
     u8 importantcolors[4];
     //    u8 pad[2];
   } bmpheader;
-  memset(&bmpheader, 0, sizeof(bmpheader));
+  SystemMemSet(&bmpheader, 0, sizeof(bmpheader));
 
   bmpheader.ident[0] = 'B';
   bmpheader.ident[1] = 'M';

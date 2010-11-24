@@ -48,7 +48,7 @@ Effects_Buffer::Effects_Buffer( int max_bufs, long echo_size_ ) : Multi_Buffer( 
 	config_.side_chans [0].vol = 1.0f;
 	config_.side_chans [1].vol = 1.0f;
 
-	memset( &s, 0, sizeof s );
+	SystemMemSet( &s, 0, sizeof s );
 	clear();
 }
 
@@ -140,7 +140,7 @@ blargg_err_t Effects_Buffer::set_channel_count( int count, int const* types )
 void Effects_Buffer::clear_echo()
 {
 	if ( echo.size() )
-		memset( echo.begin(), 0, echo.size() * sizeof echo [0] );
+		SystemMemSet( echo.begin(), 0, echo.size() * sizeof echo [0] );
 }
 
 void Effects_Buffer::clear()
@@ -458,7 +458,7 @@ long Effects_Buffer::read_samples( blip_sample_t* out, long out_size )
 				{
 					// optimization: clear echo here to keep mix_effects() a leaf function
 					echo_pos = 0;
-					memset( echo.begin(), 0, count * stereo * sizeof echo [0] );
+					SystemMemSet( echo.begin(), 0, count * stereo * sizeof echo [0] );
 				}
 				mix_effects( out, count );
 

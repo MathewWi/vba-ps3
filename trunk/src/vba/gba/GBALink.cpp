@@ -598,7 +598,7 @@ u16 StartRFU(u16 value)
 							ResetEvent(linksync[vbaid]);
 						}
 						if ( linkid > 0) {
-							memcpy(rfu_masterdata, linkmem->rfu_data[1-vbaid], 128);
+							SystemMemCpy(rfu_masterdata, linkmem->rfu_data[1-vbaid], 128);
 							rfu_masterq = linkmem->rfu_q[1-vbaid];
 						}
 						rfu_transfer_end = linkmem->rfu_linktime[1-vbaid] - linktime + 256;
@@ -1020,7 +1020,7 @@ void lserver::Recv(void){
 			inbuffer[0] = 1;
 			while(numbytes<howmanytimes*inbuffer[0])
 				numbytes += recv(tcpsocket[i+1], inbuffer+numbytes, 256-numbytes, 0);
-			if(howmanytimes>1) memcpy(inbuffer, inbuffer+inbuffer[0]*(howmanytimes-1), inbuffer[0]);
+			if(howmanytimes>1) SystemMemCpy(inbuffer, inbuffer+inbuffer[0]*(howmanytimes-1), inbuffer[0]);
 			if(inbuffer[1]==-32){
 				char message[30];
 				lanlink.connected = false;

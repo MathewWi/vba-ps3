@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "../System.h"
+
 /* Copyright (C) 2003-2007 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
 General Public License as published by the Free Software Foundation; either
@@ -74,7 +76,7 @@ void Blip_Buffer::clear( int entire_buffer )
 	if ( buffer_ )
 	{
 		long count = (entire_buffer ? buffer_size_ : samples_avail());
-		memset( buffer_, 0, (count + blip_buffer_extra_) * sizeof (buf_t_) );
+		SystemMemSet( buffer_, 0, (count + blip_buffer_extra_) * sizeof (buf_t_) );
 	}
 }
 
@@ -184,7 +186,7 @@ void Blip_Buffer::remove_samples( long count )
 		// copy remaining samples to beginning and clear old samples
 		long remain = samples_avail() + blip_buffer_extra_;
 		memmove( buffer_, buffer_ + count, remain * sizeof *buffer_ );
-		memset( buffer_ + remain, 0, count * sizeof *buffer_ );
+		SystemMemSet( buffer_ + remain, 0, count * sizeof *buffer_ );
 	}
 }
 
@@ -455,7 +457,7 @@ void Blip_Buffer::save_state( blip_buffer_state_t* out )
 	assert( samples_avail() == 0 );
 	out->offset_       = offset_;
 	out->reader_accum_ = reader_accum_;
-	memcpy( out->buf, &buffer_ [offset_ >> BLIP_BUFFER_ACCURACY], sizeof out->buf );
+	SystemMemCpy( out->buf, &buffer_ [offset_ >> BLIP_BUFFER_ACCURACY], sizeof out->buf );
 }
 
 void Blip_Buffer::load_state( blip_buffer_state_t const& in )
@@ -464,5 +466,5 @@ void Blip_Buffer::load_state( blip_buffer_state_t const& in )
 
 	offset_       = in.offset_;
 	reader_accum_ = in.reader_accum_;
-	memcpy( buffer_, in.buf, sizeof in.buf );
+	SystemMemCpy( buffer_, in.buf, sizeof in.buf );
 }
