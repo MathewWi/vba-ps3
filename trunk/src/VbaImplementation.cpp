@@ -149,18 +149,17 @@ void systemScreenCapture(int a)
 }
 
 
-void systemDrawScreen()
+__attribute__ ((__always_inline__)) void systemDrawScreen()
 {
 	//LOG_DBG("systemDrawScreen()\n");
 	Graphics->Draw(pix);
 
-	renderedFrames++;
-
+	++renderedFrames;
 }
 
 
 // updates the joystick data
-bool systemReadJoypads()
+__attribute__ ((__always_inline__)) bool systemReadJoypads()
 {
 	//LOG_DBG("systemReadJoypads()\n");
 
@@ -169,7 +168,7 @@ bool systemReadJoypads()
 
 
 // return information about the given joystick, -1 for default joystick
-uint32_t systemReadJoypad(int pad)
+__attribute__ ((__always_inline__)) uint32_t systemReadJoypad(int pad)
 {
 	//LOG_DBG("systemReadJoypad(%d)\n", pad);
 
@@ -377,7 +376,7 @@ bool systemCanChangeSoundQuality()
 void systemShowSpeed(int speed)
 {
 	systemSpeed = speed;
-	LOG_DBG("systemShowSpeed: %3d%%(%d, %d fps)\n", systemSpeed, systemFrameSkip, renderedFrames );
+	//LOG_DBG("systemShowSpeed: %3d%%(%d, %d fps)\n", systemSpeed, systemFrameSkip, renderedFrames );
 	renderedFrames = 0;
 }
 
@@ -389,7 +388,7 @@ void system10Frames(int rate)
 }
 
 
- void systemFrame()
+void systemFrame()
 {
 	 //LOG_DBG("systemFrame()\n");
 }
