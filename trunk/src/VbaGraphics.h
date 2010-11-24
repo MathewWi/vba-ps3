@@ -126,6 +126,9 @@ private:
 	GLuint pbo, vbo;
 	uint32_t *gl_buffer;
 	uint8_t *vertex_buf;
+   mutable float m_fps;
+   mutable uint64_t m_frames;
+   mutable uint64_t last_time;
 
 	string _curFragmentShaderPath;
 

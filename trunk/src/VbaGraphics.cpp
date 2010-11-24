@@ -13,6 +13,7 @@
 
 
 #include "cellframework/logger/Logger.h"
+#include "cellframework/utility/utils.h"
 
 #include "vba/System.h"
 
@@ -52,6 +53,20 @@ void VbaGraphics::DeInit()
 
 void VbaGraphics::Swap() const
 {
+   // TODO: Make this a setting!
+   m_frames++;
+
+   if (m_frames >= 100)
+   {
+      uint64_t new_time = get_usec();
+      m_fps = 100000000.0 / (new_time - last_time);
+
+      last_time = new_time;
+      m_frames = 0;
+   }
+   cellDbgFontPrintf(0.03, 0.03, 0.75, 0xffffffff, "FPS: %.2f\n", m_fps);
+   cellDbgFontDraw();
+
    psglSwap();
 }
 
