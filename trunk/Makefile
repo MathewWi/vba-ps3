@@ -66,6 +66,7 @@ PPU_CXXFLAGS	+=	-ffast-math \
 					-finline-functions \
 					-funit-at-a-time \
 					-finline-functions-called-once \
+					-fprefetch-loop-arrays \
 					--param inline-unit-growth=200 \
 					--param large-function-growth=1000 \
 					--param max-inline-insns-single=1000
@@ -75,6 +76,7 @@ PPU_CFLAGS		+=	-ffast-math \
 					-finline-functions \
 					-funit-at-a-time \
 					-finline-functions-called-once \
+					-fprefetch-loop-arrays \
 					--param inline-unit-growth=200 \
 					--param large-function-growth=1000 \
 					--param max-inline-insns-single=1000
