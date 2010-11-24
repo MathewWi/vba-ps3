@@ -32,7 +32,7 @@
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
 // if you add more settings to the screen, remember to change this value to the correct number
-#define MAX_NO_OF_SETTINGS      8
+#define MAX_NO_OF_SETTINGS      9
 
 #define NUM_ENTRY_PER_PAGE 24
 
@@ -242,10 +242,17 @@ void do_settings()
 
 		switch(currently_selected_setting)
 		{
+		case SETTING_DRAW_FPS:
+			if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK))
+				Settings.DrawFps = !Settings.DrawFps;
+			if(CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
+				Settings.DrawFps = !Settings.DrawFps;
+			break;
+
 			case SETTING_CURRENT_SAVE_STATE_SLOT:
-				if(CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK))
+				if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK))
 					   App->DecrementStateSlot();
-				if(CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
+				if(CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
 					   App->IncrementStateSlot();
 				break;
 
@@ -378,71 +385,86 @@ void do_settings()
 
 	}
 
-	cellDbgFontPuts(0.05f, 0.05f, FONT_SIZE, currently_selected_setting == SETTING_CURRENT_SAVE_STATE_SLOT ? YELLOW : WHITE, "Current save state slot");
-	cellDbgFontPrintf(0.5f, 0.05f, FONT_SIZE, App->CurrentSaveStateSlot() == 0 ? GREEN : RED, "%d", App->CurrentSaveStateSlot());
+	float yPos = 0.05;
+	float ySpacing = 0.04;
 
-	cellDbgFontPuts(0.05f, 0.09f, FONT_SIZE, currently_selected_setting == SETTING_CHANGE_RESOLUTION ? YELLOW : WHITE, "Resolution");
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_DRAW_FPS ? YELLOW : WHITE, "Draw Framerate");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.DrawFps ? RED : GREEN, "%d", Settings.DrawFps ? "Enabled" : "Disabled");
+
+	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_CURRENT_SAVE_STATE_SLOT ? YELLOW : WHITE, "Current save state slot");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, App->CurrentSaveStateSlot() == 0 ? GREEN : RED, "%d", App->CurrentSaveStateSlot());
+
+	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_CHANGE_RESOLUTION ? YELLOW : WHITE, "Resolution");
 
 	switch(Graphics->GetCurrentResolution())
 	{
 		case CELL_VIDEO_OUT_RESOLUTION_480:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_480 ? GREEN : RED, "480p (59.94Hz)");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_480 ? GREEN : RED, "480p (59.94Hz)");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_720:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_720 ? GREEN : RED, "720p (59.94Hz)");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_720 ? GREEN : RED, "720p (59.94Hz)");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1080 ? GREEN : RED, "1080p (59.94Hz)");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1080 ? GREEN : RED, "1080p (59.94Hz)");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_576:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_576 ? GREEN : RED, "576p (50Hz)");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_576 ? GREEN : RED, "576p (50Hz)");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1600x1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1600x1080 ? GREEN : RED, "1600x1080");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1600x1080 ? GREEN : RED, "1600x1080");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1440x1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1440x1080 ? GREEN : RED, "1440x1080");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1440x1080 ? GREEN : RED, "1440x1080");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1280x1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1280x1080 ? GREEN : RED, "1280x1080");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1280x1080 ? GREEN : RED, "1280x1080");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_960x1080:
-			cellDbgFontPrintf(0.5f, 0.09f, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_960x1080 ? GREEN : RED, "960x1080");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_960x1080 ? GREEN : RED, "960x1080");
 			Graphics->FlushDbgFont();
 			break;
 	}
 	Graphics->FlushDbgFont();
 
-	cellDbgFontPuts(0.05f, 0.13f, FONT_SIZE, currently_selected_setting == SETTING_KEEP_ASPECT_RATIO ? YELLOW : WHITE, "Aspect Ratio");
-	cellDbgFontPrintf(0.5f, 0.13f, FONT_SIZE, Settings.PS3KeepAspect == true ? GREEN : RED, "%s", Settings.PS3KeepAspect == true ? "4:3" : "16:9");
+	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_KEEP_ASPECT_RATIO ? YELLOW : WHITE, "Aspect Ratio");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3KeepAspect == true ? GREEN : RED, "%s", Settings.PS3KeepAspect == true ? "4:3" : "16:9");
 
-	cellDbgFontPuts(0.05f, 0.17f, FONT_SIZE, currently_selected_setting == SETTING_HW_TEXTURE_FILTER ? YELLOW : WHITE, "Hardware Filtering");
-	cellDbgFontPrintf(0.5f, 0.17f, FONT_SIZE, Settings.PS3Smooth == true ? GREEN : RED, "%s", Settings.PS3Smooth == true ? "Linear interpolation" : "Point filtering");
+	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_HW_TEXTURE_FILTER ? YELLOW : WHITE, "Hardware Filtering");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3Smooth == true ? GREEN : RED, "%s", Settings.PS3Smooth == true ? "Linear interpolation" : "Point filtering");
 
-	cellDbgFontPuts		(0.05f,	0.21f,	FONT_SIZE,	currently_selected_setting == SETTING_HW_OVERSCAN_AMOUNT ? YELLOW : WHITE,	"Overscan");
+	yPos += ySpacing;
+	cellDbgFontPuts		(0.05f,	yPos,	FONT_SIZE,	currently_selected_setting == SETTING_HW_OVERSCAN_AMOUNT ? YELLOW : WHITE,	"Overscan");
+	cellDbgFontPrintf	(0.5f,	yPos,	FONT_SIZE,	Settings.PS3OverscanAmount == 0 ? GREEN : RED, "%f", (float)Settings.PS3OverscanAmount/100);
+
 	Graphics->FlushDbgFont();
-	cellDbgFontPrintf	(0.5f,	0.21f,	FONT_SIZE,	Settings.PS3OverscanAmount == 0 ? GREEN : RED, "%f", (float)Settings.PS3OverscanAmount/100);
 
-	Graphics->FlushDbgFont();
-
-	cellDbgFontPuts(0.05f, 0.25f, FONT_SIZE, currently_selected_setting == SETTING_CONTROL_STYLE ? YELLOW : WHITE, "Control Style");
-	cellDbgFontPrintf(0.5f, 0.25f, FONT_SIZE,
+	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_CONTROL_STYLE ? YELLOW : WHITE, "Control Style");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE,
 			Settings.ControlStyle == CONTROL_STYLE_ORIGINAL ? GREEN : RED,
 			"%s", Settings.ControlStyle == CONTROL_STYLE_ORIGINAL ? "Original (X->B, O->A)" : "Better (X->A, []->B)");
 
-	cellDbgFontPuts(0.05f, 0.29f, FONT_SIZE, currently_selected_setting == SETTING_SHADER ? YELLOW : WHITE, "Shader: ");
-	cellDbgFontPrintf(0.5f, 0.29f, FONT_SIZE,
+	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_SHADER ? YELLOW : WHITE, "Shader: ");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE,
 			GREEN,
 			"%s", Graphics->GetFragmentShaderPath().substr(Graphics->GetFragmentShaderPath().find_last_of('/')).c_str());
 
-	cellDbgFontPrintf(0.05f, 0.33f, FONT_SIZE, currently_selected_setting == SETTING_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");
+	yPos += ySpacing;
+	cellDbgFontPrintf(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");
+
+
 	cellDbgFontPuts(0.01f, 0.88f, FONT_SIZE, YELLOW, "UP/DOWN - select, X/LEFT/RIGHT - change, START - default");
 	cellDbgFontPuts(0.01f, 0.92f, FONT_SIZE, YELLOW, "CIRCLE - return to menu, L2+R2 - resume game");
 	Graphics->FlushDbgFont();

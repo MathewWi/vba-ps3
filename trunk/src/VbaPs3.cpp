@@ -78,6 +78,8 @@ VbaPs3::VbaPs3()
 	{
 		load_settings = false;
 	}
+
+	_messageTimer = 0;
 }
 
 
@@ -120,6 +122,12 @@ void VbaPs3::OSKStart(const wchar_t* msg, const wchar_t* init)
 const char * VbaPs3::OSKOutputString()
 {
 	return oskutil->OutputString();
+}
+
+
+void VbaPs3::PushScreenMessage(string msg)
+{
+	_messages.push_back(msg);
 }
 
 
@@ -244,6 +252,19 @@ bool VbaPs3::InitSettings()
 		Settings.ControlStyle = CONTROL_STYLE_BETTER;
 	}
 
+	if (currentconfig->Exists("VBA::DrawFps"))
+	{
+		Settings.DrawFps = currentconfig->GetBool("VBA::DrawFps");
+	}
+	else
+	{
+#ifdef CELL_DEBUG
+		Settings.DrawFps = true;
+#else
+		Settings.DrawFps = false;
+#endif
+	}
+
 	if (currentconfig->Exists("VBA::Shader"))
 	{
 		Graphics->LoadFragmentShader(currentconfig->GetString("VBA::Shader"));
@@ -315,6 +336,7 @@ bool VbaPs3::SaveSettings()
 {
 	if (currentconfig != NULL)
 	{
+		currentconfig->SetBool("VBA::DrawFps",Settings.PS3KeepAspect);
 		currentconfig->SetBool("PS3General::KeepAspect",Settings.PS3KeepAspect);
 		currentconfig->SetBool("PS3General::Smooth", Settings.PS3Smooth);
 		currentconfig->SetBool("PS3General::OverscanEnabled", Settings.PS3OverscanEnabled);
@@ -767,9 +789,23 @@ void VbaPs3::EmulationLoop()
 	emulation_running = true;
 	while (emulation_running)
 	{
-		Vba.emuMain(Vba.emuCount);
+		// FIXME: this bad for performance?
+		if (!_messages.empty())
+		{
+			_messageTimer += systemGetClock();
+			LOG("timer: %u\n", _messageTimer);
+			if (_messageTimer > 5000000)
+			{
+				_messages.pop_back();
+				_messageTimer = 0;
+			}
+			for (int i = 0; i < _messages.size(); i++)
+			{
+				cellDbgFontPuts(0.05f, 0.80f + (i*0.04f), FONT_SIZE * 1.5f, BLUE, _messages[i].c_str());
+			}
+		}
 
-		//Graphics->Swap();
+		Vba.emuMain(Vba.emuCount);
 
 #ifdef EMUDEBUG
 		if (CellConsole_IsInitialized())

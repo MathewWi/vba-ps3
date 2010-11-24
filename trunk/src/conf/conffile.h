@@ -413,7 +413,8 @@ struct SSettings
 	bool		PS3PALTemporalMode60Hz;
 	int		PS3FontSize;
 
-	//FCEU additions
+	//VBA additions
+	bool DrawFps;
 	int	ControlStyle;
 
 	char	PS3PathSaveStates[128];
