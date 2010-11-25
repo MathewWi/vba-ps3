@@ -335,12 +335,16 @@ bool VbaPs3::InitSettings()
 	{
 		Settings.PS3PathScreenshots		= currentconfig->GetString("PS3Paths::PathScreenshots");
 	}
+	*/
 
 	if (currentconfig->Exists("PS3Paths::PathROMDirectory"))
 	{
 		Settings.PS3PathROMDirectory		= currentconfig->GetString("PS3Paths::PathROMDirectory");
 	}
-	 */
+	else
+	{
+		Settings.PS3PathROMDirectory		= "/\0";
+	}
 
 	LOG("SUCCESS - VbaPs3::InitSettings()\n");
 	return true;
@@ -360,6 +364,7 @@ bool VbaPs3::SaveSettings()
 		currentconfig->SetInt("VBA::Controlstyle",Settings.ControlStyle);
 		currentconfig->SetString("VBA::Shader",Graphics->GetFragmentShaderPath());
 		currentconfig->SetString("PS3Paths::PathSaveStates",Settings.PS3PathSaveStates);
+		currentconfig->SetString("PS3Paths::PathROMDirectory",Settings.PS3PathROMDirectory);
 		currentconfig->SetString("PS3Paths::PathSRAM",Settings.PS3PathSRAM);
 		currentconfig->SetString("RSound::RSoundServerIPAddress",Settings.RSoundServerIPAddress);
 		currentconfig->SetBool("RSound::RSoundEnabled",Settings.RSoundEnabled);

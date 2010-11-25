@@ -33,7 +33,7 @@
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
 // if you add more settings to the screen, remember to change this value to the correct number
-#define MAX_NO_OF_SETTINGS      12
+#define MAX_NO_OF_SETTINGS      13
 
 #define NUM_ENTRY_PER_PAGE 24
 
@@ -199,7 +199,7 @@ void do_biosChoice()
 	RenderBrowser(tmpBrowser);
 }
 
-void do_saveStatePathChoice()
+void do_pathChoice()
 {
 	if (tmpBrowser == NULL)
 	{
@@ -215,14 +215,36 @@ void do_saveStatePathChoice()
 			if(tmpBrowser->IsCurrentADirectory())
 			{
 				path = tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name + "/";
-				Settings.PS3PathSaveStates = path;
+				switch(currently_selected_setting)
+				{
+					case SETTING_PATH_SAVESTATES_DIRECTORY:
+						Settings.PS3PathSaveStates = path;
+						break;
+					case SETTING_PATH_SRAM_DIRECTORY:
+						Settings.PS3PathSRAM = path;
+						break;
+					case SETTING_PATH_DEFAULT_ROM_DIRECTORY:
+						Settings.PS3PathROMDirectory = path;
+						break;
+				}
 				menuStack.pop();
 			}
 		}
 		if (CellInput->WasButtonHeld(0, CTRL_TRIANGLE))
 		{
 			path = USRDIR;
-			Settings.PS3PathSaveStates = path;
+			switch(currently_selected_setting)
+			{
+				case SETTING_PATH_SAVESTATES_DIRECTORY:
+					Settings.PS3PathSaveStates = path;
+					break;
+				case SETTING_PATH_SRAM_DIRECTORY:
+					Settings.PS3PathSRAM = path;
+					break;
+				case SETTING_PATH_DEFAULT_ROM_DIRECTORY:
+					Settings.PS3PathROMDirectory = path;
+					break;
+			}
 			menuStack.pop();
 		}
 		if (CellInput->WasButtonPressed(0,CTRL_CROSS))
@@ -235,50 +257,7 @@ void do_saveStatePathChoice()
 	}
 			
 	cellDbgFontPuts(0.05f, 0.88f, FONT_SIZE, YELLOW, "X - enter directory");
-	cellDbgFontPuts(0.05f, 0.92f, FONT_SIZE, BLUE, "SQUARE - select directory as path for savestate files");
-	cellDbgFontPuts(0.05f, 0.96f, FONT_SIZE, PURPLE, "Triangle - return to settings");
-	Graphics->FlushDbgFont();
-			
-	RenderBrowser(tmpBrowser);
-}
-
-void do_sramPathChoice()
-{
-	if (tmpBrowser == NULL)
-	{
-		tmpBrowser = new FileBrowser("/\0");
-	}
-	string path;
-
-	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
-	{
-		UpdateBrowser(tmpBrowser);
-		if (CellInput->WasButtonPressed(0,CTRL_SQUARE))
-		{
-			if(tmpBrowser->IsCurrentADirectory())
-			{
-				path = tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name + "/";
-				Settings.PS3PathSRAM = path;
-				menuStack.pop();
-			}
-		}
-		if (CellInput->WasButtonHeld(0, CTRL_TRIANGLE))
-		{
-			path = USRDIR;
-			Settings.PS3PathSRAM = path;
-			menuStack.pop();
-		}
-		if (CellInput->WasButtonPressed(0,CTRL_CROSS))
-		{
-			if(tmpBrowser->IsCurrentADirectory())
-			{
-				tmpBrowser->PushDirectory(tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name, CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY, "empty");
-			}
-		}
-	}
-			
-	cellDbgFontPuts(0.05f, 0.88f, FONT_SIZE, YELLOW, "X - enter directory");
-	cellDbgFontPuts(0.05f, 0.92f, FONT_SIZE, BLUE, "SQUARE - select directory as path for SRAM files");
+	cellDbgFontPuts(0.05f, 0.92f, FONT_SIZE, BLUE, "SQUARE - select directory as path");
 	cellDbgFontPuts(0.05f, 0.96f, FONT_SIZE, PURPLE, "Triangle - return to settings");
 	Graphics->FlushDbgFont();
 			
@@ -498,7 +477,7 @@ void do_settings()
 			case SETTING_PATH_SAVESTATES_DIRECTORY:
 				if (CellInput->WasButtonPressed(0, CTRL_CROSS))
 				{
-					menuStack.push(do_saveStatePathChoice);
+					menuStack.push(do_pathChoice);
 					tmpBrowser = NULL;
 				}
 				if (CellInput->IsButtonPressed(0, CTRL_START))
@@ -509,12 +488,23 @@ void do_settings()
 			case SETTING_PATH_SRAM_DIRECTORY:
 				if (CellInput->WasButtonPressed(0, CTRL_CROSS))
 				{
-					menuStack.push(do_sramPathChoice);
+					menuStack.push(do_pathChoice);
 					tmpBrowser = NULL;
 				}
 				if (CellInput->IsButtonPressed(0, CTRL_START))
 				{
 					Settings.PS3PathSRAM = USRDIR;
+				}
+				break;
+			case SETTING_PATH_DEFAULT_ROM_DIRECTORY:
+				if (CellInput->WasButtonPressed(0, CTRL_CROSS))
+				{
+					menuStack.push(do_pathChoice);
+					tmpBrowser = NULL;
+				}
+				if (CellInput->IsButtonPressed(0, CTRL_START))
+				{
+					Settings.PS3PathROMDirectory = "/\0";
 				}
 				break;
 			case SETTING_DEFAULT_ALL:
@@ -638,6 +628,11 @@ void do_settings()
 	yPos += ySpacing;
 	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_PATH_SRAM_DIRECTORY ? YELLOW : WHITE, "SRAM Directory");
 	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3PathSRAM.c_str() == USRDIR ? GREEN : RED, Settings.PS3PathSRAM.c_str());
+	Graphics->FlushDbgFont();
+
+	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_PATH_DEFAULT_ROM_DIRECTORY ? YELLOW : WHITE, "Startup ROM Directory");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3PathROMDirectory.c_str() == "/" ? GREEN : RED, Settings.PS3PathROMDirectory.c_str());
 	Graphics->FlushDbgFont();
 
 
@@ -859,7 +854,7 @@ void MenuMainLoop()
 	// create file browser if null
 	if (browser == NULL)
 	{
-		browser = new FileBrowser("/\0");
+		browser = new FileBrowser(Settings.PS3PathROMDirectory);
 	}
 
 
