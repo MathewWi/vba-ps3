@@ -419,8 +419,8 @@ struct SSettings
 
 	std::string	PS3PathSaveStates;
 	std::string	PS3PathSRAM;
-	const char *	PS3PathScreenshots;
-	const char *	PS3PathROMDirectory;
+	std::string	PS3PathScreenshots;
+	std::string	PS3PathROMDirectory;
 	std::string	GBABIOS;
 
 	bool		RSoundEnabled;
