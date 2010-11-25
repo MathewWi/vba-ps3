@@ -280,7 +280,8 @@ void do_settings()
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) || CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
 				{
 					Settings.PS3KeepAspect = !Settings.PS3KeepAspect;
-					Graphics->SetAspectRatio(Settings.PS3KeepAspect ? SCREEN_4_3_ASPECT_RATIO : SCREEN_16_9_ASPECT_RATIO);
+					//Graphics->SetAspectRatio(Settings.PS3KeepAspect ? SCREEN_4_3_ASPECT_RATIO : SCREEN_16_9_ASPECT_RATIO);
+               Graphics->SetStretched(!Settings.PS3KeepAspect);
 				}
 				if(CellInput->IsButtonPressed(0, CTRL_START))
 				{

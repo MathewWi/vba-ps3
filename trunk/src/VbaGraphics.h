@@ -73,6 +73,7 @@ public:
 	void UnmapPixels();
 
 	void SetAspectRatio(float ratio);
+   void SetStretched(bool stretch);
 	void SetSmooth(bool smooth);
 	void SetPAL60Hz(bool pal60Hz);
 	void Clear() const;
