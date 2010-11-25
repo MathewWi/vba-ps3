@@ -38,6 +38,8 @@
 
 #include "cellframework/utility/OSKUtil.h"
 
+#define USRDIR "/dev_hdd0/game/VBAM90000/USRDIR"
+
 #define SYS_CONFIG_FILE "/dev_hdd0/game/VBAM90000/USRDIR/vba.conf"
 SYS_PROCESS_PARAM(1001, 0x40000);
 
@@ -310,7 +312,6 @@ bool VbaPs3::InitSettings()
 		Settings.RSoundServerIPAddress = "0.0.0.0";
 	}
 	// PS3 Path Settings
-	/*
 	if (currentconfig->Exists("PS3Paths::PathSaveStates"))
 	{
 		Settings.PS3PathSaveStates		= currentconfig->GetString("PS3Paths::PathSaveStates");
@@ -324,7 +325,12 @@ bool VbaPs3::InitSettings()
 	{
 		Settings.PS3PathSRAM		= currentconfig->GetString("PS3Paths::PathSRAM");
 	}
+	else
+	{
+		Settings.PS3PathSRAM		= USRDIR;
+	}
 
+	/*
 	if (currentconfig->Exists("PS3Paths::PathScreenshots"))
 	{
 		Settings.PS3PathScreenshots		= currentconfig->GetString("PS3Paths::PathScreenshots");
@@ -353,6 +359,8 @@ bool VbaPs3::SaveSettings()
 		currentconfig->SetBool("PS3General::PS3PALTemporalMode60Hz",Settings.PS3PALTemporalMode60Hz);
 		currentconfig->SetInt("VBA::Controlstyle",Settings.ControlStyle);
 		currentconfig->SetString("VBA::Shader",Graphics->GetFragmentShaderPath());
+		currentconfig->SetString("PS3Paths::PathSaveStates",Settings.PS3PathSaveStates);
+		currentconfig->SetString("PS3Paths::PathSRAM",Settings.PS3PathSRAM);
 		currentconfig->SetString("RSound::RSoundServerIPAddress",Settings.RSoundServerIPAddress);
 		currentconfig->SetBool("RSound::RSoundEnabled",Settings.RSoundEnabled);
 		currentconfig->SetString("VBA::GBABIOS",Settings.GBABIOS);
@@ -750,11 +758,11 @@ string VbaPs3::MakeFName(Emulator_FileTypes type)
 	switch (type)
 	{
 		case FILETYPE_STATE:
-			ss << EMULATOR_PATH_STATES << fn << current_state_save << ".sgm";
+			ss << Settings.PS3PathSaveStates << fn << current_state_save << ".sgm";
 			fn = ss.str();
 			break;
 		case FILETYPE_BATTERY:
-			ss << EMULATOR_PATH_STATES << fn << ".sav";
+			ss << Settings.PS3PathSRAM << fn << ".sav";
 			fn = ss.str();
 			break;
 		case FILETYPE_PNG:

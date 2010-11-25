@@ -25,7 +25,9 @@ using namespace::std;
 #define SETTING_CONTROL_STYLE 6
 #define SETTING_SHADER 7
 #define SETTING_GBABIOS 8
-#define SETTING_DEFAULT_ALL 9
+#define SETTING_PATH_SAVESTATES_DIRECTORY 9
+#define SETTING_PATH_SRAM_DIRECTORY 10
+#define SETTING_DEFAULT_ALL 11
 
 void MenuMainLoop(void);
 
