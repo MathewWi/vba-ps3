@@ -500,26 +500,35 @@ void VbaPs3::LoadImagePreferences()
 
 			if(!strcmp(token, "rtcEnabled"))
 			{
+				LOG("!strcmp(%s, rtcEnabled)\n", token);
 				rtcEnable(atoi(value) == 0 ? false : true);
+				LOG("rtCEnable(%s)\n", value);
 			}
 			else if(!strcmp(token, "flashSize"))
 			{
+				LOG("!strcmp(%s, flashSize)\n", token);
 				int size = atoi(value);
 				if(size == 0x10000 || size == 0x20000)
 				{
+					LOG("size == 0x10000 || size == 0x20000\n");
 					flashSetSize(size);
+					LOG("flashSetSize(%d)\n",size);
 				}
 			}
 			else if(!strcmp(token, "saveType"))
 			{
+				LOG("!strcmp(%s, saveType)\n", token);
 				int save = atoi(value);
 				if(save >= 0 && save <= 5)
 				{
+					LOG("save >= 0 && save <= 5\n");
 					cpuSaveType = save;
+					LOG("cpuSaveType = %d\n",save);
 				}
 			}
 			else if(!strcmp(token, "mirroringEnabled"))
 			{
+				LOG("!strcmp(%s, mirroringEnabled)\n", token);
 				mirroringEnable = (atoi(value) == 0 ? false : true);
 			}
 		}
