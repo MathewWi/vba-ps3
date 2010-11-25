@@ -274,6 +274,14 @@ bool VbaPs3::InitSettings()
 	{
 		Graphics->LoadFragmentShader(DEFAULT_SHADER_FILE);
 	}
+	if (currentconfig->Exists("VBA::GBABIOS"))
+	{
+		Settings.GBABIOS = currentconfig->GetString("VBA::GBABIOS");
+	}
+	else
+	{
+		Settings.GBABIOS = "";
+	}
 	if (currentconfig->Exists("PS3General::PS3PALTemporalMode60Hz"))
 	{
 		Settings.PS3PALTemporalMode60Hz = currentconfig->GetBool("PS3General::PS3PALTemporalMode60Hz");
@@ -347,6 +355,7 @@ bool VbaPs3::SaveSettings()
 		currentconfig->SetString("VBA::Shader",Graphics->GetFragmentShaderPath());
 		currentconfig->SetString("RSound::RSoundServerIPAddress",Settings.RSoundServerIPAddress);
 		currentconfig->SetBool("RSound::RSoundEnabled",Settings.RSoundEnabled);
+		currentconfig->SetString("VBA::GBABIOS",Settings.GBABIOS);
 		return currentconfig->SaveTo(SYS_CONFIG_FILE);
 	}
 
@@ -666,7 +675,10 @@ int32_t VbaPs3::VbaInit()
     	soundInit();
         soundSetSampleRate(48000); //22050
 
-        CPUInit(NULL, false);
+	//Loading of the BIOS
+	LOG("GBA BIOS: %s\n", Settings.GBABIOS.c_str());
+	LOG("CPUInit(%s, %d)\n", Settings.GBABIOS.c_str(), Settings.GBABIOS.empty() ? false : true);
+        CPUInit(Settings.GBABIOS.empty() ? NULL : Settings.GBABIOS.c_str(), Settings.GBABIOS.empty() ? false : true);
 
         CPUReset();
 

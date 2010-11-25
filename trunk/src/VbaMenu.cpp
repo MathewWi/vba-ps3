@@ -32,7 +32,7 @@
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
 // if you add more settings to the screen, remember to change this value to the correct number
-#define MAX_NO_OF_SETTINGS      9
+#define MAX_NO_OF_SETTINGS      10
 
 #define NUM_ENTRY_PER_PAGE 24
 
@@ -152,9 +152,56 @@ void RenderBrowser(FileBrowser* b)
 	Graphics->FlushDbgFont();
 }
 
+void do_biosChoice()
+{
+	if (tmpBrowser == NULL)
+	{
+		tmpBrowser = new FileBrowser("/dev_hdd0/game/VBAM90000/USRDIR/\0");
+	}
+	string path;
+
+	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
+	{
+		UpdateBrowser(tmpBrowser);
+
+		if (CellInput->WasButtonPressed(0,CTRL_CROSS))
+		{
+			if(tmpBrowser->IsCurrentADirectory())
+			{
+				tmpBrowser->PushDirectory(	tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name,
+										CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY,
+										"bin|gba|GBA|BIN");
+			}
+			else if (tmpBrowser->IsCurrentAFile())
+			{
+				path = tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name;
+
+				// load shader
+				Settings.GBABIOS.assign(path);
+				LOG("Settings.GBABIOS: %s\n", Settings.GBABIOS.c_str());
+				menuStack.pop();
+			}
+		}
+
+		if (CellInput->WasButtonHeld(0, CTRL_TRIANGLE))
+		{
+			menuStack.pop();
+		}
+	}
+
+	cellDbgFontPuts(0.05f, 0.88f, FONT_SIZE, YELLOW, "X - enter directory/select BIOS");
+	cellDbgFontPuts(0.05f, 0.92f, FONT_SIZE, PURPLE, "Triangle - return to settings");
+	Graphics->FlushDbgFont();
+
+	RenderBrowser(tmpBrowser);
+}
 
 void do_shaderChoice()
 {
+	if (tmpBrowser == NULL)
+	{
+		tmpBrowser = new FileBrowser("/dev_hdd0/game/VBAM90000/USRDIR/shaders/\0");
+	}
 	string path;
 
 	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
@@ -354,6 +401,14 @@ void do_settings()
 					//tmpBrowser->PushDirectory("/\0", CELL_FS_TYPE_DIRECTORY | CELL_FS_TYPE_REGULAR, "cg");
 
 					menuStack.push(do_shaderChoice);
+					tmpBrowser = NULL;
+				}
+				break;
+			case SETTING_GBABIOS:
+				if (CellInput->WasButtonPressed(0, CTRL_CROSS))
+				{
+					menuStack.push(do_biosChoice);
+					tmpBrowser = NULL;
 				}
 				break;
 			case SETTING_DEFAULT_ALL:
@@ -365,6 +420,7 @@ void do_settings()
 					Settings.PS3OverscanEnabled = false;
 					Settings.RSoundEnabled = false;
 					Settings.RSoundServerIPAddress = "0.0.0.0";
+					Settings.GBABIOS.clear();
 					Graphics->SetAspectRatio(SCREEN_4_3_ASPECT_RATIO);
 					Graphics->SetSmooth(Settings.PS3Smooth);
 					Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
@@ -463,6 +519,10 @@ void do_settings()
 			"%s", Graphics->GetFragmentShaderPath().substr(Graphics->GetFragmentShaderPath().find_last_of('/')).c_str());
 
 	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_GBABIOS ? YELLOW : WHITE, "Use GBA BIOS: ");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.GBABIOS.empty() ? GREEN : RED, Settings.GBABIOS.empty() ? "NO" : "YES");
+
+	yPos += ySpacing;
 	cellDbgFontPrintf(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");
 
 
@@ -557,10 +617,6 @@ void MenuMainLoop()
 		browser = new FileBrowser("/\0");
 	}
 
-	if (tmpBrowser == NULL)
-	{
-		tmpBrowser = new FileBrowser("/dev_hdd0/game/VBAM90000/USRDIR/shaders/\0");
-	}
 
 	// FIXME: could always just return to last menu item... don't pop on resume kinda thing
 	if (menuStack.empty())
