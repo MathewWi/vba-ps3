@@ -332,14 +332,14 @@ uint32_t systemGetClock()
 void systemMessage(int id, const char * fmt, ...)
 {
 #ifdef CELL_DEBUG
-	LOG_DBG("systemMessage(%d)\n\t", id);
+	LOG("systemMessage(%d)\n\t", id);
 
 	va_list args;
 	va_start(args,fmt);
-	LOG_DBG(fmt, args);
+	LOG(fmt, args);
 	va_end(args);
 
-	LOG_DBG("\n");
+	LOG("\n");
 #endif
 
 	// FIXME: really implement this...
