@@ -121,7 +121,7 @@ void VbaZipIo::SetCurrentEntryPosition(size_t index)
 }
 
 
-/*(int VbaZipIo::GetCurrentEntrySize()
+int VbaZipIo::GetCurrentEntrySize()
 {
 	_zip7.seek_arc(_zipMap[_dir.top()][_currentDirIndex].pos);
 	_zip7.stat();
@@ -133,7 +133,7 @@ void VbaZipIo::SetCurrentEntryPosition(size_t index)
 		res <<= 1;
 
 	return res;
-}*/
+}
 
 
 uint8_t* VbaZipIo::GetEntryData()
