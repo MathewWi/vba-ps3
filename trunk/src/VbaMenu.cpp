@@ -28,11 +28,12 @@
 
 #include "conf/conffile.h"
 
+#define USRDIR "/dev_hdd0/game/VBAM90000/USRDIR"
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
 // if you add more settings to the screen, remember to change this value to the correct number
-#define MAX_NO_OF_SETTINGS      10
+#define MAX_NO_OF_SETTINGS      12
 
 #define NUM_ENTRY_PER_PAGE 24
 
@@ -158,7 +159,7 @@ void do_biosChoice()
 {
 	if (tmpBrowser == NULL)
 	{
-		tmpBrowser = new FileBrowser("/dev_hdd0/game/VBAM90000/USRDIR/\0");
+		tmpBrowser = new FileBrowser("/\0");
 	}
 	string path;
 
@@ -195,6 +196,92 @@ void do_biosChoice()
 	cellDbgFontPuts(0.05f, 0.92f, FONT_SIZE, PURPLE, "Triangle - return to settings");
 	Graphics->FlushDbgFont();
 
+	RenderBrowser(tmpBrowser);
+}
+
+void do_saveStatePathChoice()
+{
+	if (tmpBrowser == NULL)
+	{
+		tmpBrowser = new FileBrowser("/\0");
+	}
+	string path;
+
+	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
+	{
+		UpdateBrowser(tmpBrowser);
+		if (CellInput->WasButtonPressed(0,CTRL_SQUARE))
+		{
+			if(tmpBrowser->IsCurrentADirectory())
+			{
+				path = tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name + "/";
+				Settings.PS3PathSaveStates = path;
+				menuStack.pop();
+			}
+		}
+		if (CellInput->WasButtonHeld(0, CTRL_TRIANGLE))
+		{
+			path = USRDIR;
+			Settings.PS3PathSaveStates = path;
+			menuStack.pop();
+		}
+		if (CellInput->WasButtonPressed(0,CTRL_CROSS))
+		{
+			if(tmpBrowser->IsCurrentADirectory())
+			{
+				tmpBrowser->PushDirectory(tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name, CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY, "empty");
+			}
+		}
+	}
+			
+	cellDbgFontPuts(0.05f, 0.88f, FONT_SIZE, YELLOW, "X - enter directory");
+	cellDbgFontPuts(0.05f, 0.92f, FONT_SIZE, BLUE, "SQUARE - select directory as path for savestate files");
+	cellDbgFontPuts(0.05f, 0.96f, FONT_SIZE, PURPLE, "Triangle - return to settings");
+	Graphics->FlushDbgFont();
+			
+	RenderBrowser(tmpBrowser);
+}
+
+void do_sramPathChoice()
+{
+	if (tmpBrowser == NULL)
+	{
+		tmpBrowser = new FileBrowser("/\0");
+	}
+	string path;
+
+	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
+	{
+		UpdateBrowser(tmpBrowser);
+		if (CellInput->WasButtonPressed(0,CTRL_SQUARE))
+		{
+			if(tmpBrowser->IsCurrentADirectory())
+			{
+				path = tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name + "/";
+				Settings.PS3PathSRAM = path;
+				menuStack.pop();
+			}
+		}
+		if (CellInput->WasButtonHeld(0, CTRL_TRIANGLE))
+		{
+			path = USRDIR;
+			Settings.PS3PathSRAM = path;
+			menuStack.pop();
+		}
+		if (CellInput->WasButtonPressed(0,CTRL_CROSS))
+		{
+			if(tmpBrowser->IsCurrentADirectory())
+			{
+				tmpBrowser->PushDirectory(tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name, CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY, "empty");
+			}
+		}
+	}
+			
+	cellDbgFontPuts(0.05f, 0.88f, FONT_SIZE, YELLOW, "X - enter directory");
+	cellDbgFontPuts(0.05f, 0.92f, FONT_SIZE, BLUE, "SQUARE - select directory as path for SRAM files");
+	cellDbgFontPuts(0.05f, 0.96f, FONT_SIZE, PURPLE, "Triangle - return to settings");
+	Graphics->FlushDbgFont();
+			
 	RenderBrowser(tmpBrowser);
 }
 
@@ -243,11 +330,6 @@ void do_shaderChoice()
 	RenderBrowser(tmpBrowser);
 }
 
-
-void do_pathChoice()
-{
-
-}
 
 
 // void do_settings()
@@ -413,6 +495,28 @@ void do_settings()
 					tmpBrowser = NULL;
 				}
 				break;
+			case SETTING_PATH_SAVESTATES_DIRECTORY:
+				if (CellInput->WasButtonPressed(0, CTRL_CROSS))
+				{
+					menuStack.push(do_saveStatePathChoice);
+					tmpBrowser = NULL;
+				}
+				if (CellInput->IsButtonPressed(0, CTRL_START))
+				{
+					Settings.PS3PathSaveStates = USRDIR;
+				}
+				break;
+			case SETTING_PATH_SRAM_DIRECTORY:
+				if (CellInput->WasButtonPressed(0, CTRL_CROSS))
+				{
+					menuStack.push(do_sramPathChoice);
+					tmpBrowser = NULL;
+				}
+				if (CellInput->IsButtonPressed(0, CTRL_START))
+				{
+					Settings.PS3PathSRAM = USRDIR;
+				}
+				break;
 			case SETTING_DEFAULT_ALL:
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) || CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK) | CellInput->IsButtonPressed(0, CTRL_START))
 				{
@@ -428,6 +532,8 @@ void do_settings()
 					Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
 					Settings.ControlStyle = CONTROL_STYLE_ORIGINAL;
 					Settings.PS3PALTemporalMode60Hz = false;
+					Settings.PS3PathSRAM = USRDIR;
+					Settings.PS3PathSaveStates = USRDIR;
 					//FIXME: For when resolution switching works
 					/*
 					if(Graphics->CheckResolution(CELL_VIDEO_OUT_RESOLUTION_576))
@@ -523,6 +629,17 @@ void do_settings()
 	yPos += ySpacing;
 	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_GBABIOS ? YELLOW : WHITE, "Use GBA BIOS: ");
 	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.GBABIOS.empty() ? GREEN : RED, Settings.GBABIOS.empty() ? "NO" : "YES");
+
+	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_PATH_SAVESTATES_DIRECTORY ? YELLOW : WHITE, "Savestate Directory");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3PathSaveStates.c_str() == USRDIR ? GREEN : RED, Settings.PS3PathSaveStates.c_str());
+	Graphics->FlushDbgFont();
+
+	yPos += ySpacing;
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_PATH_SRAM_DIRECTORY ? YELLOW : WHITE, "SRAM Directory");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3PathSRAM.c_str() == USRDIR ? GREEN : RED, Settings.PS3PathSRAM.c_str());
+	Graphics->FlushDbgFont();
+
 
 	yPos += ySpacing;
 	cellDbgFontPrintf(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");

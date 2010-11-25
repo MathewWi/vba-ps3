@@ -417,8 +417,8 @@ struct SSettings
 	bool DrawFps;
 	int	ControlStyle;
 
-	const char *	PS3PathSaveStates;
-	const char *	PS3PathSRAM;
+	std::string	PS3PathSaveStates;
+	std::string	PS3PathSRAM;
 	const char *	PS3PathScreenshots;
 	const char *	PS3PathROMDirectory;
 	std::string	GBABIOS;
