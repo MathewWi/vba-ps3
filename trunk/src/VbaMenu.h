@@ -24,7 +24,8 @@ using namespace::std;
 #define SETTING_HW_OVERSCAN_AMOUNT 5
 #define SETTING_CONTROL_STYLE 6
 #define SETTING_SHADER 7
-#define SETTING_DEFAULT_ALL 8
+#define SETTING_GBABIOS 8
+#define SETTING_DEFAULT_ALL 9
 
 void MenuMainLoop(void);
 

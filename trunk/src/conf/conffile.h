@@ -417,10 +417,11 @@ struct SSettings
 	bool DrawFps;
 	int	ControlStyle;
 
-	char	PS3PathSaveStates[128];
-	char	PS3PathSRAM[128];
-	char	PS3PathScreenshots[128];
-	char	PS3PathROMDirectory[128];
+	const char *	PS3PathSaveStates;
+	const char *	PS3PathSRAM;
+	const char *	PS3PathScreenshots;
+	const char *	PS3PathROMDirectory;
+	std::string	GBABIOS;
 
 	bool		RSoundEnabled;
 	const char * 	RSoundServerIPAddress;
