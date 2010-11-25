@@ -674,6 +674,7 @@ int32_t VbaPs3::VbaInit()
 	// PORT - init graphics for this rom
 	LOG("VbaPs3::VbaInit() -- SETUP GRAPHICS\n");
 	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
+   Graphics->SetStretched(!Settings.PS3KeepAspect);
 
 	Rect r;
 	r.x = 0;
