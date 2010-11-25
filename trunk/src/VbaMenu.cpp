@@ -18,9 +18,9 @@
 
 #include "VbaPs3.h"
 #include "VbaMenu.h"
-
 #include "VbaGraphics.h"
 #include "VbaImplementation.h"
+#include "VbaZipIo.h"
 
 #include "cellframework/input/cellInput.h"
 #include "cellframework/fileio/FileBrowser.h"
@@ -53,6 +53,8 @@ FileBrowser* browser = NULL;
 
 // tmp file browser for everything else
 FileBrowser* tmpBrowser = NULL;
+
+VbaZipIo zipIo;
 
 
 void MenuStop()
@@ -532,6 +534,138 @@ void do_settings()
 }
 
 
+void do_ZipMenu()
+{
+	int current_index = zipIo.GetCurrentEntryIndex();
+	int file_count = zipIo.GetCurrentEntryCount();
+
+	if (CellInput->UpdateDevice(0) == CELL_PAD_OK)
+	{
+		if (CellInput->WasButtonPressed(0,CTRL_DOWN) | CellInput->IsAnalogPressedDown(0,CTRL_LSTICK))
+		{
+			current_index++;
+			if (current_index >= file_count)
+			{
+				current_index = 0;
+			}
+		}
+		if (CellInput->WasButtonPressed(0,CTRL_UP) | CellInput->IsAnalogPressedUp(0,CTRL_LSTICK))
+		{
+			current_index--;
+			if (current_index < 0)
+			{
+				current_index = file_count -1;
+			}
+		}
+		if (CellInput->WasButtonPressed(0,CTRL_RIGHT) | CellInput->IsAnalogPressedRight(0,CTRL_LSTICK))
+		{
+			current_index = MIN(current_index+5, file_count-1);
+		}
+		if (CellInput->WasButtonPressed(0,CTRL_LEFT) | CellInput->IsAnalogPressedLeft(0,CTRL_LSTICK))
+		{
+			if (current_index <= 5)
+			{
+				current_index = 0;
+			}
+			else
+			{
+				current_index -= 5;
+			}
+		}
+		if (CellInput->WasButtonPressed(0,CTRL_R1))
+		{
+			current_index = MIN(current_index+NUM_ENTRY_PER_PAGE, file_count-1);
+		}
+		if (CellInput->WasButtonPressed(0,CTRL_L1))
+		{
+			if (current_index <= NUM_ENTRY_PER_PAGE)
+			{
+				current_index = 0;
+			}
+			else
+			{
+				current_index -= NUM_ENTRY_PER_PAGE;
+			}
+		}
+
+		if (CellInput->WasButtonPressed(0, CTRL_CIRCLE))
+		{
+			// don't let people back out past root
+			zipIo.PopDir();
+
+			if (zipIo.GetDirStackCount() <= 0)
+			{
+				menuStack.pop();
+				return;
+			}
+		}
+
+		if (CellInput->WasButtonPressed(0, CTRL_CROSS))
+		{
+			if (zipIo[current_index].type == ZIPIO_TYPE_DIR)
+			{
+				LOG_DBG("ZipIO: trying to push directory\n");
+				zipIo.PushDir(zipIo[current_index].name);
+			}
+			else if (zipIo[current_index].type == ZIPIO_TYPE_FILE)
+			{
+				string rom_path = "/dev_hdd0/" + zipIo.GetCurrentEntry().name;
+				LOG_DBG("ZipIO: try and load rom now: %s\n", rom_path.c_str());
+
+				uint8_t* data = zipIo.GetEntryData();
+				FILE *file = fopen(rom_path.c_str(), "wb");
+				LOG("ZipIO: writing size: %d\n", zipIo.GetCurrentEntrySize());
+				fwrite(data, 1, zipIo.GetCurrentEntrySize(), file);
+				fclose(file);
+				LOG_DBG("ZipIO: stored hack tmpfile\n");
+
+				free(data);
+
+				App->LoadROM(rom_path, true);
+				{
+					menuStack.pop();
+					MenuStop();
+
+					// switch emulator to emulate mode
+					App->StartROMRunning();
+				}
+
+				remove(rom_path.c_str());
+			}
+		}
+	}
+
+	zipIo.SetCurrentEntryPosition(current_index);
+
+	// render it
+	int page_number = current_index / NUM_ENTRY_PER_PAGE;
+	int page_base = page_number * NUM_ENTRY_PER_PAGE;
+	float currentX = 0.05f;
+	float currentY = 0.00f;
+	float ySpacing = 0.035f;
+	for (int i = page_base; i < file_count && i < page_base + NUM_ENTRY_PER_PAGE; ++i)
+	{
+		// error!
+		if (i >= zipIo.GetCurrentEntryCount())
+		{
+			continue;
+		}
+
+		currentY = currentY + ySpacing;
+		cellDbgFontPuts(currentX, currentY, FONT_SIZE,
+						i == current_index ? RED : zipIo[i].type == ZIPIO_TYPE_DIR ? GREEN : WHITE,
+						zipIo[i].name.c_str());
+
+		Graphics->FlushDbgFont();
+	}
+
+	cellDbgFontPuts(0.05f, 0.88f, FONT_SIZE, YELLOW, "X - enter directory/load game");
+	cellDbgFontPuts(0.05f, 0.92f, FONT_SIZE, PURPLE, "L2 + R2 - return to game");
+	cellDbgFontPuts(0.5f, 0.92f, FONT_SIZE, BLUE, "O - Back a directory");
+	Graphics->FlushDbgFont();
+}
+
+
 void do_ROMMenu ()
 {
 	string rom_path;
@@ -562,15 +696,9 @@ void do_ROMMenu ()
 
 				if (FileBrowser::GetExtension(rom_path).compare("7z") == 0)
 				{
-					Zip7_Extractor z7;
-					z7.open(rom_path.c_str());
+					zipIo.Open(rom_path);
 
-					while (!z7.done())
-					{
-						LOG("%s\n", z7.name());
-
-						z7.next();
-					}
+					menuStack.push(do_ZipMenu);
 				}
 				else
 				{
