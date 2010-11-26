@@ -8,6 +8,7 @@
 
 #include "vba/System.h"
 
+#include "cellframework/fileio/FileBrowser.h"
 #include "cellframework/logger/Logger.h"
 
 
@@ -24,21 +25,44 @@ VbaZipIo::~VbaZipIo()
 }
 
 
+//
+// Open(filename)
+//
+// Parses a 7z file, assumes the extractor browser reports names:
+//	File1.ext
+//	File2.ext
+//	Dir1/File1.ext
+//	Dir1/DirA/File1.ext
+//
+// This builds a dir/file mapping which can be browsed
+//
 void VbaZipIo::Open(std::string filename)
 {
 	LOG_DBG("VbaZipIo::Open(%s)\n", filename.c_str());
 
+	// discover interface for current fex class
+	if (FileBrowser::GetExtension(filename).compare("7z") == 0)
+	{
+		_curFex = &_zip7;
+	}
+	else if (FileBrowser::GetExtension(filename).compare("zip") == 0)
+	{
+		_curFex = &_zip;
+	}
+
 	// clear old
 	while (!_dir.empty()) { _dir.pop(); }
 	_zipMap.clear();
+	_curFex->close();
 	_currentDirIndex = 0;
 
-	_zip7.open(filename.c_str());
+	_curFex->open(filename.c_str());
 
-	while (!_zip7.done())
+	// parse the zip data
+	while (!_curFex->done())
 	{
 		struct ZipEntry entry;
-		std::string name = _zip7.name();
+		std::string name = _curFex->name();
 		std::string path = "";
 
 		// extract this zip entries path for the mapping
@@ -60,20 +84,29 @@ void VbaZipIo::Open(std::string filename)
 			// path does not yet exist, add dir for it in entries
 			if (_zipMap.find(path) == _zipMap.end())
 			{
+				// rip out the previous path
+				int prevIndex = path.find_last_of('/');
+				std::string prevPath = "";
+				if (prevIndex > 0)
+				{
+					prevPath = name.substr(0, prevIndex);
+				}
+
 				LOG_DBG("ZipIO: adding dir: %s\n", path.c_str());
+				LOG_DBG("ZipIO: previous path: %s\n", prevPath.c_str());
 				entry.name = path;
 				entry.pos = -1;
 				entry.type = ZIPIO_TYPE_DIR;
-				_zipMap[path].push_back(entry);
+				_zipMap[prevPath].push_back(entry);
 			}
 		}
 
 		entry.name = name;
-		entry.pos = _zip7.tell_arc();
+		entry.pos = _curFex->tell_arc();
 		entry.type = ZIPIO_TYPE_FILE;
 		_zipMap[path].push_back(entry);
 
-		_zip7.next();
+		_curFex->next();
 	}
 
 	_dir.push("");
@@ -136,7 +169,7 @@ int VbaZipIo::GetCurrentEntrySize()
 }
 
 
-uint8_t* VbaZipIo::GetEntryData()
+int VbaZipIo::GetEntryData(uint8_t* &pData)
 {
 	LOG_DBG("VbaZipIo::GetEntryData()\n");
 
@@ -145,7 +178,7 @@ uint8_t* VbaZipIo::GetEntryData()
 
 	int size = _zip7.size();
 
-	// wtf?
+	//
 	int res = 1;
 	while(res < size)
 		res <<= 1;
@@ -153,8 +186,11 @@ uint8_t* VbaZipIo::GetEntryData()
 	LOG_DBG("VbaZipIo::GetEntryData() -- res %d\n", res);
 	uint8_t	*data = (uint8_t *)SystemMalloc(res);
 
-	int read = res;//size;
-	_zip7.reader().read(data, read);
+	//int read = res;//size;
+	_zip7.reader().read(data, res);
 
-	return data;
+	// set out param
+	pData = data;
+
+	return res;
 }
