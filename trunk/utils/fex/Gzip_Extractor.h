@@ -1,7 +1,7 @@
 // Presents a gzipped file as an "archive" of just that file.
 // Also handles non-gzipped files.
 
-// File_Extractor 1.0.0
+// File_Extractor $vers
 #ifndef GZIP_EXTRACTOR_H
 #define GZIP_EXTRACTOR_H
 

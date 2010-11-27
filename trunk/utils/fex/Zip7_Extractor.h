@@ -1,6 +1,6 @@
 // 7-zip archive extractor
 
-// File_Extractor 1.0.0
+// File_Extractor $vers
 #ifndef ZIP7_EXTRACTOR_H
 #define ZIP7_EXTRACTOR_H
 

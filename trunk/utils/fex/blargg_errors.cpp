@@ -1,4 +1,4 @@
-// File_Extractor 1.0.0. http://www.slack.net/~ant/
+// $package. http://www.slack.net/~ant/
 
 #include "blargg_errors.h"
 

@@ -3,7 +3,7 @@ lines. Sets up helpful macros and services used in my source code. Since this
 is only "active" in my source code, I don't have to worry about polluting the
 global namespace with unprefixed names. */
 
-// File_Extractor 1.0.0
+// $package
 #ifndef BLARGG_SOURCE_H
 #define BLARGG_SOURCE_H
 

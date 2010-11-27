@@ -1,6 +1,6 @@
 // ZIP archive extractor. Only supports deflation and store (no compression).
 
-// File_Extractor 1.0.0
+// File_Extractor $vers
 #ifndef ZIP_EXTRACTOR_H
 #define ZIP_EXTRACTOR_H
 

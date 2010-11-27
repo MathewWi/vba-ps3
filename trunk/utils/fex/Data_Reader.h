@@ -1,6 +1,6 @@
 // Lightweight interface for reading data from byte stream
 
-// File_Extractor 1.0.0
+// File_Extractor $vers
 #ifndef DATA_READER_H
 #define DATA_READER_H
 

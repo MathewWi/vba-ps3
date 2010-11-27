@@ -1,6 +1,6 @@
 /** Uniform access to zip, gzip, 7-zip, and RAR compressed archives \file */
 
-/* File_Extractor 1.0.0 */
+/* File_Extractor $vers */
 #ifndef FEX_H
 #define FEX_H
 

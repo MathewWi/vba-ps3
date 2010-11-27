@@ -1,6 +1,6 @@
 // Simplifies use of zlib for inflating data
 
-// File_Extractor 1.0.0
+// File_Extractor $vers
 #ifndef ZLIB_INFLATER_H
 #define ZLIB_INFLATER_H
 

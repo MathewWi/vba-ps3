@@ -1,6 +1,6 @@
 // CPU Byte Order Utilities
 
-// File_Extractor 1.0.0
+// $package
 #ifndef BLARGG_ENDIAN_H
 #define BLARGG_ENDIAN_H
 

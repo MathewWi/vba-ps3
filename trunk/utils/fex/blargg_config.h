@@ -1,6 +1,6 @@
 // Library configuration. Modify this file as necessary.
 
-// File_Extractor 1.0.0
+// $package
 #ifndef BLARGG_CONFIG_H
 #define BLARGG_CONFIG_H
 
@@ -18,10 +18,13 @@
 //#define BLARGG_BUILD_DLL 1
 
 // Support only the listed archive types. Remove any you don't need.
+/*
 #define FEX_TYPE_LIST \
 	fex_7z_type,\
 	fex_gz_type,\
+	fex_rar_type,\
 	fex_zip_type,
+*/
 
 // Use standard config.h if present
 #ifdef HAVE_CONFIG_H

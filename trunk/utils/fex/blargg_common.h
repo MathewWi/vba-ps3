@@ -1,7 +1,7 @@
 // Sets up common environment for Shay Green's libraries.
 // To change configuration options, modify blargg_config.h, not this file.
 
-// File_Extractor 1.0.0
+// $package
 #ifndef BLARGG_COMMON_H
 #define BLARGG_COMMON_H
 
