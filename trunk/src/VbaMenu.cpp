@@ -730,7 +730,7 @@ void do_ZipMenu()
 				{
 					FILE *file = fopen(rom_path.c_str(), "wb");
 					LOG_DBG("ZipIO: writing file %s \t size: %d\n", rom_path.c_str(), size);
-					fwrite(data, 1, size, file);
+					fwrite(data, size, 1, file);
 					fclose(file);
 					LOG_DBG("ZipIO: stored hack tmpfile\n");
 
@@ -746,6 +746,10 @@ void do_ZipMenu()
 					}
 
 					remove(rom_path.c_str());
+				}
+				else
+				{
+					LOG_DBG("ZipIO: No data returned! size: (%d)\n", size);
 				}
 			}
 		}
@@ -803,14 +807,15 @@ void do_ROMMenu ()
 			{
 				browser->PushDirectory(	browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name,
 										CELL_FS_TYPE_REGULAR | CELL_FS_TYPE_DIRECTORY,
-										"gb|gbc|gba|GBA|GB|GBC|7z");
+										"gb|gbc|gba|GBA|GB|GBC|7z|zip");
 			}
 			else if (browser->IsCurrentAFile())
 			{
 				//load game (standard controls), go back to main loop
 				rom_path = browser->GetCurrentDirectoryInfo().dir + "/" + browser->GetCurrentEntry()->d_name;
 
-				if (FileBrowser::GetExtension(rom_path).compare("7z") == 0)
+				if (FileBrowser::GetExtension(rom_path).compare("7z") == 0 ||
+					FileBrowser::GetExtension(rom_path).compare("zip") == 0)
 				{
 					zipIo.Open(rom_path);
 
