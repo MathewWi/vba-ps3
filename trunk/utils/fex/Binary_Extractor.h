@@ -1,6 +1,6 @@
 // Presents a single file as an "archive" of just that file.
 
-// File_Extractor 1.0.0
+// File_Extractor $vers
 #ifndef BINARY_EXTRACTOR_H
 #define BINARY_EXTRACTOR_H
 

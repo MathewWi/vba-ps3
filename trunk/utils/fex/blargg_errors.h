@@ -1,6 +1,6 @@
 // Error strings and conversion functions
 
-// File_Extractor 1.0.0
+// $package
 #ifndef BLARGG_ERRORS_H
 #define BLARGG_ERRORS_H
 

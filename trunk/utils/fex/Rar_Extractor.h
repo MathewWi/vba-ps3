@@ -1,6 +1,6 @@
 // RAR archive extractor
 
-// File_Extractor 1.0.0
+// File_Extractor $vers
 #ifndef RAR_EXTRACTOR_H
 #define RAR_EXTRACTOR_H
 

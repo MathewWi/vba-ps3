@@ -1,6 +1,6 @@
 // Compressed file archive interface
 
-// File_Extractor 1.0.0
+// File_Extractor $vers
 #ifndef FILE_EXTRACTOR_H
 #define FILE_EXTRACTOR_H
 

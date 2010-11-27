@@ -1,6 +1,6 @@
 // Transparently decompresses gzip files, as well as uncompressed
 
-// File_Extractor 1.0.0
+// File_Extractor $vers
 #ifndef GZIP_READER_H
 #define GZIP_READER_H
 
