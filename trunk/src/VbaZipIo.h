@@ -15,6 +15,8 @@
 
 #include "utils/fex/Zip_Extractor.h"
 #include "utils/fex/Zip7_Extractor.h"
+//#include "utils/fex/Rar_Extractor.h"
+#include "utils/fex/Gzip_Extractor.h"
 
 #define ZIPIO_TYPE_DIR 0
 #define ZIPIO_TYPE_FILE 1
@@ -22,7 +24,7 @@
 struct ZipEntry
 {
 	std::string name;
-	int pos;
+	fex_pos_t pos;
 	int type;
 };
 
@@ -50,7 +52,7 @@ public:
 		return _currentDirIndex;
 	}
 
-	int GetCurrentEntrySize();
+	//int GetCurrentEntrySize();
 
 	size_t GetDirStackCount()
 	{
@@ -63,8 +65,6 @@ public:
 	}
 private:
 	File_Extractor* _curFex;
-	Zip7_Extractor _zip7;
-	Zip_Extractor _zip;
 
 	std::stack<std::string> _dir;
 	std::size_t _currentDirIndex;

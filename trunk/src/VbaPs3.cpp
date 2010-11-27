@@ -36,9 +36,13 @@
 #include "VbaPs3.h"
 #include "VbaMenu.h"
 
+#ifdef PS3_PROFILING
+#include "cellframework/network-stdio/net_stdio.h"
+#endif
+
 #include "cellframework/utility/OSKUtil.h"
 
-#define USRDIR "/dev_hdd0/game/VBAM90000/USRDIR"
+#define USRDIR "/dev_hdd0/game/VBAM90000/USRDIR/"
 
 #define SYS_CONFIG_FILE "/dev_hdd0/game/VBAM90000/USRDIR/vba.conf"
 SYS_PROCESS_PARAM(1001, 0x40000);
@@ -66,22 +70,32 @@ VbaPs3::VbaPs3()
 	current_state_save = 0;
 	memset(&Vba, 0, sizeof(Vba));
 
+	LOG_DBG("VbaPs3::VbaPS3() - Initializing Graphics!\n");
 	Graphics = new VbaGraphics();
 	App->GraphicsInit();
 
+	LOG_DBG("VbaPs3::VbaPS3() - Initializing CellInput!\n");
 	CellInput = new CellInputFacade();
 	CellInput->Init();
 
+	LOG_DBG("VbaPs3::VbaPS3() - Initializing OSKUtil!\n");
 	oskutil = new OSKUtil();
 
 	//load settings
+#ifndef PS3_PROFILING
+	LOG_DBG("VbaPs3::VbaPS3() - Initializing ConfigFile!\n");
 	currentconfig = new ConfigFile();
 	if(App->InitSettings())
 	{
 		load_settings = false;
 	}
+#else
+	LOG_DBG("VbaPs3::VbaPS3() - Skipping ConfigFile - PROFILING ENABLED!\n");
+#endif
 
 	_messageTimer = 0;
+
+	LOG_DBG("VbaPs3::VbaPS3() - SUCCESS!\n");
 }
 
 
@@ -315,6 +329,7 @@ bool VbaPs3::InitSettings()
 	if (currentconfig->Exists("PS3Paths::PathSaveStates"))
 	{
 		Settings.PS3PathSaveStates		= currentconfig->GetString("PS3Paths::PathSaveStates");
+		Settings.PS3PathSaveStates 		+= "/";
 	}
 	else
 	{
@@ -324,6 +339,7 @@ bool VbaPs3::InitSettings()
 	if (currentconfig->Exists("PS3Paths::PathSRAM"))
 	{
 		Settings.PS3PathSRAM		= currentconfig->GetString("PS3Paths::PathSRAM");
+		Settings.PS3PathSRAM 		+= "/";
 	}
 	else
 	{
@@ -561,6 +577,7 @@ void VbaPs3::LoadImagePreferences()
 
 void VbaPs3::LoadROM(string filename, bool forceReload)
 {
+	LOG_DBG("LoadROM(%s, %d)\n", filename.c_str(), (int)forceReload);
 	if (!rom_loaded || forceReload || current_rom.empty() || current_rom.compare(filename) != 0)
 	{
 		current_rom = filename;
@@ -571,7 +588,7 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 		{
 			if (!gbLoadRom(filename.c_str()))
 			{
-				LOG("FAILED to GB load rom...\n");
+				LOG_DBG("FAILED to GB load rom...\n");
 				this->Shutdown();
 			}
 
@@ -582,7 +599,7 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 		{
 			if (!CPULoadRom(filename.c_str()))
 			{
-				LOG("FAILED to GBA load rom\n");
+				LOG_DBG("FAILED to GBA load rom\n");
 				this->Shutdown();
 			}
 
@@ -593,7 +610,7 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 		{
 			cartridgeType = IMAGE_UNKNOWN;
 
-			LOG("Unsupported rom type!\n");
+			LOG_ERR("Unsupported rom type!\n");
 			this->Shutdown();
 		}
 
@@ -601,7 +618,7 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 		vba_loaded = false;
 
 		rom_loaded = true;
-		LOG("Successfully loaded rom!\n");
+		LOG_DBG("Successfully loaded rom!\n");
 	}
 }
 
@@ -688,9 +705,9 @@ int32_t VbaPs3::VbaInit()
     	soundInit();
         soundSetSampleRate(48000); //22050
 
-	//Loading of the BIOS
-	LOG("GBA BIOS: %s\n", Settings.GBABIOS.c_str());
-	LOG("CPUInit(%s, %d)\n", Settings.GBABIOS.c_str(), Settings.GBABIOS.empty() ? false : true);
+        //Loading of the BIOS
+        LOG("GBA BIOS: %s\n", Settings.GBABIOS.c_str());
+        LOG("CPUInit(%s, %d)\n", Settings.GBABIOS.c_str(), Settings.GBABIOS.empty() ? false : true);
         CPUInit(Settings.GBABIOS.empty() ? NULL : Settings.GBABIOS.c_str(), Settings.GBABIOS.empty() ? false : true);
 
         CPUReset();
@@ -708,7 +725,7 @@ int32_t VbaPs3::VbaInit()
 	// PORT - init graphics for this rom
 	LOG("VbaPs3::VbaInit() -- SETUP GRAPHICS\n");
 	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
-   Graphics->SetStretched(!Settings.PS3KeepAspect);
+	Graphics->SetStretched(!Settings.PS3KeepAspect);
 
 	Rect r;
 	r.x = 0;
@@ -813,7 +830,9 @@ void VbaPs3::EmulationLoop()
 	}
 
 	// Load the battery of the rom
+#ifndef PS3_PROFILING
 	Vba.emuReadBattery(this->MakeFName(FILETYPE_BATTERY).c_str());
+#endif
 
 	// Tell VBA we are emulating
 	emulating = 1;
@@ -855,6 +874,7 @@ void VbaPs3::EmulationLoop()
 
 int VbaPs3::MainLoop()
 {
+#ifndef PS3_PROFILING
 	// main loop
 	while(1)
 	{
@@ -871,6 +891,14 @@ int VbaPs3::MainLoop()
 				return 0;
 		}
 	}
+#else
+	//PROFILING JUST LOAD A ROM
+	this->LoadROM("/tmp/rom.gba", true);
+	this->StartROMRunning();
+	this->SwitchMode(MODE_EMULATION);
+	this->EmulationLoop();
+	this->Shutdown();
+#endif
 }
 
 
@@ -917,6 +945,11 @@ int main()
 
 	LOG_INIT();
 	LOG("LOGGER LOADED!\n");
+
+#ifdef PS3_PROFILING
+	net_stdio_set_target("192.168.1.201", 9001);
+	net_stdio_set_paths("/", 0);
+#endif
 
 	int ret = 0;
 	App = new VbaPs3();
