@@ -36,19 +36,26 @@ UTIL_DIR = ./utils
 
 # build list of source directories
 SOURCES		:=	$(VBA_API_DIR)/ $(VBA_API_DIR)/gb $(VBA_API_DIR)/gba \
-				$(VBA_API_DIR)/apu $(VBA_API_DIR)/common  \
+				$(VBA_API_DIR)/apu $(VBA_API_DIR)/common \
 				$(CELL_FRAMEWORK_DIR)/graphics $(CELL_FRAMEWORK_DIR)/input $(CELL_FRAMEWORK_DIR)/audio \
 				$(CELL_FRAMEWORK_DIR)/threads $(CELL_FRAMEWORK_DIR)/logger $(CELL_FRAMEWORK_DIR)/network \
 				$(CELL_FRAMEWORK_DIR)/fileio \
 				$(CELL_FRAMEWORK_DIR)/utility \
 				$(SRC_DIR)/ $(SRC_DIR)/conf \
-				$(UTIL_DIR)/ $(UTIL_DIR)/7z_C $(UTIL_DIR)/zlib $(UTIL_DIR)/fex \
+				$(UTIL_DIR)/ $(UTIL_DIR)/7z_C $(UTIL_DIR)/zlib $(UTIL_DIR)/unrar $(UTIL_DIR)/fex \
 				$(UTIL_DIR)/libpng $(UTIL_DIR)/SFML/src/SFML/Network $(UTIL_DIR)/SFML/src/SFML/Network/Unix
+
 				
 # build srcs
 PPU_SRCS		=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp)) $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c)) $(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
+PPU_SRCS		+=	$(CELL_FRAMEWORK_DIR)/network-stdio/net_stdio.cpp
 
 PPU_TARGET		=	vba.ppu.elf
+
+# FEX - blarggs fex flags
+PPU_CXXFLAGS	+=	-DFEX_ENABLE_RAR
+PPU_CFLAGS		+= 	-DFEX_ENABLE_RAR
+
 
 # PLATFORM
 PPU_CXXFLAGS	+=	-D__CELLOS_LV2__
@@ -56,9 +63,9 @@ PPU_CFLAGS		+= 	-D__CELLOS_LV2__
 
 # include flags
 PPU_CXXFLAGS	+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex \
-					-I./utils/libpng -I./utils/zlib 
+					-I./utils/libpng -I./utils/zlib -I./utils/unrar
 PPU_CFLAGS		+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex \
-					-I./utils/libpng -I./utils/zlib 
+					-I./utils/libpng -I./utils/zlib -I./utils/unrar
 
 # compiler optimizations
 PPU_CXXFLAGS	+=	-ffast-math \
@@ -66,8 +73,6 @@ PPU_CXXFLAGS	+=	-ffast-math \
 					-finline-functions \
 					-funit-at-a-time \
 					-finline-functions-called-once \
-					-fprefetch-loop-arrays \
-					-misel \
 					--param inline-unit-growth=200 \
 					--param large-function-growth=1000 \
 					--param max-inline-insns-single=1000
@@ -77,8 +82,6 @@ PPU_CFLAGS		+=	-ffast-math \
 					-finline-functions \
 					-funit-at-a-time \
 					-finline-functions-called-once \
-					-fprefetch-loop-arrays \
-					-misel \
 					--param inline-unit-growth=200 \
 					--param large-function-growth=1000 \
 					--param max-inline-insns-single=1000
@@ -109,8 +112,12 @@ PPU_CXXFLAGS	+=	-DFRAMESKIP
 PPU_CFLAGS		+=	-DFRAMESKIP
 
 # enable debug netlogger
-PPU_CXXFLAGS 	+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.201\" -DPS3_DEBUG_PORT=9001
-PPU_CFLAGS		+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.201\" -DPS3_DEBUG_PORT=9001
+PPU_CXXFLAGS 	+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.101\" -DPS3_DEBUG_PORT=9002
+PPU_CFLAGS		+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.101\" -DPS3_DEBUG_PORT=9002
+
+# enable profiling flag
+#PPU_CXXFLAGS 	+=	-DPS3_PROFILING -DPS3_PROFILING_IP=\"192.168.1.101\" -DPS3_PROFILING_PORT=9001
+#PPU_CFLAGS		+=	-DPS3_PROFILING -DPS3_PROFILING_IP=\"192.168.1.101\" -DPS3_PROFILING_PORT=9001
 
 # enable screen debugger
 #PPU_CXXFLAGS	+=	-DEMUDEBUG -DEMU_DBG_DELAY=500000
@@ -126,7 +133,8 @@ PPU_CFLAGS		+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.201\" -DPS3_DEBUG_PORT=90
 PPU_LDLIBS		+= 	-L. -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt \
 					-ldbgfont -lPSGL -lcgc -lPSGLcgc -lgcm_cmd -lgcm_sys_stub -lresc_stub \
 					-lm -lio_stub -lfs_stub -lsysutil_stub -lcontrol_console_ppu -lsysmodule_stub \
-					-lnet_stub -lnetctl_stub -laudio_stub -lpthread
+					-lnet_stub -lnetctl_stub -laudio_stub -lpthread -lgcov \
+					-Wl,-wrap,fopen -Wl,-wrap,fclose -Wl,-wrap,fwrite -Wl,-wrap,fread -Wl,-wrap,fseek -Wl,-wrap,ftell -Wl,-wrap,fflush -Wl,-wrap,rewind -Wl,-wrap,fgetpos -Wl,-wrap,fsetpos -Wl,-wrap,setbuf -Wl,-wrap,setvbuf -Wl,-wrap,ungetc -Wl,-wrap,feof
 
 
 include $(CELL_MK_DIR)/sdk.target.mk
@@ -155,6 +163,14 @@ set_useProfile_flags:
 	$(eval PPU_CXXFLAGS += -fprofile-use) 
 	$(eval PPU_CFLAGS += -fprofile-use)
 	$(eval PPU_LDLIBS += -fprofile-use)
+	$(eval PPU_LDLIBS += -Wl,-wrap,fopen -Wl,-wrap,fclose -Wl,-wrap,fwrite -Wl,-wrap,fread -Wl,-wrap,fseek -Wl,-wrap,ftell -Wl,-wrap,fflush -Wl,-wrap,rewind -Wl,-wrap,fgetpos -Wl,-wrap,fsetpos -Wl,-wrap,setbuf -Wl,-wrap,setvbuf -Wl,-wrap,ungetc -Wl,-wrap,feof)
+	
 
 .PHONY: useProfile
 useProfile: set_useProfile_flags all
+
+
+ #%.o: %.cpp 
+        #$(if $(findstring $@,$(FOO)),\
+         #       $(CXX) $(CXXFLAGS) -o $@ -c $<,\
+          #      $(CXX) -O1 -o $@ -c $<)
