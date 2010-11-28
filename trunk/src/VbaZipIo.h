@@ -13,10 +13,11 @@
 #include <map>
 #include <vector>
 
-#include "utils/fex/Zip_Extractor.h"
-#include "utils/fex/Zip7_Extractor.h"
+#include "utils/fex/fex.h"
+//#include "utils/fex/Zip_Extractor.h"
+//#include "utils/fex/Zip7_Extractor.h"
 //#include "utils/fex/Rar_Extractor.h"
-#include "utils/fex/Gzip_Extractor.h"
+//#include "utils/fex/Gzip_Extractor.h"
 
 #define ZIPIO_TYPE_DIR 0
 #define ZIPIO_TYPE_FILE 1
@@ -40,7 +41,7 @@ public:
 	size_t GetCurrentEntryCount();
 	void SetCurrentEntryPosition(size_t index);
 
-	int GetEntryData(uint8_t* &pData);
+	int GetEntryData(const void** pData);
 
 	ZipEntry GetCurrentEntry()
 	{
@@ -64,7 +65,7 @@ public:
 		return _zipMap[_dir.top()][i];
 	}
 private:
-	File_Extractor* _curFex;
+	fex_t* _curFex;
 
 	std::stack<std::string> _dir;
 	std::size_t _currentDirIndex;

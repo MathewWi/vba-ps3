@@ -82,16 +82,12 @@ VbaPs3::VbaPs3()
 	oskutil = new OSKUtil();
 
 	//load settings
-#ifndef PS3_PROFILING
 	LOG_DBG("VbaPs3::VbaPS3() - Initializing ConfigFile!\n");
 	currentconfig = new ConfigFile();
 	if(App->InitSettings())
 	{
 		load_settings = false;
 	}
-#else
-	LOG_DBG("VbaPs3::VbaPS3() - Skipping ConfigFile - PROFILING ENABLED!\n");
-#endif
 
 	_messageTimer = 0;
 
@@ -181,6 +177,11 @@ void VbaPs3::Shutdown()
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_FS);
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_IO);
 	cellSysutilUnregisterCallback(0);
+
+#ifdef PS3_PROFILING
+	// ENABLE NET IO
+	net_stdio_enable(1);
+#endif
 
 	// force exit --
 	exit(0);
@@ -830,9 +831,7 @@ void VbaPs3::EmulationLoop()
 	}
 
 	// Load the battery of the rom
-#ifndef PS3_PROFILING
 	Vba.emuReadBattery(this->MakeFName(FILETYPE_BATTERY).c_str());
-#endif
 
 	// Tell VBA we are emulating
 	emulating = 1;
@@ -874,7 +873,6 @@ void VbaPs3::EmulationLoop()
 
 int VbaPs3::MainLoop()
 {
-#ifndef PS3_PROFILING
 	// main loop
 	while(1)
 	{
@@ -891,14 +889,6 @@ int VbaPs3::MainLoop()
 				return 0;
 		}
 	}
-#else
-	//PROFILING JUST LOAD A ROM
-	this->LoadROM("/tmp/rom.gba", true);
-	this->StartROMRunning();
-	this->SwitchMode(MODE_EMULATION);
-	this->EmulationLoop();
-	this->Shutdown();
-#endif
 }
 
 
@@ -947,8 +937,9 @@ int main()
 	LOG("LOGGER LOADED!\n");
 
 #ifdef PS3_PROFILING
-	net_stdio_set_target("192.168.1.201", 9001);
-	net_stdio_set_paths("/", 0);
+	net_stdio_set_target(PS3_PROFILING_IP, PS3_PROFILING_PORT);
+	net_stdio_set_paths("/", 2);
+	net_stdio_enable(0);
 #endif
 
 	int ret = 0;

@@ -509,7 +509,7 @@ CGprogram LoadShaderFromSource(CGcontext cgtx, CGprofile target, const char* fil
 int32_t VbaGraphics::InitCg()
 {
 	LOG("VbaGraphics::InitCg()\n");
-#ifndef PS3_PROFILING
+
 	cgRTCgcInit();
 
 	LOG("VbaGraphics::InitCg() - About to create CgContext\n");
@@ -528,18 +528,14 @@ int32_t VbaGraphics::InitCg()
 		_curFragmentShaderPath = DEFAULT_SHADER_FILE;
 		return LoadFragmentShader(_curFragmentShaderPath.c_str());
 	}
-#else
-	LOG("VbaGraphics::InitCg() - CG DISABLED PROFILING ENABLED\n");
 
-	return CELL_OK;
-#endif
 }
 
 
 int32_t VbaGraphics::LoadFragmentShader(string shaderPath)
 {
 	LOG("LoadFragmentShader(%s)\n", shaderPath.c_str());
-#ifndef PS3_PROFILING
+
 	// store the cur path
 	_curFragmentShaderPath = shaderPath;
 
@@ -577,9 +573,7 @@ int32_t VbaGraphics::LoadFragmentShader(string shaderPath)
 
     LOG("SUCCESS - LoadFragmentShader(%s)\n", shaderPath.c_str());
 	return CELL_OK;
-#else
-	LOG("VbaGraphics::LoadFragmentShader() - CG DISABLED PROFILING ENABLED\n");
-#endif
+
 }
 
 
@@ -593,11 +587,9 @@ void VbaGraphics::UpdateCgParams(unsigned width, unsigned height, unsigned tex_w
 
 void VbaGraphics::UpdateCgParams()
 {
-#ifdef PS3_PROFILING
+
    UpdateCgParams(m_width, m_height, m_width, m_height);
-#else
-   LOG("VbaGraphics::UpdateCgParams() -- CG DISABLED PROFILING ENABLED");
-#endif
+
 }
 
 void VbaGraphics::SetPAL60Hz(bool pal60Hz)

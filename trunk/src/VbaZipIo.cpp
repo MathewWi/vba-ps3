@@ -15,19 +15,20 @@
 
 VbaZipIo::VbaZipIo()
 {
-	_curFex = NULL;
+	//_curFex = NULL;
 	_currentDirIndex = 0;
 }
 
 
 VbaZipIo::~VbaZipIo()
 {
-	if (_curFex != NULL)
+	/*if (_curFex != NULL)
 	{
 		_curFex->close();
 		delete _curFex;
 		_curFex = NULL;
-	}
+	}*/
+	fex_close(_curFex);
 }
 
 
@@ -48,13 +49,14 @@ void VbaZipIo::Open(std::string filename)
 
 	if (_curFex != NULL)
 	{
-		_curFex->close();
-		delete _curFex;
-		_curFex = NULL;
+		fex_close(_curFex);
+		//_curFex->close();
+		//delete _curFex;
+		//_curFex = NULL;
 	}
 
 	// discover interface for current fex class
-	if (FileBrowser::GetExtension(filename).compare("7z") == 0)
+	/*if (FileBrowser::GetExtension(filename).compare("7z") == 0)
 	{
 		_curFex = new Zip7_Extractor();
 	}
@@ -62,30 +64,38 @@ void VbaZipIo::Open(std::string filename)
 	{
 		_curFex = new Zip_Extractor();
 	}
-	/*else if (FileBrowser::GetExtension(filename).compare("rar") == 0)
+	else if (FileBrowser::GetExtension(filename).compare("rar") == 0)
 	{
 		_curFex = new Rar_Extractor();
-	}*/
+	}
 	else if (FileBrowser::GetExtension(filename).compare("gz") == 0)
 	{
 		_curFex = new Gzip_Extractor();
-	}
+	}*/
 
 	// clear old
 	while (!_dir.empty()) { _dir.pop(); }
 	_zipMap.clear();
-	_curFex->close();
+
+	// close curfex
+	//_curFex->close();
+
+	// reset index!
 	_currentDirIndex = 0;
 
-	_curFex->open(filename.c_str());
+	// open using fex, handles extension detection and all
+	fex_open(&_curFex, filename.c_str());
+	//_curFex->open(filename.c_str());
 
 	// parse the zip data
-	while (!_curFex->done())
+	//while (!_curFex->done())
+	while (!fex_done(_curFex))
 	{
-		_curFex->stat();
+		//_curFex->stat();
 
 		struct ZipEntry entry;
-		std::string name = _curFex->name();
+		//std::string name = _curFex->name();
+		std::string name = fex_name(_curFex);
 		std::string fn = name;
 		std::string path = "";
 
@@ -129,13 +139,15 @@ void VbaZipIo::Open(std::string filename)
 		}
 
 		entry.name = fn;
-		entry.pos = _curFex->tell_arc() ;
+		//entry.pos = _curFex->tell_arc() ;
+		entry.pos = fex_tell_arc(_curFex);
 		entry.type = ZIPIO_TYPE_FILE;
 		_zipMap[path].push_back(entry);
 
 		LOG_DBG("ZipIO: Added Entry (%s, %d, %d)\n", entry.name.c_str(), entry.pos, entry.type);
 
-		_curFex->next();
+		//_curFex->next();
+		fex_next(_curFex);
 	}
 
 	_dir.push("");
@@ -199,19 +211,29 @@ void VbaZipIo::SetCurrentEntryPosition(size_t index)
 }*/
 
 
-int VbaZipIo::GetEntryData(uint8_t* &pData)
+int VbaZipIo::GetEntryData(const void** pData)
 {
 	LOG_DBG("VbaZipIo::GetEntryData()\n");
 
 	ZipEntry entry = _zipMap[_dir.top()][_currentDirIndex];
 	//_curFex->rewind();
-	_curFex->seek_arc(entry.pos);
-	_curFex->stat();
+	//_curFex->seek_arc(entry.pos);
 
-	int size = _curFex->size();
+	LOG_WRN("VbaZipIO:GetEntryData() -- SEEK BEGIN (pos:%d)\n;", entry.pos);
+	fex_err_t err = fex_seek_arc(_curFex, entry.pos);
+	if (err != NULL)
+	{
+		LOG_WRN("VbaZipIO:GetEntryData() -- SEEK FAILED \t %s\n;", fex_err_str( err ));
+		return 0;
+	}
+	LOG_WRN("VbaZipIO:GetEntryData() -- SEEK END\n;");
+	//_curFex->stat();
+
+	//int size = _curFex->size();
+
 
 	//
-	int res = size;
+	//int res = size;
 	//int res = 1;
 	//while(res < size)
 	//	res <<= 1;
@@ -219,13 +241,18 @@ int VbaZipIo::GetEntryData(uint8_t* &pData)
 	LOG_DBG("VbaZipIo::GetEntryData() - Getting Data for Entry (%s, %d, %d), \n", entry.name.c_str(), entry.pos, entry.type);
 	//_curFex->((const void**)&pData);
 
-	LOG_DBG("VbaZipIo::GetEntryData() -- size: %d\n", res);
-	uint8_t	*data = (uint8_t *)SystemMalloc(res);
+	//LOG_DBG("VbaZipIo::GetEntryData() -- size: %d\n", res);
+	//uint8_t	*data = (uint8_t *)SystemMalloc(res);
 
-	_curFex->reader().read(data, res);
+	//_curFex->reader().read(data, res);
+	fex_data(_curFex, pData);
 
 	// set out param
-	pData = data;
+	//pData = data;
 
-	return res;
+	fex_stat(_curFex);
+	int size = fex_size(_curFex);
+	LOG_DBG("VbaZipIo::GetEntryData() -- size: %d\n", size);
+
+	return size;
 }
