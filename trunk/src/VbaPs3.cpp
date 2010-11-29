@@ -42,8 +42,6 @@
 
 #include "cellframework/utility/OSKUtil.h"
 
-#define USRDIR "/dev_hdd0/game/VBAM90000/USRDIR/"
-
 #define SYS_CONFIG_FILE "/dev_hdd0/game/VBAM90000/USRDIR/vba.conf"
 SYS_PROCESS_PARAM(1001, 0x40000);
 
@@ -330,21 +328,19 @@ bool VbaPs3::InitSettings()
 	if (currentconfig->Exists("PS3Paths::PathSaveStates"))
 	{
 		Settings.PS3PathSaveStates		= currentconfig->GetString("PS3Paths::PathSaveStates");
-		Settings.PS3PathSaveStates 		+= "/";
 	}
 	else
 	{
-		Settings.PS3PathSaveStates		= USRDIR;
+		Settings.PS3PathSaveStates		= EMULATOR_PATH_STATES;
 	}
 
 	if (currentconfig->Exists("PS3Paths::PathSRAM"))
 	{
 		Settings.PS3PathSRAM		= currentconfig->GetString("PS3Paths::PathSRAM");
-		Settings.PS3PathSRAM 		+= "/";
 	}
 	else
 	{
-		Settings.PS3PathSRAM		= USRDIR;
+		Settings.PS3PathSRAM		= EMULATOR_PATH_STATES;
 	}
 
 	/*

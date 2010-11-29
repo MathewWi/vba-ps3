@@ -28,7 +28,6 @@
 
 #include "conf/conffile.h"
 
-#define USRDIR "/dev_hdd0/game/VBAM90000/USRDIR"
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
@@ -232,7 +231,7 @@ void do_pathChoice()
 		}
 		if (CellInput->WasButtonHeld(0, CTRL_TRIANGLE))
 		{
-			path = USRDIR;
+			path = EMULATOR_PATH_STATES;
 			switch(currently_selected_setting)
 			{
 				case SETTING_PATH_SAVESTATES_DIRECTORY:
@@ -473,6 +472,10 @@ void do_settings()
 					menuStack.push(do_biosChoice);
 					tmpBrowser = NULL;
 				}
+				if (CellInput->IsButtonPressed(0, CTRL_START))
+				{
+					Settings.GBABIOS.clear();
+				}
 				break;
 			case SETTING_PATH_SAVESTATES_DIRECTORY:
 				if (CellInput->WasButtonPressed(0, CTRL_CROSS))
@@ -482,7 +485,7 @@ void do_settings()
 				}
 				if (CellInput->IsButtonPressed(0, CTRL_START))
 				{
-					Settings.PS3PathSaveStates = USRDIR;
+					Settings.PS3PathSaveStates = EMULATOR_PATH_STATES;
 				}
 				break;
 			case SETTING_PATH_SRAM_DIRECTORY:
@@ -493,7 +496,7 @@ void do_settings()
 				}
 				if (CellInput->IsButtonPressed(0, CTRL_START))
 				{
-					Settings.PS3PathSRAM = USRDIR;
+					Settings.PS3PathSRAM = EMULATOR_PATH_STATES;
 				}
 				break;
 			case SETTING_PATH_DEFAULT_ROM_DIRECTORY:
@@ -522,8 +525,8 @@ void do_settings()
 					Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
 					Settings.ControlStyle = CONTROL_STYLE_ORIGINAL;
 					Settings.PS3PALTemporalMode60Hz = false;
-					Settings.PS3PathSRAM = USRDIR;
-					Settings.PS3PathSaveStates = USRDIR;
+					Settings.PS3PathSRAM = EMULATOR_PATH_STATES;
+					Settings.PS3PathSaveStates = EMULATOR_PATH_STATES;
 					//FIXME: For when resolution switching works
 					/*
 					if(Graphics->CheckResolution(CELL_VIDEO_OUT_RESOLUTION_576))
@@ -543,8 +546,8 @@ void do_settings()
 	float yPos = 0.05;
 	float ySpacing = 0.04;
 
-	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_DRAW_FPS ? YELLOW : WHITE, "Draw Framerate");
-	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.DrawFps ? RED : GREEN, "%d", Settings.DrawFps ? "Enabled" : "Disabled");
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_DRAW_FPS ? YELLOW : WHITE, "Show Framerate");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.DrawFps ? RED : GREEN, "%s", Settings.DrawFps ? "Enabled" : "Disabled");
 
 	yPos += ySpacing;
 	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_CURRENT_SAVE_STATE_SLOT ? YELLOW : WHITE, "Current save state slot");
@@ -622,12 +625,12 @@ void do_settings()
 
 	yPos += ySpacing;
 	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_PATH_SAVESTATES_DIRECTORY ? YELLOW : WHITE, "Savestate Directory");
-	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3PathSaveStates.c_str() == USRDIR ? GREEN : RED, Settings.PS3PathSaveStates.c_str());
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3PathSaveStates.c_str() == EMULATOR_PATH_STATES ? GREEN : RED, Settings.PS3PathSaveStates.c_str());
 	Graphics->FlushDbgFont();
 
 	yPos += ySpacing;
 	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_PATH_SRAM_DIRECTORY ? YELLOW : WHITE, "SRAM Directory");
-	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3PathSRAM.c_str() == USRDIR ? GREEN : RED, Settings.PS3PathSRAM.c_str());
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3PathSRAM.c_str() == EMULATOR_PATH_STATES ? GREEN : RED, Settings.PS3PathSRAM.c_str());
 	Graphics->FlushDbgFont();
 
 	yPos += ySpacing;
