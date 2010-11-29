@@ -595,7 +595,7 @@ void do_settings()
 
 	yPos += ySpacing;
 	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_KEEP_ASPECT_RATIO ? YELLOW : WHITE, "Aspect Ratio");
-	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3KeepAspect == true ? GREEN : RED, "%s", Settings.PS3KeepAspect == true ? "4:3" : "16:9");
+	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Settings.PS3KeepAspect == true ? GREEN : RED, "%s", Settings.PS3KeepAspect == true ? "Scaled" : "Stretched");
 
 	yPos += ySpacing;
 	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_HW_TEXTURE_FILTER ? YELLOW : WHITE, "Hardware Filtering");
@@ -614,7 +614,7 @@ void do_settings()
 			"%s", Settings.ControlStyle == CONTROL_STYLE_ORIGINAL ? "Original (X->B, O->A)" : "Better (X->A, []->B)");
 
 	yPos += ySpacing;
-	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_SHADER ? YELLOW : WHITE, "Shader: ");
+	cellDbgFontPuts(0.05f, yPos, FONT_SIZE, currently_selected_setting == SETTING_SHADER ? YELLOW : WHITE, "Selected Shader: ");
 	cellDbgFontPrintf(0.5f, yPos, FONT_SIZE,
 			GREEN,
 			"%s", Graphics->GetFragmentShaderPath().substr(Graphics->GetFragmentShaderPath().find_last_of('/')).c_str());
