@@ -418,11 +418,13 @@ void do_settings()
 						Settings.PS3OverscanAmount--;
 						Settings.PS3OverscanEnabled = true;
 						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+						Graphics->UpdateCgParams();
 					}
 					if(Settings.PS3OverscanAmount == 0)
 					{
 						Settings.PS3OverscanEnabled = false;
 						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+						Graphics->UpdateCgParams();
 					}
 				}
 				if(CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasAnalogPressedRight(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0,CTRL_CROSS))
@@ -432,11 +434,13 @@ void do_settings()
 						Settings.PS3OverscanAmount++;
 						Settings.PS3OverscanEnabled = true;
 						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+						Graphics->UpdateCgParams();
 					}
 					if(Settings.PS3OverscanAmount == 0)
 					{
 						Settings.PS3OverscanEnabled = false;
 						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+						Graphics->UpdateCgParams();
 					}
 				}
 				if(CellInput->IsButtonPressed(0, CTRL_START))
@@ -444,6 +448,7 @@ void do_settings()
 					Settings.PS3OverscanAmount = 0;
 					Settings.PS3OverscanEnabled = false;
 					Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
+					Graphics->UpdateCgParams();
 				}
 				break;
 			case SETTING_CONTROL_STYLE:
