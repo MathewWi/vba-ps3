@@ -690,7 +690,7 @@ int32_t VbaPs3::VbaInit()
 
         // VBA - set all the defaults
         cpuSaveType = 0;			//automatic
-        flashSetSize(0x20000);		//1m
+        flashSetSize(0x10000);		//1m
         rtcEnable(false);			//realtime clock
         agbPrintEnable(false);		//?
         mirroringEnable = false;	//?
