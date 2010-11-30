@@ -264,10 +264,12 @@ __attribute__ ((__always_inline__)) uint32_t systemReadJoypad(int pad)
 		J |= VBA_BUTTON_SELECT;
 	}
 
+	/*
 	if (CellInput->IsButtonPressed(i, CTRL_R2))
 	{
 		J |= VBA_SPEED;
 	}
+	*/
 
 	// state shift
 	if (CellInput->WasAnalogPressedLeft(i, CTRL_RSTICK))
