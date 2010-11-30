@@ -366,7 +366,6 @@ void do_settings()
 				break;
 
 			case SETTING_CHANGE_RESOLUTION:
-				/* FIXME: COMMENTED OUT FOR NOW
 				if(CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK))
 				{
 					Graphics->NextResolution();
@@ -377,20 +376,19 @@ void do_settings()
 				}
 				if(CellInput->WasButtonPressed(0, CTRL_CROSS))
 				{
-					Graphics->SwitchResolution();
+					Graphics->SwitchResolution(Graphics->GetCurrentResolution(), Settings.PS3PALTemporalMode60Hz);
 				}
 				if(CellInput->IsButtonPressed(0, CTRL_START))
 				{
-					Graphics->SwitchResolution(Graphics->GetInitialResolution());
+					Graphics->SwitchResolution(Graphics->GetInitialResolution(), Settings.PS3PALTemporalMode60Hz);
 				}
-				*/
 			   break;
 			case SETTING_KEEP_ASPECT_RATIO:
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) || CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
 				{
 					Settings.PS3KeepAspect = !Settings.PS3KeepAspect;
 					//Graphics->SetAspectRatio(Settings.PS3KeepAspect ? SCREEN_4_3_ASPECT_RATIO : SCREEN_16_9_ASPECT_RATIO);
-               Graphics->SetStretched(!Settings.PS3KeepAspect);
+					Graphics->SetStretched(!Settings.PS3KeepAspect);
 				}
 				if(CellInput->IsButtonPressed(0, CTRL_START))
 				{

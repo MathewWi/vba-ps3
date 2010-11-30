@@ -6,6 +6,7 @@
  */
 
 #include "VbaGraphics.h"
+#include "VbaPs3.h"
 
 #include <limits>
 #include <assert.h>
@@ -23,7 +24,7 @@
 VbaGraphics::VbaGraphics() : PSGLGraphics(), gl_buffer(NULL), vertex_buf(NULL)
 {
 	m_smooth = true;
-	m_pal60Hz = false;
+	m_pal60Hz = true;
 	m_overscan = false;
 	m_overscan_amount = 0.0f;
 }
@@ -128,6 +129,45 @@ void VbaGraphics::Sleep(uint64_t usec) const
    sys_timer_usleep(usec);
 }
 
+int32_t VbaGraphics::ChangeResolution(uint32_t resId, uint16_t pal60Hz)
+{
+	LOG_DBG("VbaGraphics::ChangeResolution(%d)\n", resId);
+	int32_t ret;
+
+	PSGLGraphics::DeinitDbgFont();
+	Deinit();
+	
+	PSGLGraphics::Init(resId, pal60Hz);
+	PSGLInit();
+
+	int srcWidth, srcHeight;
+	if(App->GetVbaCartType() == IMAGE_GB)
+	{
+		srcWidth = 160;
+		srcHeight = 144;
+	}
+	else if (App->GetVbaCartType() == IMAGE_GBA)
+	{
+		srcWidth = 240;
+		srcHeight = 160;
+	}
+
+	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
+
+	Rect r;
+	r.x = 0;
+	r.y = 0;
+	r.w = srcWidth;
+	r.h = srcHeight;
+
+	Graphics->SetRect(r);
+	Graphics->SetStretched(m_ratio == SCREEN_4_3_ASPECT_RATIO ? 0 : 1);
+	Graphics->UpdateCgParams(srcWidth, srcHeight, srcWidth, srcHeight);
+
+
+	PSGLGraphics::InitDbgFont();
+	PSGLGraphics::SetResolution();
+}
 
 void VbaGraphics::Clear() const
 {
@@ -234,146 +274,6 @@ void VbaGraphics::DbgPrintf(const char *fmt, ...) const
    Sleep(600000);
 }
 
-int VbaGraphics::CheckResolution(uint32_t resId)
-{
-	return cellVideoOutGetResolutionAvailability(CELL_VIDEO_OUT_PRIMARY, resId, CELL_VIDEO_OUT_ASPECT_AUTO,0);
-}
-
-int VbaGraphics::AddResolution(uint32_t resId)
-{
-	supportedResolutions.push_back(resId);
-}
-
-void VbaGraphics::NextResolution()
-{
-	LOG("VbaGraphics::NextResolution()\n");
-	LOG("supportedResolutions size: %d\n", supportedResolutions.size());
-	if(currentResolution+1 < supportedResolutions.size())
-	{
-		currentResolution++;
-		LOG("currentResolution: %d\n", currentResolution);
-	}
-}
-
-void VbaGraphics::PreviousResolution()
-{
-	LOG("VbaGraphics::NextResolution()\n");
-	LOG("supportedResolutions size: %d\n", supportedResolutions.size());
-	if(currentResolution > 0)
-	{
-		currentResolution--;
-		LOG("currentResolution: %d\n", currentResolution);
-	}
-}
-
-void VbaGraphics::SwitchResolution()
-{
-	if(CheckResolution(supportedResolutions[currentResolution]))
-	{
-		ChangeResolution(supportedResolutions[currentResolution]);
-	}
-}
-
-void VbaGraphics::SwitchResolution(uint32_t resId)
-{
-	if(CheckResolution(resId))
-	{
-		ChangeResolution(resId);
-	}
-}
-
-uint32_t VbaGraphics::GetInitialResolution()
-{
-	return initialResolution;
-}
-
-uint32_t VbaGraphics::GetCurrentResolution()
-{
-	return supportedResolutions[currentResolution];
-}
-
-void VbaGraphics::GetAllAvailableResolutions()
-{
-	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_576))
-	{
-		AddResolution(CELL_VIDEO_OUT_RESOLUTION_576);
-		initialResolution = CELL_VIDEO_OUT_RESOLUTION_576;
-	}
-	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_480))
-	{
-		AddResolution(CELL_VIDEO_OUT_RESOLUTION_480);
-		initialResolution = CELL_VIDEO_OUT_RESOLUTION_480;
-	}
-	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_720))
-	{
-		AddResolution(CELL_VIDEO_OUT_RESOLUTION_720);
-		initialResolution = CELL_VIDEO_OUT_RESOLUTION_720;
-	}
-	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_960x1080))
-	{
-		AddResolution(CELL_VIDEO_OUT_RESOLUTION_960x1080);
-		initialResolution = CELL_VIDEO_OUT_RESOLUTION_960x1080;
-	}
-	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_1280x1080))
-	{
-		AddResolution(CELL_VIDEO_OUT_RESOLUTION_1280x1080);
-		initialResolution = CELL_VIDEO_OUT_RESOLUTION_1280x1080;
-	}
-	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_1440x1080))
-	{
-		AddResolution(CELL_VIDEO_OUT_RESOLUTION_1440x1080);
-		initialResolution = CELL_VIDEO_OUT_RESOLUTION_1440x1080;
-	}
-	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_1600x1080))
-	{
-		AddResolution(CELL_VIDEO_OUT_RESOLUTION_1600x1080);
-		initialResolution = CELL_VIDEO_OUT_RESOLUTION_1600x1080;
-	}
-	if(CheckResolution(CELL_VIDEO_OUT_RESOLUTION_1080))
-	{
-		AddResolution(CELL_VIDEO_OUT_RESOLUTION_1080);
-		initialResolution = CELL_VIDEO_OUT_RESOLUTION_1080;
-	}
-	currentResolution = supportedResolutions.size()-1;
-}
-
-CellVideoOutState VbaGraphics::GetVideoOutState()
-{
-	return _videoOutState;
-}
-
-int32_t VbaGraphics::ChangeResolution(uint32_t resId)
-{
-	LOG("VbaGraphics::ChangeResolution(%d)\n", resId);
-	int32_t ret;
-	CellVideoOutState video_state;
-	CellVideoOutConfiguration video_config;
-	CellVideoOutResolution resolution;
-	
-	cellVideoOutGetState(CELL_VIDEO_OUT_PRIMARY, 0, &video_state);
-	video_state.displayMode.resolutionId = resId;
-	cellVideoOutGetResolution(video_state.displayMode.resolutionId, &resolution);
-	
-	memset(&video_config, 0, sizeof(CellVideoOutConfiguration));
-	
-	video_config.resolutionId = resId;
-	video_config.format = CELL_VIDEO_OUT_BUFFER_COLOR_FORMAT_X8R8G8B8;
-	video_config.aspect = video_state.displayMode.aspect;
-	video_config.pitch = resolution.width << 2;
-	
-	Deinit();
-	
-	ret = cellVideoOutConfigure(CELL_VIDEO_OUT_PRIMARY, &video_config, NULL, 0);
-	if(ret != CELL_OK)
-	{
-		return ret;
-	}
-	
-	Init(resId);
-	PSGLGraphics::InitDbgFont();
-	cellVideoOutGetState(CELL_VIDEO_OUT_PRIMARY, 0, &stored_video_state);
-}
-
 void VbaGraphics::PSGLInit()
 {
 	glDisable(GL_DEPTH_TEST);
@@ -444,7 +344,7 @@ void VbaGraphics::Init()
 	PSGLInit();
 
 	// snag the video out state
-	cellVideoOutGetState(CELL_VIDEO_OUT_PRIMARY, 0, &_videoOutState);
+	SetResolution();
 	GetAllAvailableResolutions();
 }
 
