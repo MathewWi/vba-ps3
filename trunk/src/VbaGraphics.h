@@ -89,16 +89,8 @@ public:
 	void Sleep(uint64_t usec) const;
 
 	string GetFragmentShaderPath() { return _curFragmentShaderPath; }
-	CellVideoOutState GetVideoOutState();
 
-	int CheckResolution(uint32_t resId);
-	void SwitchResolution();
-	void SwitchResolution(uint32_t resId);
-	uint32_t GetInitialResolution();
-	uint32_t GetCurrentResolution();
-	void PreviousResolution();
-	void NextResolution();
-	int AddResolution(uint32_t resId);
+	int32_t ChangeResolution(uint32_t resId, uint16_t pal60Hz);
 	void SetOverscan(bool overscan, float amount = 0.0f);
 	int32_t InitCg();
 	int32_t LoadFragmentShader(string shaderPath);
@@ -108,13 +100,6 @@ public:
 	pcpal Palette[256];
 private:
 	void PSGLInit();
-	CellVideoOutState stored_video_state;
-	CellVideoOutState _videoOutState;
-	void GetAllAvailableResolutions();
-	int32_t ChangeResolution(uint32_t resId);
-	std::vector<uint32_t> supportedResolutions;
-	int currentResolution;
-	uint32_t initialResolution;
 	unsigned m_width;
 	unsigned m_height;
 	unsigned m_pitch;
