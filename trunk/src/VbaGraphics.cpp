@@ -497,6 +497,12 @@ void VbaGraphics::SetPAL60Hz(bool pal60Hz)
 	m_pal60Hz = pal60Hz;
 }
 
+bool VbaGraphics::GetPAL60Hz()
+{
+	LOG_DBG("VbaGraphics::GetPAL60Hz()\n");
+	return m_pal60Hz;
+}
+
 void VbaGraphics::SetSmooth(bool smooth)
 {
 	m_smooth = smooth;
