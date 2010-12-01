@@ -42,6 +42,8 @@ void VbaZipIo::Open(std::string filename)
 {
 	LOG_DBG("VbaZipIo::Open(%s)\n", filename.c_str());
 
+	fex_err_t err = NULL;
+
 	if (_curFex != NULL)
 	{
 		fex_close(_curFex);
@@ -61,7 +63,8 @@ void VbaZipIo::Open(std::string filename)
 	// parse the zip data
 	while (!fex_done(_curFex))
 	{
-		//_curFex->stat();
+		// stat the new file now
+		fex_stat(_curFex);
 
 		struct ZipEntry entry;
 		std::string name = fex_name(_curFex);
@@ -79,7 +82,7 @@ void VbaZipIo::Open(std::string filename)
 		}
 		else if (slashIndex > 0)
 		{
-			LOG_DBG("ZipIO: dir found!\n");
+			//LOG_DBG("ZipIO: dir found!\n");
 
 			// rip out the filename
 			fn = name.substr(slashIndex+1);
@@ -98,11 +101,13 @@ void VbaZipIo::Open(std::string filename)
 					prevPath = name.substr(0, prevIndex);
 				}
 
-				LOG_DBG("ZipIO: adding dir: %s\n", path.c_str());
-				LOG_DBG("ZipIO: previous path: %s\n", prevPath.c_str());
+				//LOG_DBG("ZipIO: adding dir: %s\n", path.c_str());
+				//LOG_DBG("ZipIO: previous path: %s\n", prevPath.c_str());
 				entry.name = path;
 				entry.pos = -1;
 				entry.type = ZIPIO_TYPE_DIR;
+				entry.crc = 0;
+				entry.len = 0;
 				_zipMap[prevPath].push_back(entry);
 			}
 		}
@@ -110,11 +115,24 @@ void VbaZipIo::Open(std::string filename)
 		entry.name = fn;
 		entry.pos = fex_tell_arc(_curFex);
 		entry.type = ZIPIO_TYPE_FILE;
+		entry.len = fex_size(_curFex);
+		entry.crc = fex_crc32(_curFex);
+
 		_zipMap[path].push_back(entry);
 
-		LOG_DBG("ZipIO: Added Entry (%s, %d, %d)\n", entry.name.c_str(), entry.pos, entry.type);
+		LOG_DBG("ZipIO: Added Entry (name:%s, pos:%d, type:%d, len:%d, crc32:%d)\n", entry.name.c_str(), entry.pos, entry.type, entry.len, entry.crc);
 
-		fex_next(_curFex);
+		err = fex_next(_curFex);
+		if (err != NULL)
+		{
+			LOG_WRN("VbaZipIO:GetEntryData() -- ERROR COULD NOT NEXT \t %s\n;", fex_err_str( err ));
+		}
+	}
+
+	err = fex_rewind(_curFex);
+	if (err != NULL)
+	{
+		LOG_WRN("VbaZipIO:GetEntryData() -- ERROR COULD NOT REWIND \t %s\n;", fex_err_str( err ));
 	}
 
 	_dir.push("");
@@ -178,20 +196,64 @@ void VbaZipIo::SetCurrentEntryPosition(size_t index)
 }*/
 
 
-int VbaZipIo::GetEntryData(const void** pData)
+int VbaZipIo::GetEntryData(void** pData)
 {
 	LOG_DBG("VbaZipIo::GetEntryData()\n");
 
 	ZipEntry entry = _zipMap[_dir.top()][_currentDirIndex];
-
-	LOG_WRN("VbaZipIO:GetEntryData() -- SEEK BEGIN (pos:%d)\n;", entry.pos);
+	fex_err_t err = NULL;
+	/*LOG_WRN("VbaZipIO:GetEntryData() -- SEEK BEGIN (pos:%d)\n;", entry.pos);
 	fex_err_t err = fex_seek_arc(_curFex, entry.pos);
 	if (err != NULL)
 	{
 		LOG_WRN("VbaZipIO:GetEntryData() -- SEEK FAILED \t %s\n;", fex_err_str( err ));
 		return 0;
 	}
-	LOG_WRN("VbaZipIO:GetEntryData() -- SEEK END\n;");
+	LOG_WRN("VbaZipIO:GetEntryData() -- SEEK END\n;");*/
+
+	err = fex_rewind(_curFex);
+	if (err != NULL)
+	{
+		LOG_WRN("VbaZipIO:GetEntryData() -- ERROR 1: \t %s\n;", fex_err_str( err ));
+		return 0;
+	}
+
+	int nCurrFile = 1;
+	int nEntry = entry.pos;
+	int nLength = entry.len;
+
+	// Now step through to the file we need
+	LOG_WRN("VbaZipIO:GetEntryData() -- SEEK ENTRY : %d\n", nEntry);
+	while (nCurrFile < nEntry)
+	{
+			err = fex_next(_curFex);
+			if (err != NULL || fex_done(_curFex))
+			{
+				LOG_WRN("VbaZipIO:GetEntryData() -- ERROR 1: \t %s\n;", fex_err_str( err ));
+				return 0;
+			}
+			nCurrFile++;
+	}
+
+	LOG_WRN("VbaZipIO:GetEntryData() -- MEMORY ALLOC %d\n", nLength);
+	*pData = SystemMalloc(nLength);
+	if (*pData == NULL)
+	{
+		LOG_WRN("VbaZipIO:GetEntryData() -- MEMORY ERROR\n;");
+		return 0;
+	}
+
+	LOG_WRN("VbaZipIO:GetEntryData() -- FEX READ %d\n", nLength);
+    err = fex_read(_curFex, *pData, nLength);
+    if (err != NULL)
+    {
+    	free(*pData);
+    	LOG_WRN("VbaZipIO:GetEntryData() -- READ ERROR 1: \t %s\n;", fex_err_str( err ));
+        return 0;
+    }
+
+    return nLength;
+
 
 	//
 	//int res = size;
@@ -199,7 +261,7 @@ int VbaZipIo::GetEntryData(const void** pData)
 	//while(res < size)
 	//	res <<= 1;
 
-	LOG_DBG("VbaZipIo::GetEntryData() - Getting Data for Entry (%s, %d, %d), \n", entry.name.c_str(), entry.pos, entry.type);
+	/*LOG_DBG("VbaZipIo::GetEntryData() - Getting Data for Entry (%s, %d, %d), \n", entry.name.c_str(), entry.pos, entry.type);
 	//_curFex->((const void**)&pData);
 
 	//LOG_DBG("VbaZipIo::GetEntryData() -- size: %d\n", res);
@@ -211,7 +273,7 @@ int VbaZipIo::GetEntryData(const void** pData)
 
 	//fex_stat(_curFex);
 	int size = fex_size(_curFex);
-	LOG_DBG("VbaZipIo::GetEntryData() -- size: %d\n", size);
+	LOG_DBG("VbaZipIo::GetEntryData() -- size: %d\n", size);*/
 
-	return size;
+	//return size;
 }
