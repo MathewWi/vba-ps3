@@ -586,8 +586,11 @@ long utilGzMemTell(gzFile file)
   return memtell(file);
 }
 
+
+#include "src/cellframework/logger/Logger.h"
 void utilGBAFindSave(const u8 *data, const int size)
 {
+	LOG("utilGBAFindSave(%p, %d)\n", data, size);
   u32 *p = (u32 *)data;
   u32 *end = (u32 *)(data + size);
   int saveType = 0;
@@ -629,6 +632,8 @@ void utilGBAFindSave(const u8 *data, const int size)
   if(saveType == 0) {
     saveType = 5;
   }
+
+  LOG("utilGBAFindSave rtc:%d, cpuSaveType:%d, flashSize:%d\n", rtcFound, saveType, flashSize);
   rtcEnable(rtcFound);
   cpuSaveType = saveType;
   flashSetSize(flashSize);
