@@ -26,6 +26,8 @@ struct ZipEntry
 {
 	std::string name;
 	fex_pos_t pos;
+	unsigned int len;
+	unsigned int crc;
 	int type;
 };
 
@@ -41,7 +43,7 @@ public:
 	size_t GetCurrentEntryCount();
 	void SetCurrentEntryPosition(size_t index);
 
-	int GetEntryData(const void** pData);
+	int GetEntryData(void** pData);
 
 	ZipEntry GetCurrentEntry()
 	{

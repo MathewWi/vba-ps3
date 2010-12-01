@@ -725,7 +725,7 @@ void do_ZipMenu()
 				string rom_path = "/dev_hdd0/" + zipIo.GetCurrentEntry().name;
 				LOG_DBG("ZipIO: try and load rom now: %s\n", rom_path.c_str());
 
-				const void* data;
+				void* data = NULL;
 				int size = zipIo.GetEntryData(&data);
 				if (size > 0 && data != NULL)
 				{
@@ -735,7 +735,7 @@ void do_ZipMenu()
 					fclose(file);
 					LOG_DBG("ZipIO: stored hack tmpfile\n");
 
-					//free(data);
+					free(data);
 
 					App->LoadROM(rom_path, true);
 					{
