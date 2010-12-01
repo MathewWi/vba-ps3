@@ -718,6 +718,20 @@ int32_t VbaPs3::VbaInit()
 	}
 
 	// ROM SUCCESSFULLY LOADED AT THIS POINT
+	
+	if (Graphics->GetCurrentResolution() == CELL_VIDEO_OUT_RESOLUTION_576)
+	{
+		if(Graphics->CheckResolution(CELL_VIDEO_OUT_RESOLUTION_576))
+		{
+			if(!Graphics->GetPAL60Hz())
+			{
+				//PAL60 is OFF
+				Settings.PS3PALTemporalMode60Hz = true;
+				Graphics->SetPAL60Hz(Settings.PS3PALTemporalMode60Hz);
+				Graphics->SwitchResolution(Graphics->GetCurrentResolution(), Settings.PS3PALTemporalMode60Hz);
+			}
+		}
+	}
 
 	// PORT - init graphics for this rom
 	LOG("VbaPs3::VbaInit() -- SETUP GRAPHICS\n");
