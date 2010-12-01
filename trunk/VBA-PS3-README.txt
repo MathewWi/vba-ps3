@@ -44,50 +44,52 @@ VBA-M.
   - Savestate slot selectable in-game
   - Up to 10 saveslots
 
+
 2. CONTROLS
 ===========
 2.1.1 CONTROLS IN ROM MENU
 ==========================
 Up				- Go up
-Down				- Go down
-Left				- Go back five file entries
-Right				- Go forward five file entries
+Down			- Go down
+Left			- Go back five file entries
+Right			- Go forward five file entries
 L1				- Go back one page
 R1				- Go forward one page
 
-Cross				- (If directory selected) enter directory/ (if ROM selected) start ROM
-Triangle			- (If ROM selected) start ROM with multitap support
-Circle				- (If not in root directory) Go back to previous directory
-L2 + R2				- (If you previously exited a ROM) return to game
-Select				- Go to settings menu (see 'CONTROLS IN SETTINGS MENU' section)
+Cross			- (If directory selected) enter directory/ (if ROM selected) start ROM
+Triangle		- (If ROM selected) start ROM with multitap support
+Circle			- (If not in root directory) Go back to previous directory
+L2 + R2			- (If you previously exited a ROM) return to game
+Select			- Go to settings menu (see 'CONTROLS IN SETTINGS MENU' section)
 
 2.1.2 CONTROLS IN SETTINGS MENU
 ===============================
 Up				- Go up one setting.
-Down				- Go down one setting.
-Left				- Change setting to the left.
-Right				- Change setting to the right.
+Down			- Go down one setting.
+Left			- Change setting to the left.
+Right			- Change setting to the right.
 
-Circle				- Go back to ROM menu/Go back to previous Settings screen
-Start				- Reset the setting back to the default value.
+Circle			- Go back to ROM menu/Go back to previous Settings screen
+Start			- Reset the setting back to the default value.
 R1				- Go to the next Settings screen
 L1				- Go to the previous Settings screen
-L3 + R3				- Return back to game (if a ROM is loaded)
+L3 + R3			- Return back to game (if a ROM is loaded)
 
 2.1.3 CONTROLS IN-GAME
 ======================
 Nothing worth really explaining here - 
 
-R3 + L3				- Press these two buttons together while in-game to go back to the ROM browser menu.
+R3 + L3			- Press these two buttons together while in-game to go back to the ROM browser menu.
 
-R3 + R2				- Save to currently selected save state slot
-L3 + L2				- Load from currently selected save state slot
+R3 + R2			- Save to currently selected save state slot
+L3 + L2			- Load from currently selected save state slot
 
 Right analog stick - Left	- Move current savestate slot one slot backwards
 Right analog stick - Right	- Move current savestate slot one slot forward
 
 To play a game with a USB controller as Player 1, start up your PS3 and rather than using the Sixaxis/DualShock3, plug in an USB port before
 connecting the controller to the PS3 - your USB pad should then become Controller 1.
+
 
 3. SETTINGS
 ===========
@@ -120,6 +122,7 @@ DEFAULT				- Set all of the general settings back to their default values
 
 * - Might cause some problems on firmware FW 1.92 if you resolution switch too many times.
 
+
 4. CURRENTLY KNOWN ISSUES (AS OF BUILD 0.9.9)
 ==========================================
 
@@ -130,7 +133,8 @@ the future. The 3.41 build is unaffected by this.
 
 4.1 SONIC ADVANCE 1/2 DON'T WORK
 ================================
-2) Sonic Advance 1/2 currently don't work with VBA. This is a known issue and will be looked at shortly.
+2) Sonic Advance 1/2 currently don't work with VBA. This is a known issue and will be looked into.
+
 
 5. NOTES
 ========
@@ -139,7 +143,7 @@ the future. The 3.41 build is unaffected by this.
 =================
 * For people running this on HDTVs complaining about input lag:
 	- Turn off all post-processing filters you may have running - on Sony Bravia HDTVs, display Motion Flow (this also causes input lags
-	with most games in general, not just this SNES emu. If your HDTV has a 'Game' mode or something of the sort, select that as well.
+	with most games in general, not just this application. If your HDTV has a 'Game' mode or something of the sort, select that as well.
 
 5.2 PERFORMANCE NOTES
 =====================
@@ -200,10 +204,12 @@ SuperEagle  60fps     60fps     60fps     60fps         60fps          60fps    
 *  - Might fluctuate with certain games that are CPU-intensive
 ** - Is fullspeed at 4:3 but not at 16:9
 
+
 6. PLANNED IMPROVEMENTS
 =======================
 * Get Sonic Advance 1/2 to work
 * 7z archive support
+
 
 7. FOR DEVELOPERS
 ==================
@@ -246,7 +252,7 @@ PPU_CFLAGS		+=	-DGEKKO -DPSGL -DPATH_MAX=1024
 
 7.2.3 TO MAKE A DEBUGGING-FRIENDLY COMPILE
 =============================================
-We provide a netlogger in case you want to have some way of debugging SNES9x PS3 remotely.
+We provide a netlogger in case you want to have a way of debugging remotely.
 
 1 - Edit the Makefile and comment out the following lines below the comment 'debugging':
 
@@ -279,6 +285,7 @@ https://code.google.com/p/cellframework/)
 To be able to check out the latest revision, you must have Mercurial installed on your system. Type in the following:
 
 hg clone https://cellframework.googlecode.com/hg/ cellframework
+
 
 8. CREDITS
 ===========
