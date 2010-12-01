@@ -87,6 +87,7 @@ public:
 
 	struct EmulatedSystem Vba;
 private:
+	int gbaRomSize;
 	void EmulationLoop();
 	void VbaGraphicsInit();
 
