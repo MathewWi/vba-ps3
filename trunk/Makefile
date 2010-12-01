@@ -21,6 +21,8 @@ MKFSELF_NPDRM = $(CELL_HOST_PATH)/bin/make_fself_npdrm
 MKPKG_NPDRM = $(CELL_HOST_PATH)/bin/make_package_npdrm
 STRIP = $(CELL_HOST_PATH)/ppu/bin/ppu-lv2-strip
 COPY = cp
+C = $(CELL_SDK_DIR)/ppu/bin/ppu-lv2-gcc
+CC = $(CELL_SDK_DIR)/ppu/bin/ppu-lv2-g++
 
 
 # set path to all relevants directories
@@ -184,8 +186,8 @@ all: $(PPU_TARGET) $(PPU_TARGET:%.elf=%.self)
 $(BUILD_DIR)/%.ppu.o: %.cpp 
 	@mkdir -p $(@D)
 	$(if $(findstring $@,$(VBA_CPPOBJS:%=$(BUILD_DIR)/%)),\
-		ppu-lv2-g++ $(PPU_CXXVBAFLAGS) -o $@ -c $<,\
-		ppu-lv2-g++ $(PPU_CXXFLAGS) -o $@ -c $<)
+		$(CC) $(PPU_CXXVBAFLAGS) -o $@ -c $<,\
+		$(CC) $(PPU_CXXFLAGS) -o $@ -c $<)
 
 
 # RULE: All c files, can differentiate for vba dir		
@@ -198,7 +200,7 @@ $(BUILD_DIR)/%.ppu.o: %.c
 	
 # RULE: build the elf file	
 $(PPU_TARGET): $(PPU_CPPOBJS) $(PPU_COBJS)
-	ppu-lv2-g++ $(PPU_CXXFLAGS) $(PPU_LDLIBS) -o $(PPU_TARGET) $(PPU_CPPOBJS) $(PPU_COBJS)
+	$(CC) $(PPU_CXXFLAGS) $(PPU_LDLIBS) -o $(PPU_TARGET) $(PPU_CPPOBJS) $(PPU_COBJS)
 	
 	
 # RULE: build the self file
