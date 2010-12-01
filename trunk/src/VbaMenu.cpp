@@ -416,13 +416,11 @@ void do_settings()
 						Settings.PS3OverscanAmount--;
 						Settings.PS3OverscanEnabled = true;
 						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
-						Graphics->UpdateCgParams();
 					}
 					if(Settings.PS3OverscanAmount == 0)
 					{
 						Settings.PS3OverscanEnabled = false;
 						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
-						Graphics->UpdateCgParams();
 					}
 				}
 				if(CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasAnalogPressedRight(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0,CTRL_CROSS))
@@ -432,13 +430,11 @@ void do_settings()
 						Settings.PS3OverscanAmount++;
 						Settings.PS3OverscanEnabled = true;
 						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
-						Graphics->UpdateCgParams();
 					}
 					if(Settings.PS3OverscanAmount == 0)
 					{
 						Settings.PS3OverscanEnabled = false;
 						Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
-						Graphics->UpdateCgParams();
 					}
 				}
 				if(CellInput->IsButtonPressed(0, CTRL_START))
@@ -446,7 +442,6 @@ void do_settings()
 					Settings.PS3OverscanAmount = 0;
 					Settings.PS3OverscanEnabled = false;
 					Graphics->SetOverscan(Settings.PS3OverscanEnabled, (float)Settings.PS3OverscanAmount/100);
-					Graphics->UpdateCgParams();
 				}
 				break;
 			case SETTING_CONTROL_STYLE:
@@ -562,19 +557,19 @@ void do_settings()
 	switch(Graphics->GetCurrentResolution())
 	{
 		case CELL_VIDEO_OUT_RESOLUTION_480:
-			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_480 ? GREEN : RED, "480p (59.94Hz)");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_480 ? GREEN : RED, "720x480 (480p)");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_720:
-			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_720 ? GREEN : RED, "720p (59.94Hz)");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_720 ? GREEN : RED, "1280x720 (720p)");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1080:
-			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1080 ? GREEN : RED, "1080p (59.94Hz)");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_1080 ? GREEN : RED, "1920x1080 (1080p)");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_576:
-			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_576 ? GREEN : RED, "576p (50Hz)");
+			cellDbgFontPrintf(0.5f, yPos, FONT_SIZE, Graphics->GetInitialResolution() == CELL_VIDEO_OUT_RESOLUTION_576 ? GREEN : RED, "720x576 (576p)");
 			Graphics->FlushDbgFont();
 			break;
 		case CELL_VIDEO_OUT_RESOLUTION_1600x1080:
