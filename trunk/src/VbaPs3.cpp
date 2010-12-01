@@ -572,6 +572,7 @@ void VbaPs3::LoadImagePreferences()
 }
 
 
+static int gbaRomSize = 0;
 void VbaPs3::LoadROM(string filename, bool forceReload)
 {
 	LOG_DBG("LoadROM(%s, %d)\n", filename.c_str(), (int)forceReload);
@@ -594,7 +595,8 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 		}
 		else if (utilIsGBAImage(filename.c_str()))
 		{
-			if (!CPULoadRom(filename.c_str()))
+			gbaRomSize = CPULoadRom(filename.c_str());
+			if (!gbaRomSize)
 			{
 				LOG_DBG("FAILED to GBA load rom\n");
 				this->Shutdown();

@@ -41,7 +41,7 @@ BLARGG_EXPORT const fex_type_t* fex_type_list( void )
 		fex_bin_type,
 		NULL
 	};
-	
+
 	return fex_type_list_;
 }
 
@@ -91,11 +91,11 @@ BLARGG_EXPORT const char* fex_identify_header( void const* header )
 	case 0x1F8B: return ".gz";
 	case 0x60EA: return ".arj";
 	}
-	
+
 	unsigned skip_first_two = four & 0xFFFF;
 	if ( skip_first_two == 0x2D6C )
 		return ".lha";
-	
+
 	return "";
 }
 
@@ -146,7 +146,7 @@ static int is_archive_extension( const char str [] )
 		".zoo",
 		""
 	};
-	
+
 	size_t str_len = strlen( str );
 	const char (*ext) [6] = exts;
 	for ( ; **ext; ext++ )
@@ -175,13 +175,13 @@ BLARGG_EXPORT fex_type_t fex_identify_extension( const char str [] )
 BLARGG_EXPORT fex_err_t fex_identify_file( fex_type_t* type_out, const char path [] )
 {
 	*type_out = NULL;
-	
+
 	fex_type_t type = fex_identify_extension( path );
-	
+
 	// Unsupported extension?
 	if ( !type )
 		return blargg_ok; // reject
-	
+
 	// Unknown/no extension?
 	if ( !*(type->extension) )
 	{
@@ -192,11 +192,11 @@ BLARGG_EXPORT fex_err_t fex_identify_file( fex_type_t* type_out, const char path
 		{
 			char h [fex_identify_header_size];
 			RETURN_ERR( in.read( h, sizeof h ) );
-			
+
 			type = fex_identify_extension( fex_identify_header( h ) );
 		}
 	}
-	
+
 	*type_out = type;
 	return blargg_ok;
 }
@@ -204,7 +204,7 @@ BLARGG_EXPORT fex_err_t fex_identify_file( fex_type_t* type_out, const char path
 BLARGG_EXPORT fex_err_t fex_open_type( fex_t** fe_out, const char path [], fex_type_t type )
 {
 	*fe_out = NULL;
-	
+
 	if ( !type )
 		return blargg_err_file_type;
 
@@ -217,7 +217,7 @@ BLARGG_EXPORT fex_err_t fex_open_type( fex_t** fe_out, const char path [], fex_t
 		delete fe;
 		return err;
 	}
-	
+
 	*fe_out = fe;
 	return blargg_ok;
 }
@@ -225,10 +225,10 @@ BLARGG_EXPORT fex_err_t fex_open_type( fex_t** fe_out, const char path [], fex_t
 BLARGG_EXPORT fex_err_t fex_open( fex_t** fe_out, const char path [] )
 {
 	*fe_out = NULL;
-	
+
 	fex_type_t type;
 	RETURN_ERR( fex_identify_file( &type, path ) );
-	
+
 	return fex_open_type( fe_out, path, type );
 }
 
@@ -258,16 +258,16 @@ static blargg_err_to_code_t const fex_codes [] =
 	ENTRY( caller ),
 	ENTRY( internal ),
 	ENTRY( limitation ),
-	
+
 	ENTRY( file_missing ),
 	ENTRY( file_read ),
 	ENTRY( file_io ),
 	ENTRY( file_eof ),
-	
+
 	ENTRY( file_type ),
 	ENTRY( file_feature ),
 	ENTRY( file_corrupt ),
-	
+
 	{ 0, -1 }
 };
 #undef ENTRY
