@@ -66,6 +66,7 @@ VbaPs3::VbaPs3()
 	cartridgeType = IMAGE_UNKNOWN;
 	mode_switch = MODE_MENU;
 	current_state_save = 0;
+	gbaRomSize = 0;
 	memset(&Vba, 0, sizeof(Vba));
 
 	LOG_DBG("VbaPs3::VbaPS3() - Initializing Graphics!\n");
@@ -572,7 +573,6 @@ void VbaPs3::LoadImagePreferences()
 }
 
 
-static int gbaRomSize = 0;
 void VbaPs3::LoadROM(string filename, bool forceReload)
 {
 	LOG_DBG("LoadROM(%s, %d)\n", filename.c_str(), (int)forceReload);
