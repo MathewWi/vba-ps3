@@ -196,22 +196,15 @@ void VbaZipIo::SetCurrentEntryPosition(size_t index)
 }*/
 
 
-int VbaZipIo::GetEntryData(void** pData)
+//int VbaZipIo::GetEntryData(void** pData)
+int VbaZipIo::GetEntryData(const void** pData)
 {
 	LOG_DBG("VbaZipIo::GetEntryData()\n");
 
 	ZipEntry entry = _zipMap[_dir.top()][_currentDirIndex];
 	fex_err_t err = NULL;
-	/*LOG_WRN("VbaZipIO:GetEntryData() -- SEEK BEGIN (pos:%d)\n;", entry.pos);
-	fex_err_t err = fex_seek_arc(_curFex, entry.pos);
-	if (err != NULL)
-	{
-		LOG_WRN("VbaZipIO:GetEntryData() -- SEEK FAILED \t %s\n;", fex_err_str( err ));
-		return 0;
-	}
-	LOG_WRN("VbaZipIO:GetEntryData() -- SEEK END\n;");*/
 
-	err = fex_rewind(_curFex);
+	/*err = fex_rewind(_curFex);
 	if (err != NULL)
 	{
 		LOG_WRN("VbaZipIO:GetEntryData() -- ERROR 1: \t %s\n;", fex_err_str( err ));
@@ -252,8 +245,18 @@ int VbaZipIo::GetEntryData(void** pData)
         return 0;
     }
 
-    return nLength;
+    return nLength;*/
 
+
+
+	LOG_WRN("VbaZipIO:GetEntryData() -- SEEK BEGIN (pos:%d)\n;", entry.pos);
+	err = fex_seek_arc(_curFex, entry.pos);
+	if (err != NULL)
+	{
+		LOG_WRN("VbaZipIO:GetEntryData() -- SEEK FAILED \t %s\n;", fex_err_str( err ));
+		return 0;
+	}
+	LOG_WRN("VbaZipIO:GetEntryData() -- SEEK END\n;");
 
 	//
 	//int res = size;
@@ -261,19 +264,15 @@ int VbaZipIo::GetEntryData(void** pData)
 	//while(res < size)
 	//	res <<= 1;
 
-	/*LOG_DBG("VbaZipIo::GetEntryData() - Getting Data for Entry (%s, %d, %d), \n", entry.name.c_str(), entry.pos, entry.type);
-	//_curFex->((const void**)&pData);
+	LOG_DBG("VbaZipIo::GetEntryData() - Getting Data for Entry (%s, %d, %d), \n", entry.name.c_str(), entry.pos, entry.type);
 
-	//LOG_DBG("VbaZipIo::GetEntryData() -- size: %d\n", res);
-	//uint8_t	*data = (uint8_t *)SystemMalloc(res);
 
-	//_curFex->reader().read(data, res);
 	err = fex_data(_curFex, pData);
 	LOG_DBG("VbaZipIo::GetEntryData() - fex_data err: %s\n", fex_err_str( err ));
 
 	//fex_stat(_curFex);
 	int size = fex_size(_curFex);
-	LOG_DBG("VbaZipIo::GetEntryData() -- size: %d\n", size);*/
+	LOG_DBG("VbaZipIo::GetEntryData() -- size: %d\n", size);
 
-	//return size;
+	return size;
 }

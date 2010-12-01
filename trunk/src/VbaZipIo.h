@@ -43,7 +43,7 @@ public:
 	size_t GetCurrentEntryCount();
 	void SetCurrentEntryPosition(size_t index);
 
-	int GetEntryData(void** pData);
+	int GetEntryData(const void** pData);
 
 	ZipEntry GetCurrentEntry()
 	{
