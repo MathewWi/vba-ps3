@@ -322,22 +322,11 @@ void VbaGraphics::Init()
 	GetAllAvailableResolutions();
 }
 
-//FIXME: Ported over verbatim from Fceu. Might require additional changes
 void VbaGraphics::Init(uint32_t resId)
 {
 	LOG("VbaGraphics::Init(%d, %d)", resId, m_pal60Hz);
 	PSGLGraphics::Init(resId, m_pal60Hz);
 	PSGLInit();
-
-	SetDimensions(240, 160, (240)* 4);
-
-	Rect r;
-	r.x = 0;
-	r.y = 0;
-	r.w = 240;
-	r.h = 160;
-	SetRect(r);
-	SetAspectRatio(m_ratio);
 }
 
 
