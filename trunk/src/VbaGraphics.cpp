@@ -6,7 +6,6 @@
  */
 
 #include "VbaGraphics.h"
-#include "VbaPs3.h"
 
 #include <limits>
 #include <assert.h>
@@ -139,31 +138,6 @@ int32_t VbaGraphics::ChangeResolution(uint32_t resId, uint16_t pal60Hz)
 	
 	PSGLGraphics::Init(resId, pal60Hz);
 	PSGLInit();
-
-	int srcWidth, srcHeight;
-	if(App->GetVbaCartType() == IMAGE_GB)
-	{
-		srcWidth = 160;
-		srcHeight = 144;
-	}
-	else if (App->GetVbaCartType() == IMAGE_GBA)
-	{
-		srcWidth = 240;
-		srcHeight = 160;
-	}
-
-	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
-
-	Rect r;
-	r.x = 0;
-	r.y = 0;
-	r.w = srcWidth;
-	r.h = srcHeight;
-
-	Graphics->SetRect(r);
-	Graphics->SetStretched(m_ratio == SCREEN_4_3_ASPECT_RATIO ? 0 : 1);
-	Graphics->UpdateCgParams(srcWidth, srcHeight, srcWidth, srcHeight);
-
 
 	PSGLGraphics::InitDbgFont();
 	PSGLGraphics::SetResolution();
