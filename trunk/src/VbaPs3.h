@@ -88,6 +88,7 @@ public:
 	struct EmulatedSystem Vba;
 private:
 	void EmulationLoop();
+	void VbaGraphicsInit();
 
 	int current_state_save;
 	Emulator_Modes mode_switch;
