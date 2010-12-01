@@ -284,3 +284,4 @@ hg clone https://cellframework.googlecode.com/hg/ cellframework
 ===========
 Lantus  -	Optimizations from VBA 360 0.03
 Grandy  -	Special Thanks/Testing
+Orioto	-	PIC1.PNG (http://orioto.deviantart.com/art/Bird-Chase-Time-147870358)
