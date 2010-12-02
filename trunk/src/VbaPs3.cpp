@@ -66,6 +66,7 @@ VbaPs3::VbaPs3()
 	cartridgeType = IMAGE_UNKNOWN;
 	mode_switch = MODE_MENU;
 	current_state_save = 0;
+	gbaRomSize = 0;
 	memset(&Vba, 0, sizeof(Vba));
 
 	LOG_DBG("VbaPs3::VbaPS3() - Initializing Graphics!\n");
@@ -614,7 +615,8 @@ void VbaPs3::LoadROM(string filename, bool forceReload)
 		}
 		else if (utilIsGBAImage(filename.c_str()))
 		{
-			if (!CPULoadRom(filename.c_str()))
+			gbaRomSize = CPULoadRom(filename.c_str());
+			if (!gbaRomSize)
 			{
 				LOG_DBG("FAILED to GBA load rom\n");
 				this->Shutdown();
@@ -645,104 +647,33 @@ IMAGE_TYPE VbaPs3::GetVbaCartType()
 	return cartridgeType;
 }
 
-
-int32_t VbaPs3::VbaInit()
+void VbaPs3::VbaGraphicsInit()
 {
-	LOG("VbaPs3::VbaInit()\n");
-
-	int srcWidth = 0;
-	int srcHeight = 0;
-	//int srcPitch = 0;
-
-	if (cartridgeType == IMAGE_GB)
+	LOG_DBG("VbaPs3::VbaGraphicsInit()\n");
+	int srcWidth, srcHeight;
+	if(App->GetVbaCartType() == IMAGE_GB)
 	{
-		//soundShutdown();
-
-		// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
-        systemInit();
-
 		// FIXME: make this an option that is toggable, implement systemGbBorderOn
-        gbBorderOn = 0;
-        if(gbBorderOn)
-        {
-                srcWidth = 256;
-                srcHeight = 224;
-                gbBorderLineSkip = 256;
-                gbBorderColumnSkip = 48;
-                gbBorderRowSkip = 40;
-        }
-        else
-        {
-                srcWidth = 160;
-                srcHeight = 144;
-                gbBorderLineSkip = 160;
-                gbBorderColumnSkip = 0;
-                gbBorderRowSkip = 0;
-        }
-
-        //srcPitch = 324;
-
-        // VBA - init GB core and sound core
-    	soundInit();
-        soundSetSampleRate(48000); //44100
-
-        gbGetHardwareType();
-
-        // support for
-        //if (gbHardware & 5)
-		//	gbCPUInit(gbBiosFileName, useBios);
-
-        gbSoundReset();
-        gbSoundSetDeclicking(false);
-
-        gbReset();
+		gbBorderOn = 0;
+		if(gbBorderOn)
+		{
+			srcWidth = 256;
+			srcHeight = 224;
+		}
+		else
+		{
+			srcWidth = 160;
+			srcHeight = 144;
+		}
 	}
-	else if (cartridgeType == IMAGE_GBA)
+	else if (App->GetVbaCartType() == IMAGE_GBA)
 	{
-		//soundShutdown();
-
-		// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
-        systemInit();
-
-        srcWidth = 240;
-        srcHeight = 160;
-        //srcPitch = 484;
-
-        // VBA - set all the defaults
-        cpuSaveType = 0;			//automatic
-        flashSetSize(0x10000);		//1m
-        rtcEnable(false);			//realtime clock
-        agbPrintEnable(false);		//?
-        mirroringEnable = false;	//?
-        doMirroring(false);
-
-        // Load per image compatibility prefs from vba-over.ini
-        LoadImagePreferences();
-
-    	soundInit();
-        soundSetSampleRate(48000); //22050
-
-        //Loading of the BIOS
-        LOG("GBA BIOS: %s\n", Settings.GBABIOS.c_str());
-        LOG("CPUInit(%s, %d)\n", Settings.GBABIOS.c_str(), Settings.GBABIOS.empty() ? false : true);
-        CPUInit(Settings.GBABIOS.empty() ? NULL : Settings.GBABIOS.c_str(), Settings.GBABIOS.empty() ? false : true);
-
-        CPUReset();
-
-        soundReset();
-	}
-	else
-	{
-		LOG("Bad cart type!\n");
-		this->Shutdown(); //FIXME: be more graceful
+		srcWidth = 240;
+		srcHeight = 160;
 	}
 
-	// ROM SUCCESSFULLY LOADED AT THIS POINT
-
-	// PORT - init graphics for this rom
-	LOG("VbaPs3::VbaInit() -- SETUP GRAPHICS\n");
 	Graphics->SetDimensions(srcWidth, srcHeight, (srcWidth)*4);
-	Graphics->SetStretched(!Settings.PS3KeepAspect);
+	Graphics->SetStretched(Settings.PS3KeepAspect == 1 ? 0 : 1);
 
 	Rect r;
 	r.x = 0;
@@ -751,13 +682,90 @@ int32_t VbaPs3::VbaInit()
 	r.h = srcHeight;
 
 	Graphics->SetRect(r);
-
 	Graphics->UpdateCgParams(srcWidth, srcHeight, srcWidth, srcHeight);
+}
 
-    vba_loaded = true;
+int32_t VbaPs3::VbaInit()
+{
+	LOG("VbaPs3::VbaInit()\n");
 
-    LOG("SUCCESS - VbaPs3::VbaInit()\n");
-    return 0;
+	if (cartridgeType == IMAGE_GB)
+	{
+		// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
+		systemInit();
+
+		// FIXME: make this an option that is toggable, implement systemGbBorderOn
+		gbBorderOn = 0;
+		if(gbBorderOn)
+		{
+			gbBorderLineSkip = 256;
+			gbBorderColumnSkip = 48;
+			gbBorderRowSkip = 40;
+		}
+		else
+		{
+			gbBorderLineSkip = 160;
+			gbBorderColumnSkip = 0;
+			gbBorderRowSkip = 0;
+		}
+		
+		// VBA - init GB core and sound core
+		soundInit();
+		soundSetSampleRate(48000);
+		
+		gbGetHardwareType();
+		
+		// support for
+		// if (gbHardware & 5)
+		//	gbCPUInit(gbBiosFileName, useBios);
+	
+		gbSoundReset();
+		gbSoundSetDeclicking(false);
+		gbReset();
+	}
+	else if (cartridgeType == IMAGE_GBA)
+	{
+		// FIXME: reconsider where we call this. IT MUST BE before loading/initing VBA
+		systemInit();
+		
+		// VBA - set all the defaults
+		cpuSaveType = 0;		//automatic
+		flashSetSize(0x10000);		//1m
+		rtcEnable(false);		//realtime clock
+		agbPrintEnable(false);		
+		mirroringEnable = false;
+		doMirroring(false);
+		
+		// Load per image compatibility prefs from vba-over.ini
+		LoadImagePreferences();
+		
+		soundInit();
+		soundSetSampleRate(48000);
+		
+		//Loading of the BIOS
+		LOG("GBA BIOS: %s\n", Settings.GBABIOS.c_str());
+		LOG("CPUInit(%s, %d)\n", Settings.GBABIOS.c_str(), Settings.GBABIOS.empty() ? false : true);
+		CPUInit(Settings.GBABIOS.empty() ? NULL : Settings.GBABIOS.c_str(), Settings.GBABIOS.empty() ? false : true);
+		
+		CPUReset();
+		soundReset();
+	}
+	else
+	{
+		LOG("Bad cart type!\n");
+		this->Shutdown(); //FIXME: be more graceful
+	}
+
+	// ROM SUCCESSFULLY LOADED AT THIS POINT
+	
+	// PORT - init graphics for this rom
+	LOG("VbaPs3::VbaInit() -- SETUP GRAPHICS\n");
+	this->VbaGraphicsInit();
+	
+	vba_loaded = true;
+	
+	LOG("SUCCESS - VbaPs3::VbaInit()\n");
+	return 0;
 }
 
 
@@ -836,6 +844,24 @@ void VbaPs3::EmulationLoop()
 			LOG("VBA INIT FAILED");
 			this->SwitchMode(MODE_MENU);
 			return;
+		}
+	}
+	else
+	{
+		this->VbaGraphicsInit();
+	}
+
+	if (Graphics->GetCurrentResolution() == CELL_VIDEO_OUT_RESOLUTION_576)
+	{
+		if(Graphics->CheckResolution(CELL_VIDEO_OUT_RESOLUTION_576))
+		{
+			if(!Graphics->GetPAL60Hz())
+			{
+				//PAL60 is OFF
+				Settings.PS3PALTemporalMode60Hz = true;
+				Graphics->SetPAL60Hz(Settings.PS3PALTemporalMode60Hz);
+				Graphics->SwitchResolution(Graphics->GetCurrentResolution(), Settings.PS3PALTemporalMode60Hz);
+			}
 		}
 	}
 
