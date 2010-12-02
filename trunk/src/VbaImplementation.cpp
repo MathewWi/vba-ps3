@@ -366,11 +366,7 @@ SoundDriver* systemSoundInit()
 
    if (Settings.RSoundEnabled)
    {
-      if (!driver->enable_network(true, Settings.RSoundServerIPAddress))
-      {
-         VbaPs3::Display_RSound_Error();
-         Settings.RSoundEnabled = false;
-      }
+      driver->enable_network(Settings.RSoundServerIPAddress);
    }
 
 	return driver;

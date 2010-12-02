@@ -25,30 +25,17 @@ VbaAudio::~VbaAudio()
 	}
 }
 
-bool VbaAudio::enable_network(bool enable, const std::string& host)
+bool VbaAudio::enable_network(const std::string& host)
 {
-   m_net = enable;
+   m_net = true;
    m_host = host;
-   if (_cellAudio)
-   {
-      delete _cellAudio;
-      _cellAudio = NULL;
-   }
 
-   if (m_net)
-   {
-      _cellAudio = new Audio::RSound<int16_t>(m_host, 2, m_rate);
-      if (!_cellAudio->alive())
-      {
-         delete _cellAudio;
-         _cellAudio = new Audio::AudioPort<int16_t>(2, m_rate);
-         return false;
-      }
-   }
-   _cellAudio = new Audio::AudioPort<int16_t>(2, m_rate);
-   return true;
 }
 
+bool VbaAudio::networked() const
+{
+   return m_net;
+}
 
 bool VbaAudio::init(long sampleRate)
 {
@@ -61,25 +48,44 @@ bool VbaAudio::init(long sampleRate)
 	}
 
    m_rate = sampleRate;
-   return enable_network(m_net, m_host);
+
+   if (m_net)
+   {
+      _cellAudio = new Audio::RSound<int16_t>(m_host, 2, m_rate);
+      if (!_cellAudio->alive())
+      {
+         delete _cellAudio;
+         _cellAudio = new Audio::AudioPort<int16_t>(2, m_rate);
+         m_net = false;
+      }
+   }
+   else
+   {
+      _cellAudio = new Audio::AudioPort<int16_t>(2, m_rate);
+   }
+
+   return true;
 }
 
 
 void VbaAudio::pause()
 {
 	LOG_DBG("pause()\n");
+   _cellAudio->pause();
 }
 
 
 void VbaAudio::reset()
 {
 	LOG_DBG("reset()\n");
+   init(m_rate);
 }
 
 
 void VbaAudio::resume()
 {
 	LOG_DBG("resume()\n");
+   _cellAudio->unpause();
 }
 
 

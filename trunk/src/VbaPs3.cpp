@@ -123,7 +123,8 @@ bool VbaPs3::IsROMRunning()
 
 void VbaPs3::ToggleSound()
 {
-   soundReset();
+   LOG_DBG("VbaPs3::ToggleSound()\n");
+   soundShutdown();
    soundInit();
 }
 
@@ -853,6 +854,7 @@ void VbaPs3::EmulationLoop()
 
 	// emulation loop
 	emulation_running = true;
+   soundResume();
 	while (emulation_running)
 	{
 		// FIXME: this bad for performance?
@@ -883,6 +885,7 @@ void VbaPs3::EmulationLoop()
 
 		cellSysutilCheckCallback();
 	}
+   soundPause();
 }
 
 
