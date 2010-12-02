@@ -26,7 +26,8 @@ public:
 
 	bool init(long sampleRate);   // initialize the primary and secondary sound buffer
 	void pause();  // pause the secondary sound buffer
-   bool enable_network(bool enable, const std::string& host = "0.0.0.0");
+   bool enable_network(const std::string& host);
+   bool networked() const;
 	void reset();  // stop and reset the secondary sound buffer
 	void resume(); // resume the secondary sound buffer
 	void write(u16 * finalWave, int length);  // write the emulated sound to the secondary sound buffer

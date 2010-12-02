@@ -32,7 +32,7 @@
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
 // if you add more settings to the screen, remember to change this value to the correct number
-#define MAX_NO_OF_SETTINGS      13
+#define MAX_NO_OF_SETTINGS      15
 
 #define NUM_ENTRY_PER_PAGE 24
 
@@ -634,15 +634,13 @@ void do_settings()
 	cellDbgFontPrintf	(0.5f,	yPos,	FONT_SIZE,	Settings.PS3OverscanAmount == 0 ? GREEN : RED, "%f", (float)Settings.PS3OverscanAmount/100);
 
    yPos += ySpacing;
-	cellDbgFontPuts(0.09f, yPos, App->GetFontSize(), currently_selected_setting == SETTING_RSOUND_ENABLED ? YELLOW : WHITE, "Sound");
+	cellDbgFontPuts(0.05f, yPos, App->GetFontSize(), currently_selected_setting == SETTING_RSOUND_ENABLED ? YELLOW : WHITE, "Sound");
 	cellDbgFontPuts(0.5f, yPos, App->GetFontSize(), Settings.RSoundEnabled == false ? GREEN : RED, Settings.RSoundEnabled == true ? "RSound" : "Normal");
 
 	yPos += ySpacing;
-	cellDbgFontPuts(0.09f, yPos, App->GetFontSize(), currently_selected_setting == SETTING_RSOUND_SERVER_IP_ADDRESS ? YELLOW : WHITE, "RSound Server IP Address");
+	cellDbgFontPuts(0.05f, yPos, App->GetFontSize(), currently_selected_setting == SETTING_RSOUND_SERVER_IP_ADDRESS ? YELLOW : WHITE, "RSound Server IP Address");
 	cellDbgFontPuts(0.5f, yPos, App->GetFontSize(), strcmp(Settings.RSoundServerIPAddress,"0.0.0.0") ? RED : GREEN, Settings.RSoundServerIPAddress);
 
-	yPos += ySpacing;
-	cellDbgFontPrintf(0.09f, yPos, App->GetFontSize(), currently_selected_setting == SETTING_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");
 
 	Graphics->FlushDbgFont();
 
