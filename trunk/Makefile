@@ -5,7 +5,7 @@
 #
 
 # set build tools
-CELL_HOST_PATH ?= $(CELL_SDK_DIR)
+CELL_HOST_PATH = $(CELL_SDK_DIR)
 
 CELL_BUILD_TOOLS = GCC
 
@@ -118,8 +118,12 @@ PPU_CFLAGS		+=	-O3 \
 					--param max-inline-insns-single=450
 					
 # port must define					
-PPU_CXXFLAGS	+=	-DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024
-PPU_CFLAGS		+=	-DGEKKO -DPS3_SDK_3_41 -DPSGL -DPATH_MAX=1024		
+PPU_CXXFLAGS	+=	-DGEKKO -DPSGL -DPATH_MAX=1024
+PPU_CFLAGS		+=	-DGEKKO -DPSGL -DPATH_MAX=1024		
+
+# comment these to compile with 1.92 SDK
+PPU_CFLAGS     += -DPS3_SDK_3_41
+PPU_CXXFLAGS   += -DPS3_SDK_3_41
 
 
 # VBA optimization flags
@@ -150,8 +154,8 @@ PPU_CFLAGS		+=	-DFRAMESKIP
 
 
 # enable debug netlogger
-PPU_CXXFLAGS 	+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"10.0.0.4\" -DPS3_DEBUG_PORT=9002
-PPU_CFLAGS		+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"10.0.0.4\" -DPS3_DEBUG_PORT=9002
+PPU_CXXFLAGS 	+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"10.0.0.99\" -DPS3_DEBUG_PORT=9002
+PPU_CFLAGS		+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"10.0.0.99\" -DPS3_DEBUG_PORT=9002
 
 
 # enable screen debugger
@@ -205,7 +209,7 @@ $(PPU_TARGET): $(PPU_CPPOBJS) $(PPU_COBJS)
 	
 # RULE: build the self file
 $(PPU_TARGET:%.elf=%.self): $(PPU_TARGET)
-	make_fself $(PPU_TARGET) $(PPU_TARGET:%.elf=%.self)
+	$(MKFSELF_NPDRM) $(PPU_TARGET) $(PPU_TARGET:%.elf=%.self)
 
 	
 # RULE: generates the compiler and linker flags for profile-arcs

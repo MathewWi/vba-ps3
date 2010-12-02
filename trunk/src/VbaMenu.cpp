@@ -449,12 +449,12 @@ void do_settings()
             if(CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasAnalogPressedRight(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0,CTRL_CROSS))
             {
                Settings.RSoundEnabled = !Settings.RSoundEnabled;
-               VbaPs3::ToggleSound();
+               App->ToggleSound();
             }
             if(CellInput->IsButtonPressed(0, CTRL_START))
             {
                Settings.RSoundEnabled = false;
-               VbaPs3::ToggleSound();
+               App->ToggleSound();
             }
             break;
          case SETTING_RSOUND_SERVER_IP_ADDRESS:

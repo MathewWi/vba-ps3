@@ -6,14 +6,12 @@
  */
 
 #include "VbaAudio.h"
+#include "VbaPs3.h"
 
-VbaAudio::VbaAudio()
+VbaAudio::VbaAudio() : _cellAudio(NULL), m_host("0.0.0.0"), m_net(false)
 {
 	LOG_DBG("VbaAudio()\n");
-
-	_cellAudio = NULL;
 }
-
 
 VbaAudio::~VbaAudio()
 {
@@ -27,9 +25,9 @@ VbaAudio::~VbaAudio()
 
 bool VbaAudio::enable_network(const std::string& host)
 {
+   LOG_DBG("Enabling network. %s\n", host.c_str());
    m_net = true;
    m_host = host;
-
 }
 
 bool VbaAudio::networked() const
@@ -39,7 +37,7 @@ bool VbaAudio::networked() const
 
 bool VbaAudio::init(long sampleRate)
 {
-	LOG_DBG("init(%d)\n", sampleRate);
+	LOG_DBG("init(%ld)\n", sampleRate);
 
 	if (_cellAudio)
 	{
@@ -51,16 +49,20 @@ bool VbaAudio::init(long sampleRate)
 
    if (m_net)
    {
+      LOG_DBG("Starting RSound\n");
       _cellAudio = new Audio::RSound<int16_t>(m_host, 2, m_rate);
       if (!_cellAudio->alive())
       {
+         LOG_DBG("Failed starting RSound.\n");
          delete _cellAudio;
          _cellAudio = new Audio::AudioPort<int16_t>(2, m_rate);
          m_net = false;
+         VbaPs3::RSound_Error();
       }
    }
    else
    {
+      LOG_DBG("Starting AudioPort\n");
       _cellAudio = new Audio::AudioPort<int16_t>(2, m_rate);
    }
 
@@ -71,25 +73,29 @@ bool VbaAudio::init(long sampleRate)
 void VbaAudio::pause()
 {
 	LOG_DBG("pause()\n");
-   _cellAudio->pause();
+   if (_cellAudio)
+      _cellAudio->pause();
 }
 
 
 void VbaAudio::reset()
 {
 	LOG_DBG("reset()\n");
-   init(m_rate);
+   if (_cellAudio)
+      init(m_rate);
 }
 
 
 void VbaAudio::resume()
 {
 	LOG_DBG("resume()\n");
-   _cellAudio->unpause();
+   if (_cellAudio)
+      _cellAudio->unpause();
 }
 
 
 void VbaAudio::write(u16 * finalWave, int length)
 {
-	_cellAudio->write((s16*)finalWave, length / 2);
+   if (_cellAudio)
+      _cellAudio->write((s16*)finalWave, length / 2);
 }

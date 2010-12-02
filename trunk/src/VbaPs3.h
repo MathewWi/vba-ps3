@@ -15,6 +15,7 @@
 
 #include "VbaImplementation.h"
 #include "VbaGraphics.h"
+#include "VbaAudio.h"
 
 #include "cellframework/logger/Logger.h"
 #include "cellframework/input/cellInput.h"
@@ -87,8 +88,8 @@ public:
 
 	void PushScreenMessage(string msg);
 
-   static void Display_RSound_Error();
-   static void ToggleSound();
+   static void RSound_Error();
+   void ToggleSound();
 
 	struct EmulatedSystem Vba;
 private:

@@ -129,13 +129,18 @@ void VbaPs3::ToggleSound()
    soundInit();
 }
 
-void VbaPs3::Display_RSound_Error()
+void VbaPs3::RSound_Error()
 {
-   Graphics->Clear();
-   cellDbgFontPuts(0.09f, 0.4f, 1.0f, 0xffffffff, "Couldn't connect to RSound server.\nFalling back to regular audio...");
-   Graphics->FlushDbgFont();
-   Graphics->Swap();
-   sys_timer_usleep(3000000);
+   LOG_DBG("VbaPs3::Display_RSound_Error()\n");
+   if (Graphics)
+   {
+      Graphics->Clear();
+      cellDbgFontPuts(0.09f, 0.4f, 1.0f, 0xffffffff, "Couldn't connect to RSound server.\nFalling back to regular audio...");
+      Graphics->FlushDbgFont();
+      Graphics->Swap();
+      sys_timer_usleep(3000000);
+   }
+   Settings.RSoundEnabled = false;
 }
 
 void VbaPs3::SwitchMode(Emulator_Modes m)
