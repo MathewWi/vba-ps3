@@ -26,6 +26,8 @@ struct ZipEntry
 {
 	std::string name;
 	fex_pos_t pos;
+	unsigned int len;
+	unsigned int crc;
 	int type;
 };
 

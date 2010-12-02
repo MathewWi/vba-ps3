@@ -75,6 +75,7 @@ public:
 	void SetAspectRatio(float ratio);
    void SetStretched(bool stretch);
 	void SetSmooth(bool smooth);
+	bool GetPAL60Hz();
 	void SetPAL60Hz(bool pal60Hz);
 	void Clear() const;
 	void Draw() const;
