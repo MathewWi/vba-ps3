@@ -74,6 +74,8 @@ public:
 	void IncrementStateSlot();
 	void DecrementStateSlot();
 
+   float GetFontSize();
+
 	string MakeFName(Emulator_FileTypes type);
 
 	IMAGE_TYPE GetVbaCartType();
@@ -84,6 +86,9 @@ public:
 	const char * OSKOutputString();
 
 	void PushScreenMessage(string msg);
+
+   static void Display_RSound_Error();
+   static void ToggleSound();
 
 	struct EmulatedSystem Vba;
 private:

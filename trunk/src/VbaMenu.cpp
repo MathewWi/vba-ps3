@@ -449,6 +449,31 @@ void do_settings()
 					Graphics->UpdateCgParams();
 				}
 				break;
+
+         case SETTING_RSOUND_ENABLED:
+            if(CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasAnalogPressedRight(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0,CTRL_CROSS))
+            {
+               Settings.RSoundEnabled = !Settings.RSoundEnabled;
+               VbaPs3::ToggleSound();
+            }
+            if(CellInput->IsButtonPressed(0, CTRL_START))
+            {
+               Settings.RSoundEnabled = false;
+               VbaPs3::ToggleSound();
+            }
+            break;
+         case SETTING_RSOUND_SERVER_IP_ADDRESS:
+            if(CellInput->WasButtonPressed(0, CTRL_LEFT) | CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) | CellInput->WasButtonPressed(0, CTRL_RIGHT) | CellInput->WasButtonPressed(0, CTRL_CROSS) | CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
+            {
+               App->OSKStart(L"Enter the IP address for the RSound Server. Example (below):", L"192.168.1.1");
+               Settings.RSoundServerIPAddress = App->OSKOutputString();
+            }
+            if(CellInput->IsButtonPressed(0, CTRL_START))
+            {
+               Settings.RSoundServerIPAddress = "0.0.0.0";
+            }
+            break;
+
 			case SETTING_CONTROL_STYLE:
 				if(CellInput->WasButtonPressed(0, CTRL_LEFT) || CellInput->WasAnalogPressedLeft(0,CTRL_LSTICK) || CellInput->WasButtonPressed(0, CTRL_RIGHT) || CellInput->WasAnalogPressedRight(0,CTRL_LSTICK))
 				{
@@ -607,6 +632,17 @@ void do_settings()
 	yPos += ySpacing;
 	cellDbgFontPuts		(0.05f,	yPos,	FONT_SIZE,	currently_selected_setting == SETTING_HW_OVERSCAN_AMOUNT ? YELLOW : WHITE,	"Overscan");
 	cellDbgFontPrintf	(0.5f,	yPos,	FONT_SIZE,	Settings.PS3OverscanAmount == 0 ? GREEN : RED, "%f", (float)Settings.PS3OverscanAmount/100);
+
+   yPos += ySpacing;
+	cellDbgFontPuts(0.09f, yPos, App->GetFontSize(), currently_selected_setting == SETTING_RSOUND_ENABLED ? YELLOW : WHITE, "Sound");
+	cellDbgFontPuts(0.5f, yPos, App->GetFontSize(), Settings.RSoundEnabled == false ? GREEN : RED, Settings.RSoundEnabled == true ? "RSound" : "Normal");
+
+	yPos += ySpacing;
+	cellDbgFontPuts(0.09f, yPos, App->GetFontSize(), currently_selected_setting == SETTING_RSOUND_SERVER_IP_ADDRESS ? YELLOW : WHITE, "RSound Server IP Address");
+	cellDbgFontPuts(0.5f, yPos, App->GetFontSize(), strcmp(Settings.RSoundServerIPAddress,"0.0.0.0") ? RED : GREEN, Settings.RSoundServerIPAddress);
+
+	yPos += ySpacing;
+	cellDbgFontPrintf(0.09f, yPos, App->GetFontSize(), currently_selected_setting == SETTING_DEFAULT_ALL ? YELLOW : GREEN, "DEFAULT");
 
 	Graphics->FlushDbgFont();
 

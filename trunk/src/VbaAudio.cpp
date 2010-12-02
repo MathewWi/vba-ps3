@@ -7,17 +7,6 @@
 
 #include "VbaAudio.h"
 
-namespace Internal {
-   static void Emulator_Convert_Samples(float * out, unsigned, const int16_t *in, size_t frames)
-   {
-      for (size_t i = 0; i < frames * 2; i++)
-      {
-         out[i] = (float)(in[i]) / 0x3000;
-      }
-   }
-}
-
-
 VbaAudio::VbaAudio()
 {
 	LOG_DBG("VbaAudio()\n");
@@ -36,6 +25,30 @@ VbaAudio::~VbaAudio()
 	}
 }
 
+bool VbaAudio::enable_network(bool enable, const std::string& host)
+{
+   m_net = enable;
+   m_host = host;
+   if (_cellAudio)
+   {
+      delete _cellAudio;
+      _cellAudio = NULL;
+   }
+
+   if (m_net)
+   {
+      _cellAudio = new Audio::RSound<int16_t>(m_host, 2, m_rate);
+      if (!_cellAudio->alive())
+      {
+         delete _cellAudio;
+         _cellAudio = new Audio::AudioPort<int16_t>(2, m_rate);
+         return false;
+      }
+   }
+   _cellAudio = new Audio::AudioPort<int16_t>(2, m_rate);
+   return true;
+}
+
 
 bool VbaAudio::init(long sampleRate)
 {
@@ -47,8 +60,8 @@ bool VbaAudio::init(long sampleRate)
 		_cellAudio = NULL;
 	}
 
-	_cellAudio = new Audio::AudioPort<int16_t>(2, sampleRate);
-	//_cellAudio->set_float_conv_func(Internal::Emulator_Convert_Samples);
+   m_rate = sampleRate;
+   return enable_network(m_net, m_host);
 }
 
 

@@ -104,6 +104,11 @@ bool VbaPs3::IsInitialized()
 	return vba_loaded;
 }
 
+float VbaPs3::GetFontSize()
+{
+   return FONT_SIZE;
+}
+
 
 bool VbaPs3::IsROMLoaded()
 {
@@ -116,6 +121,20 @@ bool VbaPs3::IsROMRunning()
 	return emulation_running;
 }
 
+void VbaPs3::ToggleSound()
+{
+   soundReset();
+   soundInit();
+}
+
+void VbaPs3::Display_RSound_Error()
+{
+   Graphics->Clear();
+   cellDbgFontPuts(0.09f, 0.4f, 1.0f, 0xffffffff, "Couldn't connect to RSound server.\nFalling back to regular audio...");
+   Graphics->FlushDbgFont();
+   Graphics->Swap();
+   sys_timer_usleep(3000000);
+}
 
 void VbaPs3::SwitchMode(Emulator_Modes m)
 {

@@ -354,7 +354,6 @@ void systemSetTitle(const char * title)
 	LOG_DBG("systemSetTitle(%s)\n", title);
 }
 
-
 SoundDriver* systemSoundInit()
 {
 	LOG_DBG("systemSoundInit()\n");
@@ -363,7 +362,18 @@ SoundDriver* systemSoundInit()
 	soundShutdown();
 
 	// Port - return audio interface for VBA
-	return new VbaAudio();
+   VbaAudio *driver = new VbaAudio();
+
+   if (Settings.RSoundEnabled)
+   {
+      if (!driver->enable_network(true, Settings.RSoundServerIPAddress))
+      {
+         VbaPs3::Display_RSound_Error();
+         Settings.RSoundEnabled = false;
+      }
+   }
+
+	return driver;
 }
 
 
