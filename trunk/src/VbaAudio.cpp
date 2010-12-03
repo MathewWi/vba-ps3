@@ -8,7 +8,7 @@
 #include "VbaAudio.h"
 #include "VbaPs3.h"
 
-VbaAudio::VbaAudio() : _cellAudio(NULL), m_host("0.0.0.0"), m_net(false)
+VbaAudio::VbaAudio() : _cellAudio(NULL), m_host("0.0.0.0"), m_net(false), m_blocking(true)
 {
 	LOG_DBG("VbaAudio()\n");
 }
@@ -33,6 +33,11 @@ bool VbaAudio::enable_network(const std::string& host)
 bool VbaAudio::networked() const
 {
    return m_net;
+}
+
+void VbaAudio::nonblock(bool enable)
+{
+   m_blocking = !enable;
 }
 
 bool VbaAudio::init(long sampleRate)
@@ -97,5 +102,15 @@ void VbaAudio::resume()
 void VbaAudio::write(u16 * finalWave, int length)
 {
    if (_cellAudio)
-      _cellAudio->write((s16*)finalWave, length / 2);
+   {
+      if (m_blocking)
+      {
+         _cellAudio->write((s16*)finalWave, length / 2);
+      }
+      else
+      {
+         size_t avail = _cellAudio->write_avail();
+         _cellAudio->write((s16*)finalWave, avail < (length / 2) ? avail : (length / 2));
+      }
+   }
 }
