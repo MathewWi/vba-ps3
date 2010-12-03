@@ -247,6 +247,9 @@ blargg_err_t Zip7_Extractor::data_v( void const** out )
 	RETURN_ERR( zip7_err( SzAr_Extract( &impl->db, &impl->look.s, index,
 			&impl->block_index, &impl->buf, &impl->buf_size,
 			&offset, &count, &zip7_alloc, &zip7_alloc_temp ) ) );
+	/*RETURN_ERR( zip7_err( SzExtract2( &impl->db, &impl->look.s, index,
+			&impl->block_index, &impl->buf, &impl->buf_size,
+			&offset, &count, &zip7_alloc, &zip7_alloc_temp ) ) );*/
 	assert( count == (size_t) size() );
 	
 	*out = impl->buf + offset;
