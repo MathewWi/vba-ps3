@@ -42,6 +42,19 @@ SRes SzAr_Extract(
     ISzAlloc *allocMain,
     ISzAlloc *allocTemp);
 
+
+SRes SzExtract2(
+	const CSzArEx *db,
+	ILookInStream *inStream,
+    UInt32 fileIndex,
+    UInt32 *blockIndex,
+    Byte **outBuffer,
+    size_t *outBufferSize,
+    size_t *offset,
+    size_t *outSizeProcessed,
+    ISzAlloc *allocMain,
+    ISzAlloc *allocTemp);
+
 #ifdef __cplusplus
 	}
 #endif

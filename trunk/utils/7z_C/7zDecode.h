@@ -10,4 +10,11 @@ SRes SzDecode(const UInt64 *packSizes, const CSzFolder *folder,
     ILookInStream *stream, UInt64 startPos,
     Byte *outBuffer, size_t outSize, ISzAlloc *allocMain);
 
+
+static
+SRes SzDecode2(const UInt64 *packSizes, const CSzFolder *folder,
+    ILookInStream *inStream, UInt64 startPos,
+    Byte *outBuffer, SizeT outSize, ISzAlloc *allocMain,
+    Byte *tempBuf[]);
+
 #endif

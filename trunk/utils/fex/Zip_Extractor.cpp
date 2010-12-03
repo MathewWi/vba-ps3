@@ -125,7 +125,7 @@ Zip_Extractor::~Zip_Extractor()
 
 blargg_err_t Zip_Extractor::open_path_v()
 {
-	RETURN_ERR( open_arc_file( true ) );
+	RETURN_ERR( open_arc_file( false ) );
 	return File_Extractor::open_path_v();
 }
 

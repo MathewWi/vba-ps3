@@ -52,7 +52,7 @@ blargg_err_t Gzip_Extractor::open_path_v()
 
 blargg_err_t Gzip_Extractor::stat_v()
 {
-	RETURN_ERR( open_arc_file( true ) );
+	RETURN_ERR( open_arc_file( false ) );
 	if ( !gr.opened() || gr.tell() != 0 )
 		RETURN_ERR( gr.open( &arc() ) );
 	
