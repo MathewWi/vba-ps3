@@ -31,9 +31,11 @@ public:
 	void reset();  // stop and reset the secondary sound buffer
 	void resume(); // resume the secondary sound buffer
 	void write(u16 * finalWave, int length);  // write the emulated sound to the secondary sound buffer
+   void nonblock(bool enable);
 private:
 	Audio::Stream<int16_t> *_cellAudio;
    bool m_net;
+   bool m_blocking;
    unsigned m_rate;
    std::string m_host;
 };
