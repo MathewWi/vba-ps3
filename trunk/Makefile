@@ -18,6 +18,7 @@ CELL_PSGL_VERSION   = opt
 
 # set path to important executables
 MKFSELF_NPDRM = $(CELL_HOST_PATH)/bin/make_fself_npdrm
+MKFSELF = $(CELL_HOST_PATH)/bin/make_fself
 MKPKG_NPDRM = $(CELL_HOST_PATH)/bin/make_package_npdrm
 STRIP = $(CELL_HOST_PATH)/ppu/bin/ppu-lv2-strip
 COPY = cp
@@ -154,8 +155,8 @@ PPU_CFLAGS		+=	-DFRAMESKIP
 
 
 # enable debug netlogger
-PPU_CXXFLAGS 	+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"10.0.0.99\" -DPS3_DEBUG_PORT=9002
-PPU_CFLAGS		+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"10.0.0.99\" -DPS3_DEBUG_PORT=9002
+PPU_CXXFLAGS 	+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.101\" -DPS3_DEBUG_PORT=9002
+PPU_CFLAGS		+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.101\" -DPS3_DEBUG_PORT=9002
 
 
 # enable screen debugger
@@ -209,7 +210,7 @@ $(PPU_TARGET): $(PPU_CPPOBJS) $(PPU_COBJS)
 	
 # RULE: build the self file
 $(PPU_TARGET:%.elf=%.self): $(PPU_TARGET)
-	$(MKFSELF_NPDRM) $(PPU_TARGET) $(PPU_TARGET:%.elf=%.self)
+	$(MKFSELF) $(PPU_TARGET) $(PPU_TARGET:%.elf=%.self)
 
 	
 # RULE: generates the compiler and linker flags for profile-arcs
