@@ -195,7 +195,7 @@ Switch between Normal mode and RSound mode.
 Normal Mode - The normal audio output will be used by the PS3. (DEFAULT)
 
 Rsound Mode - RSound basically lets you redirect the audio from the PS3 over the
-network to a PC - so, using this, the audio from SNES9x can be outputted on a 
+network to a PC - so, using this, the audio from VBA PS3 can be outputted on a 
 PC/laptop/netbook/HTPC's speakers/audio installation instead of going through 
 the television speakers or the audio receiver connected to the television.
 
@@ -265,7 +265,7 @@ Set the default savestate directory where your savestates will be saved and
 loaded from.
 
 DEFAULT - is set to the USRDIR directory of VBA PS3. 
-(/dev_hdd0/game/SNES90000/USRDIR)
+(/dev_hdd0/game/VBAM90000/USRDIR)
 
 ================================================================================
 			SRAM Directory
@@ -274,7 +274,7 @@ Set the default SRAM (SaveRAM) directory where all your SRAM files will be
 saved and loaded from.
 
 DEFAULT - is set to the USRDIR directory of VBA PS3. 
-(/dev_hdd0/game/SNES90000/USRDIR)
+(/dev_hdd0/game/VBAM90000/USRDIR)
 
 ================================================================================
 			Cheatfile Directory
@@ -282,8 +282,8 @@ DEFAULT - is set to the USRDIR directory of VBA PS3.
 Set the default cheatfile directory - all your cheatfiles will be saved and 
 loaded from here.
 
-DEFAULT - is set to the USRDIR directory of SNES9x PS3. 
-(/dev_hdd0/game/SNES90000/USRDIR)
+DEFAULT - is set to the USRDIR directory of VBA PS3. 
+(/dev_hdd0/game/VBAM90000/USRDIR)
 
 ================================================================================
 			Default
