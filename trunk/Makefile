@@ -4,188 +4,186 @@
 # shinhalsafar@gmail.com
 #
 
-# set build tools
-CELL_HOST_PATH = $(CELL_SDK_DIR)
+# specify build tools
+CELL_BUILD_TOOLS	= GCC
 
-CELL_BUILD_TOOLS = GCC
+ifeq ($(shell uname), Linux)
+	CELL_HOST_PATH	= $(CELL_SDK)/host-linux
+else
+	CELL_HOST_PATH	= $(CELL_SDK)/host-win32
+endif
 
 # CELL_GPU_TYPE (currently RSX is only one option)
-CELL_GPU_TYPE       = RSX
+CELL_GPU_TYPE		= RSX
+#CELL_PSGL_VERSION is debug, dpm or opt
+CELL_PSGL_VERSION	= opt
 
-# CELL_PSGL_VERSION is debug, dpm or opt
-CELL_PSGL_VERSION   = opt
+#Python binary - only useful for PSL1ght scripts
+PYTHONBIN		= python2.7
 
+#FIXME - Remove - unnecessary
+#CELL_HOST_PATH		= $(CELL_SDK_DIR)
 
 # set path to important executables
-MKFSELF_NPDRM = $(CELL_HOST_PATH)/bin/make_fself_npdrm
-MKFSELF = $(CELL_HOST_PATH)/bin/make_fself
-MKPKG_NPDRM = $(CELL_HOST_PATH)/bin/make_package_npdrm
-STRIP = $(CELL_HOST_PATH)/ppu/bin/ppu-lv2-strip
-COPY = cp
-C = $(CELL_SDK_DIR)/ppu/bin/ppu-lv2-gcc
-CC = $(CELL_SDK_DIR)/ppu/bin/ppu-lv2-g++
+MKFSELF			= $(CELL_HOST_PATH)/bin/make_fself
+MKFSELF_NPDRM		= $(CELL_HOST_PATH)/bin/make_fself_npdrm
+MKPKG_NPDRM		= $(CELL_HOST_PATH)/bin/make_package_npdrm
 
+# Geohot CFW defines
+MKSELF_GEOHOT		= make_self_npdrm
+MKPKG_PSLIGHT		= buildtools/PS3Py/pkg.py
+PKG_FINALIZE		= package_finalize
+
+STRIP			= $(CELL_HOST_PATH)/ppu/bin/ppu-lv2-strip
+COPY			= cp
+MOVE			= mv
+C			= $(CELL_HOST_PATH)/ppu/bin/ppu-lv2-gcc
+CC			= $(CELL_HOST_PATH)/ppu/bin/ppu-lv2-g++
 
 # set path to all relevants directories
-SRC_DIR = src
-CELL_FRAMEWORK_DIR = src/cellframework
-VBA_API_DIR = src/vba
-UTIL_DIR = utils
-BUILD_DIR = objs
+SRC_DIR			= src
+CELL_FRAMEWORK_DIR	= src/cellframework
+VBA_API_DIR		= src/vba
+UTIL_DIR		= utils
+BUILD_DIR		= objs
 
 
 # build list of source directories
-VBA_SRC_DIR		:=	$(VBA_API_DIR)/ $(VBA_API_DIR)/gb $(VBA_API_DIR)/gba \
-					$(VBA_API_DIR)/apu $(VBA_API_DIR)/common
+VBA_SRC_DIR		:= $(VBA_API_DIR)/ $(VBA_API_DIR)/gb $(VBA_API_DIR)/gba \
+			$(VBA_API_DIR)/apu $(VBA_API_DIR)/common
 				
-PS3_SRC_DIR	:=	$(CELL_FRAMEWORK_DIR)/graphics $(CELL_FRAMEWORK_DIR)/input $(CELL_FRAMEWORK_DIR)/audio \
-				$(CELL_FRAMEWORK_DIR)/threads $(CELL_FRAMEWORK_DIR)/logger $(CELL_FRAMEWORK_DIR)/network \
-				$(CELL_FRAMEWORK_DIR)/fileio \
-				$(CELL_FRAMEWORK_DIR)/utility \
-				$(SRC_DIR)/ $(SRC_DIR)/conf
+PS3_SRC_DIR		:= $(CELL_FRAMEWORK_DIR)/graphics $(CELL_FRAMEWORK_DIR)/input $(CELL_FRAMEWORK_DIR)/audio \
+			$(CELL_FRAMEWORK_DIR)/threads $(CELL_FRAMEWORK_DIR)/logger $(CELL_FRAMEWORK_DIR)/network \
+			$(CELL_FRAMEWORK_DIR)/fileio \
+			$(CELL_FRAMEWORK_DIR)/utility \
+			$(SRC_DIR)/ $(SRC_DIR)/conf
 				
-UTIL_SRC_DIR :=	$(UTIL_DIR)/ $(UTIL_DIR)/7z_C $(UTIL_DIR)/zlib $(UTIL_DIR)/unrar $(UTIL_DIR)/fex \
-				$(UTIL_DIR)/libpng $(UTIL_DIR)/SFML/src/SFML/Network $(UTIL_DIR)/SFML/src/SFML/Network/Unix
+UTIL_SRC_DIR		:= $(UTIL_DIR)/ $(UTIL_DIR)/7z_C $(UTIL_DIR)/zlib $(UTIL_DIR)/unrar $(UTIL_DIR)/fex \
+			$(UTIL_DIR)/libpng $(UTIL_DIR)/SFML/src/SFML/Network $(UTIL_DIR)/SFML/src/SFML/Network/Unix
 
 				
 # build src lists and object file lists
-VBA_CPPSRCS		=	$(foreach dir,$(VBA_SRC_DIR),$(wildcard $(dir)/*.cpp))
-VBA_CPPOBJS 	= 	$(VBA_CPPSRCS:.cpp=.ppu.o)
-VBA_CSRCS		=	$(foreach dir,$(VBA_SRC_DIR),$(wildcard $(dir)/*.c))
-VBA_COBJS 		= 	$(VBA_CSRCS:.c=.ppu.o)
+VBA_CPPSRCS		= $(foreach dir,$(VBA_SRC_DIR),$(wildcard $(dir)/*.cpp))
+VBA_CPPOBJS 		= $(VBA_CPPSRCS:.cpp=.ppu.o)
+VBA_CSRCS		= $(foreach dir,$(VBA_SRC_DIR),$(wildcard $(dir)/*.c))
+VBA_COBJS 		= $(VBA_CSRCS:.c=.ppu.o)
 
-PS3_CPPSRCS		=	$(foreach dir,$(PS3_SRC_DIR),$(wildcard $(dir)/*.cpp))
-PS3_CPPOBJS 	= 	$(PS3_CPPSRCS:.cpp=.ppu.o) 
-PS3_CSRCS		=	$(foreach dir,$(PS3_SRC_DIR),$(wildcard $(dir)/*.c))
-PS3_COBJS 		= 	$(PS3_CSRCS:.c=.ppu.o)
+PS3_CPPSRCS		= $(foreach dir,$(PS3_SRC_DIR),$(wildcard $(dir)/*.cpp))
+PS3_CPPOBJS		= $(PS3_CPPSRCS:.cpp=.ppu.o) 
+PS3_CSRCS		= $(foreach dir,$(PS3_SRC_DIR),$(wildcard $(dir)/*.c))
+PS3_COBJS 		= $(PS3_CSRCS:.c=.ppu.o)
 
-UTIL_CPPSRCS	=	$(foreach dir,$(UTIL_SRC_DIR),$(wildcard $(dir)/*.cpp))
-UTIL_CPPOBJS 	= 	$(UTIL_CPPSRCS:.cpp=.ppu.o) 
-UTIL_CSRCS		=	$(foreach dir,$(UTIL_SRC_DIR),$(wildcard $(dir)/*.c))
-UTIL_COBJS 		= 	$(UTIL_CSRCS:.c=.ppu.o) 
+UTIL_CPPSRCS		= $(foreach dir,$(UTIL_SRC_DIR),$(wildcard $(dir)/*.cpp))
+UTIL_CPPOBJS		= $(UTIL_CPPSRCS:.cpp=.ppu.o) 
+UTIL_CSRCS		= $(foreach dir,$(UTIL_SRC_DIR),$(wildcard $(dir)/*.c))
+UTIL_COBJS 		= $(UTIL_CSRCS:.c=.ppu.o) 
 
-PPU_CPPOBJS		= 	$(VBA_CPPOBJS:%=$(BUILD_DIR)/%) $(PS3_CPPOBJS:%=$(BUILD_DIR)/%) $(UTIL_CPPOBJS:%=$(BUILD_DIR)/%)
-PPU_COBJS		= 	$(VBA_COBJS:%=$(BUILD_DIR)/%) $(PS3_COBJS:%=$(BUILD_DIR)/%) $(UTIL_COBJS:%=$(BUILD_DIR)/%)
-
+PPU_CPPOBJS		= $(VBA_CPPOBJS:%=$(BUILD_DIR)/%) $(PS3_CPPOBJS:%=$(BUILD_DIR)/%) $(UTIL_CPPOBJS:%=$(BUILD_DIR)/%)
+PPU_COBJS		= $(VBA_COBJS:%=$(BUILD_DIR)/%) $(PS3_COBJS:%=$(BUILD_DIR)/%) $(UTIL_COBJS:%=$(BUILD_DIR)/%)
 
 # Output file
-PPU_TARGET		=	vba.ppu.elf
+PPU_TARGET		= vba.ppu.elf
 
 
 # default flags from sony
-PPU_CXXFLAGS	=	-std=c++98 -W -Wall -Wuninitialized -Wcomment -Wchar-subscripts \
-					-Wdeprecated-declarations -Wendif-labels -Wformat=2 -Wformat-extra-args \
-					-Wimplicit -Wimport -Winline -Wmissing-braces -Wparentheses -Wpointer-arith \
-					-Wredundant-decls -Wreturn-type -Wshadow -Wsign-compare -Wswitch \
-					-Wunknown-pragmas -Wunused -Wwrite-strings
-PPU_CFLAGS		=	-W -Wall -Wuninitialized -Wcomment -Wchar-subscripts \
-					-Wdeprecated-declarations -Wendif-labels -Wformat=2 -Wformat-extra-args \
-					-Wimplicit -Wimport -Winline -Wmissing-braces -Wparentheses -Wpointer-arith \
-					-Wredundant-decls -Wreturn-type -Wshadow -Wsign-compare -Wswitch \
-					-Wunknown-pragmas -Wunused -Wwrite-strings					
-
+PPU_CXXFLAGS		= -std=c++98 -W -Wall -Wuninitialized -Wcomment -Wchar-subscripts \
+			-Wdeprecated-declarations -Wendif-labels -Wformat=2 -Wformat-extra-args \
+			-Wimplicit -Wimport -Winline -Wmissing-braces -Wparentheses -Wpointer-arith \
+			-Wredundant-decls -Wreturn-type -Wshadow -Wsign-compare -Wswitch \
+			-Wunknown-pragmas -Wunused -Wwrite-strings
+PPU_CFLAGS		= -W -Wall -Wuninitialized -Wcomment -Wchar-subscripts \
+			-Wdeprecated-declarations -Wendif-labels -Wformat=2 -Wformat-extra-args \
+			-Wimplicit -Wimport -Winline -Wmissing-braces -Wparentheses -Wpointer-arith \
+			-Wredundant-decls -Wreturn-type -Wshadow -Wsign-compare -Wswitch \
+			-Wunknown-pragmas -Wunused -Wwrite-strings					
 
 # FEX - blarggs fex flags
-PPU_CXXFLAGS	+=	-DFEX_ENABLE_RAR -DBLARGG_BIG_ENDIAN=1
-PPU_CFLAGS		+= 	-DFEX_ENABLE_RAR -DBLARGG_BIG_ENDIAN=1
-
+PPU_CXXFLAGS		+= -DFEX_ENABLE_RAR -DBLARGG_BIG_ENDIAN=1
+PPU_CFLAGS		+= -DFEX_ENABLE_RAR -DBLARGG_BIG_ENDIAN=1
 
 # PLATFORM
-PPU_CXXFLAGS	+=	-D__CELLOS_LV2__
-PPU_CFLAGS		+= 	-D__CELLOS_LV2__
-
+PPU_CXXFLAGS		+= -D__CELLOS_LV2__
+PPU_CFLAGS		+= -D__CELLOS_LV2__
 
 # include flags
-PPU_CXXFLAGS	+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex \
-					-I./utils/libpng -I./utils/zlib -I./utils/unrar
-PPU_CFLAGS		+=	-I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex \
-					-I./utils/libpng -I./utils/zlib -I./utils/unrar
+PPU_CXXFLAGS		+= -I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex \
+			-I./utils/libpng -I./utils/zlib -I./utils/unrar
+PPU_CFLAGS		+= -I. -I$(VBA_API_DIR) -I./utils/SFML/include/ -I./utils/ -I./utils/fex \
+			-I./utils/libpng -I./utils/zlib -I./utils/unrar
 
 # compiler optimizations
-PPU_CXXFLAGS	+=	-O3 \
-					-ffast-math \
-					-finline-functions \
-					-funit-at-a-time \
-					--param inline-unit-growth=200 \
-					--param large-function-growth=1000 \
-					--param max-inline-insns-single=450
+PPU_CXXFLAGS		+= -O3 \
+			-ffast-math \
+			-finline-functions \
+			-funit-at-a-time \
+			--param inline-unit-growth=200 \
+			--param large-function-growth=1000 \
+			--param max-inline-insns-single=450
 					
-PPU_CFLAGS		+=	-O3 \
-					-ffast-math \
-					-finline-functions \
-					-funit-at-a-time \
-					--param inline-unit-growth=200 \
-					--param large-function-growth=1000 \
-					--param max-inline-insns-single=450
+PPU_CFLAGS		+= -O3 \
+			-ffast-math \
+			-finline-functions \
+			-funit-at-a-time \
+			--param inline-unit-growth=200 \
+			--param large-function-growth=1000 \
+			--param max-inline-insns-single=450
 					
 # port must define					
-PPU_CXXFLAGS	+=	-DGEKKO -DPSGL -DPATH_MAX=1024
-PPU_CFLAGS		+=	-DGEKKO -DPSGL -DPATH_MAX=1024		
+PPU_CXXFLAGS		+= -DGEKKO -DPSGL -DPATH_MAX=1024
+PPU_CFLAGS		+= -DGEKKO -DPSGL -DPATH_MAX=1024		
 
-# comment these to compile with 1.92 SDK
-PPU_CFLAGS     += -DPS3_SDK_3_41
-PPU_CXXFLAGS   += -DPS3_SDK_3_41
-
+#for 3.41, comment this out if you want to compile for 1.92
+PPU_CFLAGS		+= -DPS3_SDK_3_41
+PPU_CXXFLAGS		+= -DPS3_SDK_3_41
 
 # VBA optimization flags
-PPU_CXXFLAGS	+=	-DFINAL_VERSION -D__ppc__ -DSPEEDHAX -D__POWERPC__ -DC_CORE -DWORDS_BIGENDIAN
-PPU_CFLAGS		+=	-DFINAL_VERSION -D__ppc__ -DSPEEDHAX -D__POWERPC__ -DC_CORE -DWORDS_BIGENDIAN
-
+PPU_CXXFLAGS		+= -DFINAL_VERSION -D__ppc__ -DSPEEDHAX -D__POWERPC__ -DC_CORE -DWORDS_BIGENDIAN
+PPU_CFLAGS		+= -DFINAL_VERSION -D__ppc__ -DSPEEDHAX -D__POWERPC__ -DC_CORE -DWORDS_BIGENDIAN
 
 # VBA must define
-PPU_CXXFLAGS	+= 	-Dlinux -DHAVE_NETINET_IN_H -DHAVE_ARPA_INET_H
-PPU_CFLAGS		+=	-Dlinux -DHAVE_NETINET_IN_H -DHAVE_ARPA_INET_H
-PPU_CXXFLAGS	+=	-D__need_timeval
-PPU_CFLAGS		+=	-D__need_timeval
-
+PPU_CXXFLAGS		+= -Dlinux -DHAVE_NETINET_IN_H -DHAVE_ARPA_INET_H
+PPU_CFLAGS		+= -Dlinux -DHAVE_NETINET_IN_H -DHAVE_ARPA_INET_H
+PPU_CXXFLAGS		+= -D__need_timeval
+PPU_CFLAGS		+= -D__need_timeval
 
 # use 7z less mem intensive
-PPU_CXXFLAGS	+=	-D_SZ_ONE_DIRECTORY -D_LZMA_IN_CB -D_LZMA_OUT_READ
-PPU_CFLAGS		+=	-D_SZ_ONE_DIRECTORY -D_LZMA_IN_CB -D_LZMA_OUT_READ
-
+PPU_CXXFLAGS		+= -D_SZ_ONE_DIRECTORY -D_LZMA_IN_CB -D_LZMA_OUT_READ
+PPU_CFLAGS		+= -D_SZ_ONE_DIRECTORY -D_LZMA_IN_CB -D_LZMA_OUT_READ
 
 # DISABLE DEBUG, to enabled add -g
-PPU_CXXFLAGS	+=	 
-PPU_CFLAGS		+=	 
-
+#PPU_CXXFLAGS		+= -g	 
+#PPU_CFLAGS		+= -g	 
 
 # enable frameskip
-PPU_CXXFLAGS	+=	-DFRAMESKIP 
-PPU_CFLAGS		+=	-DFRAMESKIP
-
+PPU_CXXFLAGS		+= -DFRAMESKIP 
+PPU_CFLAGS		+= -DFRAMESKIP
 
 # enable debug netlogger
-PPU_CXXFLAGS 	+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.101\" -DPS3_DEBUG_PORT=9002
-PPU_CFLAGS		+=	-DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.101\" -DPS3_DEBUG_PORT=9002
+PPU_CXXFLAGS 		+= -DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.7\" -DPS3_DEBUG_PORT=9002
+PPU_CFLAGS		+= -DCELL_DEBUG -DPS3_DEBUG_IP=\"192.168.1.7\" -DPS3_DEBUG_PORT=9002
 
 
 # enable screen debugger
-#PPU_CXXFLAGS	+=	-DEMUDEBUG -DEMU_DBG_DELAY=500000
-#PPU_CFLAGS		+=	-DEMUDEBUG -DEMU_DBG_DELAY=500000
-
+#PPU_CXXFLAGS		+= -DEMUDEBUG -DEMU_DBG_DELAY=500000
+#PPU_CFLAGS		+= -DEMUDEBUG -DEMU_DBG_DELAY=500000
 
 # enable telnet control console
-#PPU_CSTDFLAGS 	+=	-DCONTROL_CONSOLE -D__PPU__
-#PPU_CSTDFLAGS 	+=	-DCONSOLE_USE_NETWORK
-#PPU_CXXSTDFLAGS +=	-DCONTROL_CONSOLE -D__PPU__
-#PPU_CXXSTDFLAGS +=	-DCONSOLE_USE_NETWORK
-
+#PPU_CSTDFLAGS		+= -DCONTROL_CONSOLE -D__PPU__
+#PPU_CSTDFLAGS		+= -DCONSOLE_USE_NETWORK
+#PPU_CXXSTDFLAGS	+= -DCONTROL_CONSOLE -D__PPU__
+#PPU_CXXSTDFLAGS	+= -DCONSOLE_USE_NETWORK
 
 # default vba file libs
 PPU_CXXVBAFLAGS 	= $(PPU_CXXFLAGS)
 PPU_CVBAFLAGS 		= $(PPU_CFLAGS)
 
-
 # libs, order matters!
-PPU_LDLIBS		+= 	-L. -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt \
-					-ldbgfont -lPSGL -lPSGLcgc -lcgc -lgcm_cmd -lgcm_sys_stub -lresc_stub \
-					-lm -lio_stub -lfs_stub -lsysutil_stub -lcontrol_console_ppu -lsysmodule_stub \
-					-lnet_stub -lnetctl_stub -laudio_stub -lpthread
-
-
+PPU_LDLIBS		+= -L. -L$(CELL_SDK)/target/ppu/lib/PSGL/RSX/opt \
+			-ldbgfont -lPSGL -lPSGLcgc -lcgc -lgcm_cmd -lgcm_sys_stub -lresc_stub \
+			-lm -lio_stub -lfs_stub -lsysutil_stub -lcontrol_console_ppu -lsysmodule_stub \
+			-lnet_stub -lnetctl_stub -laudio_stub -lpthread
 # RULE: ALL
 all: $(PPU_TARGET) $(PPU_TARGET:%.elf=%.self)
-
 
 # RULE: All cpp files, can differentiate for vba dir
 $(BUILD_DIR)/%.ppu.o: %.cpp 
@@ -211,7 +209,6 @@ $(PPU_TARGET): $(PPU_CPPOBJS) $(PPU_COBJS)
 # RULE: build the self file
 $(PPU_TARGET:%.elf=%.self): $(PPU_TARGET)
 	$(MKFSELF) $(PPU_TARGET) $(PPU_TARGET:%.elf=%.self)
-
 	
 # RULE: generates the compiler and linker flags for profile-arcs
 genProfile: set_genProfile_flags all
@@ -276,3 +273,18 @@ clean_util:
 
 clean: clean_vba clean_ps3 clean_util
 	@rm $(PPU_TARGET) $(PPU_TARGET:%.elf=%.self) -f
+
+#massively reduced filesize using MKSELF_GEOHOT - use this for normal jailbreak builds
+pkg-signed: $(PPU_TARGET) 
+	$(MKSELF_GEOHOT) $(PPU_TARGET) EBOOT.BIN VBAM900000
+	$(MOVE) -f EBOOT.BIN pkg/USRDIR/EBOOT.BIN
+	$(COPY) -r src/cellframework/extra/shaders pkg/USRDIR/
+	$(PYTHONBIN) $(MKPKG_PSLIGHT) --contentid IV0002-VBAM90000_00-SAMPLE0000000001 pkg/ vbam-ps3.pkg
+
+#use this to create a PKG for use with Geohot CFW 3.55
+pkg-signed-cfw: $(PPU_TARGET)
+	$(MKSELF_GEOHOT) $(PPU_TARGET) EBOOT.BIN VBAM900000
+	$(MOVE) -f EBOOT.BIN pkg/USRDIR/EBOOT.BIN
+	$(COPY) -r src/cellframework/extra/shaders pkg/USRDIR/
+	$(PYTHONBIN) $(MKPKG_PSLIGHT) --contentid IV0002-VBAM90000_00-SAMPLE0000000001 pkg/ vbam-ps3-geohot.pkg
+	$(PKG_FINALIZE) vbam-ps3-geohot.pkg
