@@ -264,7 +264,7 @@ void do_pathChoice()
 			if(tmpBrowser->IsCurrentADirectory())
 			{
 				path = tmpBrowser->GetCurrentDirectoryInfo().dir + "/" + tmpBrowser->GetCurrentEntry()->d_name + "/";
-				switch(currently_selected_setting)
+				switch(currently_selected_path_setting)
 				{
 					case SETTING_PATH_SAVESTATES_DIRECTORY:
 						Settings.PS3PathSaveStates = path;
@@ -282,7 +282,7 @@ void do_pathChoice()
 		if (CellInput->WasButtonHeld(0, CTRL_TRIANGLE))
 		{
 			path = EMULATOR_PATH_STATES;
-			switch(currently_selected_setting)
+			switch(currently_selected_path_setting)
 			{
 				case SETTING_PATH_SAVESTATES_DIRECTORY:
 					Settings.PS3PathSaveStates = path;
