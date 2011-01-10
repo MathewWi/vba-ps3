@@ -171,16 +171,17 @@ void VbaPs3::PushScreenMessage(string msg)
 
 void VbaPs3::Shutdown()
 {
-#ifdef PS3_PROFILING
-	// do any clean up... save stuff etc
-	// ...
 	if (rom_loaded)
 	{
 		Vba.emuWriteBattery(this->MakeFName(FILETYPE_BATTERY).c_str());
 	}
 
+
 	//add saving back of conf file
 	VbaPs3::SaveSettings();
+#ifdef PS3_PROFILING
+	// do any clean up... save stuff etc
+	// ...
 
 	// shutdown everything
 	Graphics->DeinitDbgFont();
