@@ -53,7 +53,7 @@ void VbaGraphics::DeInit()
 
 void VbaGraphics::Swap() const
 {
-   if (Settings.DrawFps)
+   if (Settings.DisplayFrameRate)
    {
 	   m_frames++;
 
@@ -345,7 +345,9 @@ CGerror CheckCgError(int line)
 
 CGprogram LoadShaderFromFile(CGcontext cgtx, CGprofile target, const char* filename, const char* entry)
 {
-	CGprogram id = cgCreateProgramFromFile(cgtx, CG_BINARY, filename, target, "main", NULL);
+	LOG_DBG("LoadShaderFromFile()\n");
+	const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0};
+	CGprogram id = cgCreateProgramFromFile(cgtx, CG_BINARY, filename, target, "main", args);
 	if(!id)
 	{
 		LOG("Failed to load shader program >>%s<<\nExiting\n", filename);
@@ -358,7 +360,9 @@ CGprogram LoadShaderFromFile(CGcontext cgtx, CGprofile target, const char* filen
 
 CGprogram LoadShaderFromSource(CGcontext cgtx, CGprofile target, const char* filename, const char* entry)
 {
-	CGprogram id = cgCreateProgramFromFile(cgtx, CG_SOURCE, filename, target, entry, NULL);
+	LOG_DBG("LoadShaderFromSource()\n");
+	const char* args[] = { "-fastmath", "-unroll=all", "-ifcvt=all", 0 };
+	CGprogram id = cgCreateProgramFromFile(cgtx, CG_SOURCE, filename, target, entry, args);
 	if(!id)
 	{
 		LOG("Failed to load shader program >>%s<< \nExiting\n", filename);

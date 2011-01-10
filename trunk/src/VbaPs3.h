@@ -20,6 +20,8 @@
 #include "cellframework/logger/Logger.h"
 #include "cellframework/input/cellInput.h"
 
+#define EMULATOR_VERSION "1.0"
+
 #define EMULATOR_PATH_STATES "/dev_hdd0/game/VBAM90000/USRDIR/"
 
 enum Emulator_Modes
@@ -42,6 +44,13 @@ enum Emulator_FileTypes
 	FILETYPE_PNG,
 	FILETYPE_BMP,
 	FILETYPE_IMAGE_PREFS
+};
+
+enum
+{
+	MAP_BUTTONS_OPTION_SETTER,
+	MAP_BUTTONS_OPTION_GETTER,
+	MAP_BUTTONS_OPTION_DEFAULT
 };
 
 class VbaPs3
@@ -75,7 +84,8 @@ public:
 	void IncrementStateSlot();
 	void DecrementStateSlot();
 
-   float GetFontSize();
+   	float GetFontSize();
+	void ButtonMappingSettings(bool map_button_option_enum);
 
 	string MakeFName(Emulator_FileTypes type);
 

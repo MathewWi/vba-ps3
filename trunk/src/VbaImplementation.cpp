@@ -23,21 +23,7 @@
 
 #include "VbaPs3.h"
 #include "VbaAudio.h"
-
-
-#define VBA_BUTTON_A            1
-#define VBA_BUTTON_B            2
-#define VBA_BUTTON_SELECT       4
-#define VBA_BUTTON_START        8
-#define VBA_RIGHT               16
-#define VBA_LEFT                32
-#define VBA_UP                  64
-#define VBA_DOWN                128
-#define VBA_BUTTON_R            256
-#define VBA_BUTTON_L            512
-#define VBA_SPEED               1024
-#define VBA_CAPTURE             2048
-
+#include "VbaInput.h"
 
 // VBA - must define these
 int RGB_LOW_BITS_MASK = 0;
@@ -182,13 +168,65 @@ __attribute__ ((__always_inline__)) bool systemReadJoypads()
 	return true;
 }
 
+__attribute__ ((__always_inline__)) void special_actions(uint32_t specialbuttonmap)
+{
+	std::stringstream ss;
+	switch(specialbuttonmap)
+	{
+		case BTN_EXITTOMENU:
+			App->Vba.emuWriteBattery(App->MakeFName(FILETYPE_BATTERY).c_str());
+
+			App->StopROMRunning();
+			App->SwitchMode(MODE_MENU);
+			break;
+		case BTN_DECREMENTSAVE:
+			App->DecrementStateSlot();
+			ss << "Select state slot: " << App->CurrentSaveStateSlot();
+			App->PushScreenMessage(ss.str());
+			break;
+		case BTN_INCREMENTSAVE:
+			App->IncrementStateSlot();
+			ss << "Select state slot: " << App->CurrentSaveStateSlot();
+			App->PushScreenMessage(ss.str());
+			break;
+		case BTN_QUICKSAVE:
+			if (App->Vba.emuWriteState(App->MakeFName(FILETYPE_STATE).c_str()))
+			{
+				ss << "State Saved - slot " << App->CurrentSaveStateSlot();
+				App->PushScreenMessage(ss.str());
+			}
+			break;
+		case BTN_QUICKLOAD:
+			if (App->Vba.emuReadState(App->MakeFName(FILETYPE_STATE).c_str()))
+			{
+				ss << "State Loaded - slot " << App->CurrentSaveStateSlot();
+				App->PushScreenMessage(ss.str());
+			}
+			break;
+		default:
+			break;
+		}
+}
+__attribute__ ((__always_inline__)) bool  is_special_button_mapping(uint32_t specialbuttonmap)
+{
+	uint32_t buttonmapreturn;
+
+	if (specialbuttonmap >= BTN_QUICKLOAD)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 // return information about the given joystick, -1 for default joystick
 __attribute__ ((__always_inline__)) uint32_t systemReadJoypad(int pad)
 {
+	u32 J = 0;
 	//LOG_DBG("systemReadJoypad(%d)\n", pad);
 
-	u32 J = 0;
 	if (pad == -1) pad = 0;
 
 	int i = pad;
@@ -196,129 +234,155 @@ __attribute__ ((__always_inline__)) uint32_t systemReadJoypad(int pad)
 	{
 		return J;
 	}
+    		if (CellInput->IsButtonPressed(i, CTRL_UP) | CellInput->IsAnalogPressedUp(i, CTRL_LSTICK))
+		{
+			J |= Settings.DPad_Up;
+		}
+		else if (CellInput->IsButtonPressed(i,CTRL_DOWN) | CellInput->IsAnalogPressedDown(i, CTRL_LSTICK))
+		{
+			J |= Settings.DPad_Down;
+		}
+    		if (CellInput->IsButtonPressed(i,CTRL_LEFT) | CellInput->IsAnalogPressedLeft(i, CTRL_LSTICK))
+		{
+			J |= Settings.DPad_Left;
+		}
+    		else if (CellInput->IsButtonPressed(i,CTRL_RIGHT) | CellInput->IsAnalogPressedRight(i, CTRL_LSTICK))
+		{
+			J |= Settings.DPad_Right;
+		}
+    		if (CellInput->IsButtonPressed(i,CTRL_SQUARE))
+		{
+			J |= Settings.ButtonSquare;
+		}
+		if (CellInput->IsButtonPressed(i,CTRL_CROSS))
+		{
+			J |= Settings.ButtonCross;
+		}
+    		if (CellInput->IsButtonPressed(i,CTRL_CIRCLE))
+		{
+			J |= Settings.ButtonCircle;
+		}
+    		if (CellInput->IsButtonPressed(i,CTRL_TRIANGLE))
+		{
+			J |= Settings.ButtonTriangle;
+		}
+    		if (CellInput->IsButtonPressed(i,CTRL_START))
+		{
+			J |= Settings.ButtonStart;
+		}
+    		if (CellInput->IsButtonPressed(i,CTRL_SELECT))
+		{
+			J |= Settings.ButtonSelect;
+		}
+		if (CellInput->IsButtonPressed(i,CTRL_R1))
+		{
+			J |= Settings.ButtonR1;
+		}
+		if (CellInput->IsButtonPressed(i,CTRL_L1))
+		{
+			J |= Settings.ButtonL1;
+		}
 
-	if (Settings.ControlStyle == CONTROL_STYLE_BETTER)
+
+		//Button combos - L2
+		if ((CellInput->IsButtonPressed(i,CTRL_L2) && CellInput->WasButtonPressed(i,CTRL_R3)))
+		{
+			J |= Settings.ButtonL2_ButtonR3;
+		}
+		if ((CellInput->IsButtonPressed(i,CTRL_L2) && CellInput->WasButtonPressed(i,CTRL_R2) && !(CellInput->WasButtonPressed(i,CTRL_R3))))
+		{
+			J |= Settings.ButtonL2_ButtonR2;
+		}
+		else if (CellInput->IsButtonPressed(i,CTRL_L2) && CellInput->WasAnalogPressedRight(i,CTRL_RSTICK))
+		{
+			J |= Settings.ButtonL2_AnalogR_Right;
+		}
+		else if (CellInput->IsButtonPressed(i,CTRL_L2) && CellInput->WasAnalogPressedLeft(i,CTRL_RSTICK))
+		{
+			J |= Settings.ButtonL2_AnalogR_Left;
+		}
+		else if (CellInput->IsButtonPressed(i,CTRL_L2) && CellInput->WasAnalogPressedUp(i,CTRL_RSTICK))
+		{
+			J |= Settings.ButtonL2_AnalogR_Up;
+		}
+		else if (CellInput->IsButtonPressed(i,CTRL_L2) && CellInput->WasAnalogPressedDown(i,CTRL_RSTICK))
+		{
+			J |= Settings.ButtonL2_AnalogR_Down;
+		}
+		else if ((CellInput->IsButtonPressed(i,CTRL_L2) && CellInput->WasButtonPressed(i,CTRL_L3)))
+		{
+			J |= Settings.ButtonL2_ButtonL3;
+		}
+		if (CellInput->IsButtonPressed(i,CTRL_L2) && !(CellInput->IsButtonPressed(i,CTRL_L3)) && !(CellInput->IsButtonPressed(i,CTRL_R3)))
+		{
+			J |= Settings.ButtonL2;
+		}
+
+		//Button combos - L3 + R3
+		if (CellInput->IsButtonPressed(i,CTRL_L3) && CellInput->IsButtonPressed(i,CTRL_R3) && !(CellInput->IsButtonPressed(i,CTRL_L2)) && !(CellInput->IsButtonPressed(i,CTRL_R2)))
+		{
+			J |= Settings.ButtonR3_ButtonL3;
+		}
+		if (CellInput->IsButtonPressed(i,CTRL_L3) && !(CellInput->IsButtonPressed(i,CTRL_L2)) && !(CellInput->IsButtonPressed(i,CTRL_R2)) && !(CellInput->IsButtonPressed(i,CTRL_R3)))
+		{
+			J |= Settings.ButtonL3;
+		}
+		if (CellInput->IsButtonPressed(i,CTRL_R3) && !(CellInput->IsButtonPressed(i,CTRL_L2)) && !(CellInput->IsButtonPressed(i,CTRL_R2)) && !(CellInput->IsButtonPressed(i,CTRL_L3)))
+		{
+			J |= Settings.ButtonR3;
+		}
+
+		//Button combos - R2
+		if ((CellInput->IsButtonPressed(i,CTRL_R2) && CellInput->WasButtonPressed(i,CTRL_R3)))    
+		{
+			J |= Settings.ButtonR2_ButtonR3;
+		}
+		else if (CellInput->IsButtonPressed(i,CTRL_R2) && CellInput->WasAnalogPressedRight(i,CTRL_RSTICK))
+		{
+			J |= Settings.ButtonR2_AnalogR_Right;
+		}
+		else if (CellInput->IsButtonPressed(i,CTRL_R2) && CellInput->WasAnalogPressedLeft(i,CTRL_RSTICK))
+		{
+			J |= Settings.ButtonR2_AnalogR_Left;
+		}
+		else if (CellInput->IsButtonPressed(i,CTRL_R2) && CellInput->WasAnalogPressedUp(i,CTRL_RSTICK))
+		{
+			J |= Settings.ButtonR2_AnalogR_Up;
+		}
+		else if (CellInput->IsButtonPressed(i,CTRL_R2) && CellInput->WasAnalogPressedDown(i,CTRL_RSTICK))
+		{
+			J |= Settings.ButtonR2_AnalogR_Down;
+		}
+		else if (Settings.AnalogR_Down_Type ? CellInput->IsAnalogPressedDown(i,CTRL_RSTICK) && !(CellInput->IsButtonPressed(i,CTRL_L2)) : CellInput->WasAnalogPressedDown(i,CTRL_RSTICK) && !(CellInput->IsButtonPressed(i,CTRL_L2)))
+		{
+			J |= Settings.AnalogR_Down;
+		}
+		else if (Settings.AnalogR_Up_Type ? CellInput->IsAnalogPressedUp(i,CTRL_RSTICK) && !(CellInput->IsButtonPressed(i,CTRL_L2)) : CellInput->WasAnalogPressedUp(i,CTRL_RSTICK) && !(CellInput->IsButtonPressed(i,CTRL_L2)))
+		{
+			J |= Settings.AnalogR_Up;
+		}
+		else if (Settings.AnalogR_Left_Type ? CellInput->IsAnalogPressedLeft(i,CTRL_RSTICK) && !(CellInput->IsButtonPressed(i,CTRL_L2)) : CellInput->WasAnalogPressedLeft(i,CTRL_RSTICK) && !(CellInput->IsButtonPressed(i,CTRL_L2)))
+		{
+			J |= Settings.AnalogR_Left;
+		}
+		else if (Settings.AnalogR_Right_Type ? CellInput->IsAnalogPressedRight(i,CTRL_RSTICK) && !(CellInput->IsButtonPressed(i,CTRL_L2)) : CellInput->WasAnalogPressedRight(i,CTRL_RSTICK) && !(CellInput->IsButtonPressed(i,CTRL_L2)))
+		{
+			J |= Settings.AnalogR_Right;
+		}
+		if (CellInput->IsButtonPressed(i,CTRL_R2) && !(CellInput->IsButtonPressed(i, CTRL_L2)) && !(CellInput->WasButtonPressed(i,CTRL_R3)) && !(CellInput->WasButtonPressed(i,CTRL_L3)))
+		{
+			J |= Settings.ButtonR2;
+		}
+
+	//LOG_DBG("J:  %d\n", J);
+	if(!is_special_button_mapping(J))
 	{
-		if (CellInput->IsButtonPressed(i, CTRL_CIRCLE))
-		{
-			J = VBA_BUTTON_B;
-		}
-		if (CellInput->IsButtonPressed(i, CTRL_CROSS))
-		{
-			J |= VBA_BUTTON_A;
-		}
+		return J;
 	}
 	else
 	{
-		if (CellInput->IsButtonPressed(i, CTRL_CIRCLE))
-		{
-			J = VBA_BUTTON_A;
-		}
-		if (CellInput->IsButtonPressed(i, CTRL_CROSS))
-		{
-			J |= VBA_BUTTON_B;
-		}
+		special_actions(J);
 	}
-
-	if (CellInput->IsButtonPressed(i, CTRL_TRIANGLE))
-	{
-		J |= VBA_BUTTON_A;
-	}
-	if (CellInput->IsButtonPressed(i, CTRL_SQUARE))
-	{
-		J |= VBA_BUTTON_B;
-	}
-
-	if (CellInput->IsButtonPressed(i, CTRL_L1))
-	{
-		J |= VBA_BUTTON_L;
-	}
-	if (CellInput->IsButtonPressed(i, CTRL_R1))
-	{
-		J |= VBA_BUTTON_R;
-	}
-
-	if (CellInput->IsButtonPressed(i, CTRL_UP) | CellInput->IsAnalogPressedUp(i, CTRL_LSTICK))
-	{
-		J |= VBA_UP;
-	}
-	if (CellInput->IsButtonPressed(i, CTRL_DOWN) | CellInput->IsAnalogPressedDown(i, CTRL_LSTICK))
-	{
-		J |= VBA_DOWN;
-	}
-	if (CellInput->IsButtonPressed(i, CTRL_LEFT) | CellInput->IsAnalogPressedLeft(i, CTRL_LSTICK))
-	{
-		J |= VBA_LEFT;
-	}
-	if (CellInput->IsButtonPressed(i, CTRL_RIGHT) | CellInput->IsAnalogPressedRight(i, CTRL_LSTICK))
-	{
-		J |= VBA_RIGHT;
-	}
-
-	if (CellInput->IsButtonPressed(i, CTRL_START))
-	{
-		J |= VBA_BUTTON_START;
-	}
-	if (CellInput->IsButtonPressed(i, CTRL_SELECT))
-	{
-		J |= VBA_BUTTON_SELECT;
-	}
-
-	/*
-	if (CellInput->IsButtonPressed(i, CTRL_R2))
-	{
-		J |= VBA_SPEED;
-	}
-	*/
-
-	// state shift
-	if (CellInput->WasAnalogPressedLeft(i, CTRL_RSTICK))
-	{
-		App->DecrementStateSlot();
-		std::stringstream ss;
-		ss << "Select state slot: " << App->CurrentSaveStateSlot();
-		App->PushScreenMessage(ss.str());
-	}
-	if (CellInput->WasAnalogPressedRight(i, CTRL_RSTICK))
-	{
-		App->IncrementStateSlot();
-		std::stringstream ss;
-		ss << "Select state slot: " << App->CurrentSaveStateSlot();
-		App->PushScreenMessage(ss.str());
-	}
-
-	// state save
-	if (CellInput->WasButtonHeld(i, CTRL_R2) && CellInput->WasButtonPressed(i, CTRL_R3))
-	{
-		if (App->Vba.emuWriteState(App->MakeFName(FILETYPE_STATE).c_str()))
-		{
-			std::stringstream ss;
-			ss << "State Saved - slot " << App->CurrentSaveStateSlot();
-			App->PushScreenMessage(ss.str());
-		}
-	}
-
-	// state load
-	if (CellInput->WasButtonHeld(i, CTRL_L2) && CellInput->WasButtonPressed(i, CTRL_L3))
-	{
-		if (App->Vba.emuReadState(App->MakeFName(FILETYPE_STATE).c_str()))
-		{
-			std::stringstream ss;
-			ss << "State Loaded - slot " << App->CurrentSaveStateSlot();
-			App->PushScreenMessage(ss.str());
-		}
-	}
-
-	// return to menu
-	if (CellInput->IsButtonPressed(i, CTRL_L3) && CellInput->IsButtonPressed(i, CTRL_R3))
-	{
-		App->Vba.emuWriteBattery(App->MakeFName(FILETYPE_BATTERY).c_str());
-
-		App->StopROMRunning();
-		App->SwitchMode(MODE_MENU);
-	}
-
-	return J;
 }
 
 

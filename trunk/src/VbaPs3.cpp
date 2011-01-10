@@ -35,6 +35,7 @@
 
 #include "VbaPs3.h"
 #include "VbaMenu.h"
+#include "VbaInput.h"
 
 #ifdef PS3_PROFILING
 #include "cellframework/network-stdio/net_stdio.h"
@@ -170,6 +171,7 @@ void VbaPs3::PushScreenMessage(string msg)
 
 void VbaPs3::Shutdown()
 {
+#ifdef PS3_PROFILING
 	// do any clean up... save stuff etc
 	// ...
 	if (rom_loaded)
@@ -202,13 +204,14 @@ void VbaPs3::Shutdown()
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_IO);
 	cellSysutilUnregisterCallback(0);
 
-#ifdef PS3_PROFILING
 	// ENABLE NET IO
 	net_stdio_enable(1);
-#endif
-
 	// force exit --
 	exit(0);
+#else
+//Cleaner way to exit without graphics corruption when it returns to XMB
+	sys_process_exit(0);
+#endif
 }
 
 
@@ -291,20 +294,16 @@ bool VbaPs3::InitSettings()
 	}
 	else
 	{
-		Settings.ControlStyle = CONTROL_STYLE_BETTER;
+		Settings.ControlStyle = CONTROL_STYLE_ORIGINAL;
 	}
 
-	if (currentconfig->Exists("VBA::DrawFps"))
+	if (currentconfig->Exists("VBA::DisplayFrameRate"))
 	{
-		Settings.DrawFps = currentconfig->GetBool("VBA::DrawFps");
+		Settings.DisplayFrameRate = currentconfig->GetBool("VBA::DisplayFrameRate");
 	}
 	else
 	{
-#ifdef CELL_DEBUG
-		Settings.DrawFps = true;
-#else
-		Settings.DrawFps = false;
-#endif
+		Settings.DisplayFrameRate = false;
 	}
 
 	if (currentconfig->Exists("VBA::Shader"))
@@ -384,9 +383,170 @@ bool VbaPs3::InitSettings()
 	{
 		Settings.PS3PathROMDirectory		= "/\0";
 	}
+	VbaPs3::ButtonMappingSettings(MAP_BUTTONS_OPTION_GETTER);
 
 	LOG("SUCCESS - VbaPs3::InitSettings()\n");
 	return true;
+}
+
+void VbaPs3::ButtonMappingSettings(bool map_button_option_enum)
+{
+	switch(map_button_option_enum)
+	{
+		case MAP_BUTTONS_OPTION_SETTER:
+			currentconfig->SetInt("PS3ButtonMappings::DPad_Up",Settings.DPad_Up);
+			currentconfig->SetInt("PS3ButtonMappings::DPad_Down",Settings.DPad_Down);
+			currentconfig->SetInt("PS3ButtonMappings::DPad_Left",Settings.DPad_Left);
+			currentconfig->SetInt("PS3ButtonMappings::DPad_Right",Settings.DPad_Right);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonCircle",Settings.ButtonCircle);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonCross",Settings.ButtonCross);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonTriangle",Settings.ButtonTriangle);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonSquare",Settings.ButtonSquare);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonSelect",Settings.ButtonSelect);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonStart",Settings.ButtonStart);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL1",Settings.ButtonL1);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonR1",Settings.ButtonR1);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL2",Settings.ButtonL2);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonR2",Settings.ButtonR2);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL2_ButtonL3",Settings.ButtonL2_ButtonL3);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL2_ButtonR3",Settings.ButtonL2_ButtonR3);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonR3",Settings.ButtonR3);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL3",Settings.ButtonL3);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL2_ButtonR2",Settings.ButtonL2_ButtonR2);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL2_AnalogR_Right",Settings.ButtonL2_AnalogR_Right);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL2_AnalogR_Left",Settings.ButtonL2_AnalogR_Left);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL2_AnalogR_Up",Settings.ButtonL2_AnalogR_Up);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonL2_AnalogR_Down",Settings.ButtonL2_AnalogR_Down);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonR2_AnalogR_Right",Settings.ButtonR2_AnalogR_Right);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonR2_AnalogR_Left",Settings.ButtonR2_AnalogR_Left);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonR2_AnalogR_Up",Settings.ButtonR2_AnalogR_Up);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonR2_AnalogR_Down",Settings.ButtonR2_AnalogR_Down);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonR2_ButtonR3",Settings.ButtonR2_ButtonR3);
+			currentconfig->SetInt("PS3ButtonMappings::ButtonR3_ButtonL3",Settings.ButtonR3_ButtonL3);
+			currentconfig->SetInt("PS3ButtonMappings::AnalogR_Up",Settings.AnalogR_Up);
+			currentconfig->SetInt("PS3ButtonMappings::AnalogR_Down",Settings.AnalogR_Down);
+			currentconfig->SetInt("PS3ButtonMappings::AnalogR_Left",Settings.AnalogR_Left);
+			currentconfig->SetInt("PS3ButtonMappings::AnalogR_Right",Settings.AnalogR_Right);
+
+			currentconfig->SetBool("PS3ButtonMappings::AnalogR_Up_Type",Settings.AnalogR_Up_Type);
+			currentconfig->SetBool("PS3ButtonMappings::AnalogR_Down_Type",Settings.AnalogR_Down_Type);
+			currentconfig->SetBool("PS3ButtonMappings::AnalogR_Left_Type",Settings.AnalogR_Left_Type);
+			currentconfig->SetBool("PS3ButtonMappings::AnalogR_Right_Type",Settings.AnalogR_Right_Type);
+
+			/*
+			currentconfig->SetInt("PS3ButtonMappings::AnalogL_Up",Settings.AnalogL_Up);
+			currentconfig->SetInt("PS3ButtonMappings::AnalogL_Down",Settings.AnalogL_Down);
+			currentconfig->SetInt("PS3ButtonMappings::AnalogL_Left",Settings.AnalogL_Left);
+			currentconfig->SetInt("PS3ButtonMappings::AnalogL_Right",Settings.AnalogL_Right);
+
+			currentconfig->SetBool("PS3ButtonMappings::AnalogL_Up_Type",Settings.AnalogL_Up_Type);
+			currentconfig->SetBool("PS3ButtonMappings::AnalogL_Down_Type",Settings.AnalogL_Down_Type);
+			currentconfig->SetBool("PS3ButtonMappings::AnalogL_Left_Type",Settings.AnalogL_Left_Type);
+			currentconfig->SetBool("PS3ButtonMappings::AnalogL_Right_Type",Settings.AnalogL_Right_Type);
+			*/
+			break;
+		case MAP_BUTTONS_OPTION_GETTER:
+			Settings.DPad_Up		= currentconfig->GetInt("PS3ButtonMappings::DPad_Up",BTN_UP);
+			Settings.DPad_Down		= currentconfig->GetInt("PS3ButtonMappings::DPad_Down",BTN_DOWN);
+			Settings.DPad_Left		= currentconfig->GetInt("PS3ButtonMappings::DPad_Left",BTN_LEFT);
+			Settings.DPad_Right		= currentconfig->GetInt("PS3ButtonMappings::DPad_Right",BTN_RIGHT);
+			Settings.ButtonCircle		= currentconfig->GetInt("PS3ButtonMappings::ButtonCircle",BTN_A);
+			Settings.ButtonCross		= currentconfig->GetInt("PS3ButtonMappings::ButtonCross",BTN_B);
+			Settings.ButtonTriangle		= currentconfig->GetInt("PS3ButtonMappings::ButtonTriangle",BTN_NONE);
+			Settings.ButtonSquare		= currentconfig->GetInt("PS3ButtonMappings::ButtonSquare",BTN_NONE);
+			Settings.ButtonSelect		= currentconfig->GetInt("PS3ButtonMappings::ButtonSelect",BTN_SELECT);
+			Settings.ButtonStart		= currentconfig->GetInt("PS3ButtonMappings::ButtonStart",BTN_START);
+			Settings.ButtonL1		= currentconfig->GetInt("PS3ButtonMappings::ButtonL1",BTN_L);
+			Settings.ButtonR1		= currentconfig->GetInt("PS3ButtonMappings::ButtonR1",BTN_R);
+			Settings.ButtonL2		= currentconfig->GetInt("PS3ButtonMappings::ButtonL2",BTN_NONE);
+			Settings.ButtonR2		= currentconfig->GetInt("PS3ButtonMappings::ButtonR2",BTN_NONE);
+			Settings.ButtonL2_ButtonL3	= currentconfig->GetInt("PS3ButtonMappings::ButtonL2_ButtonL3",BTN_NONE);
+			Settings.ButtonL2_ButtonR3	= currentconfig->GetInt("PS3ButtonMappings::ButtonL2_ButtonR3",BTN_QUICKLOAD);
+			Settings.ButtonR3		= currentconfig->GetInt("PS3ButtonMappings::ButtonR3",BTN_NONE);
+			Settings.ButtonL3		= currentconfig->GetInt("PS3ButtonMappings::ButtonL3",BTN_NONE);
+			Settings.ButtonL2_ButtonR2	= currentconfig->GetInt("PS3ButtonMappings::ButtonL2_ButtonR2",BTN_NONE);
+			Settings.ButtonL2_AnalogR_Right = currentconfig->GetInt("PS3ButtonMappings::ButtonL2_AnalogR_Right",BTN_NONE);
+			Settings.ButtonL2_AnalogR_Left	= currentconfig->GetInt("PS3ButtonMappings::ButtonL2_AnalogR_Left",BTN_NONE);
+			Settings.ButtonL2_AnalogR_Up	= currentconfig->GetInt("PS3ButtonMappings::ButtonL2_AnalogR_Up",BTN_NONE);
+			Settings.ButtonL2_AnalogR_Down	= currentconfig->GetInt("PS3ButtonMappings::ButtonL2_AnalogR_Down",BTN_NONE);
+			Settings.ButtonR2_AnalogR_Right	= currentconfig->GetInt("PS3ButtonMappings::ButtonR2_AnalogR_Right",BTN_NONE);
+			Settings.ButtonR2_AnalogR_Left	= currentconfig->GetInt("PS3ButtonMappings::ButtonR2_AnalogR_Left",BTN_NONE);
+			Settings.ButtonR2_AnalogR_Up	= currentconfig->GetInt("PS3ButtonMappings::ButtonR2_AnalogR_Up",BTN_NONE);
+			Settings.ButtonR2_AnalogR_Down	= currentconfig->GetInt("PS3ButtonMappings::ButtonR2_AnalogR_Down",BTN_NONE);
+			Settings.ButtonR2_ButtonR3	= currentconfig->GetInt("PS3ButtonMappings::ButtonR2_ButtonR3",BTN_QUICKSAVE);
+			Settings.ButtonR3_ButtonL3	= currentconfig->GetInt("PS3ButtonMappings::ButtonR3_ButtonL3",BTN_EXITTOMENU);
+			Settings.AnalogR_Up		= currentconfig->GetInt("PS3ButtonMappings::AnalogR_Up",BTN_NONE);
+			Settings.AnalogR_Down		= currentconfig->GetInt("PS3ButtonMappings::AnalogR_Down",BTN_NONE);
+			Settings.AnalogR_Left		= currentconfig->GetInt("PS3ButtonMappings::AnalogR_Left",BTN_DECREMENTSAVE);
+			Settings.AnalogR_Right		= currentconfig->GetInt("PS3ButtonMappings::AnalogR_Right",BTN_INCREMENTSAVE);
+
+			Settings.AnalogR_Up_Type	= currentconfig->GetBool("PS3ButtonMappings::AnalogR_Up_Type",false);
+			Settings.AnalogR_Down_Type	= currentconfig->GetBool("PS3ButtonMappings::AnalogR_Down_Type",false);
+			Settings.AnalogR_Left_Type	= currentconfig->GetBool("PS3ButtonMappings::AnalogR_Left_Type",false);
+			Settings.AnalogR_Right_Type	= currentconfig->GetBool("PS3ButtonMappings::AnalogR_Right_Type",false);
+
+			/*
+			Settings.AnalogL_Up		= currentconfig->GetInt("PS3ButtonMappings::AnalogL_Up",BTN_UP);
+			Settings.AnalogL_Down		= currentconfig->GetInt("PS3ButtonMappings::AnalogL_Down",BTN_DOWN);
+			Settings.AnalogL_Left		= currentconfig->GetInt("PS3ButtonMappings::AnalogL_Left",BTN_LEFT);
+			Settings.AnalogL_Right		= currentconfig->GetInt("PS3ButtonMappings::AnalogL_Right",BTN_RIGHT);
+
+			Settings.AnalogL_Up_Type	= currentconfig->GetBool("PS3ButtonMappings::AnalogL_Up_Type",true);
+			Settings.AnalogL_Down_Type	= currentconfig->GetBool("PS3ButtonMappings::AnalogL_Down_Type",true);
+			Settings.AnalogL_Left_Type	= currentconfig->GetBool("PS3ButtonMappings::AnalogL_Left_Type",true);
+			Settings.AnalogL_Right_Type	= currentconfig->GetBool("PS3ButtonMappings::AnalogL_Right_Type",true);
+			*/
+			break;
+		case MAP_BUTTONS_OPTION_DEFAULT:
+			Settings.DPad_Up			= BTN_UP;
+			Settings.DPad_Down			= BTN_DOWN;
+			Settings.DPad_Left			= BTN_LEFT;
+			Settings.DPad_Right			= BTN_RIGHT;
+			Settings.ButtonCircle			= BTN_A;
+			Settings.ButtonCross			= BTN_B;
+			Settings.ButtonTriangle			= BTN_NONE;
+			Settings.ButtonSquare			= BTN_NONE;
+			Settings.ButtonSelect			= BTN_SELECT;
+			Settings.ButtonStart			= BTN_START;
+			Settings.ButtonL1			= BTN_L;
+			Settings.ButtonR1			= BTN_R;
+			Settings.ButtonL2			= BTN_NONE;
+			Settings.ButtonR2			= BTN_NONE;
+			Settings.ButtonL2_ButtonL3		= BTN_NONE;
+			Settings.ButtonL2_ButtonR3		= BTN_QUICKLOAD;	
+			Settings.ButtonR3			= BTN_NONE;
+			Settings.ButtonL3			= BTN_NONE;
+			Settings.ButtonL2_ButtonR2		= BTN_NONE;
+			Settings.ButtonL2_AnalogR_Right		= BTN_NONE;
+			Settings.ButtonL2_AnalogR_Left		= BTN_NONE;
+			Settings.ButtonL2_AnalogR_Up		= BTN_NONE;
+			Settings.ButtonL2_AnalogR_Down		= BTN_NONE;
+			Settings.ButtonR2_AnalogR_Right		= BTN_NONE;
+			Settings.ButtonR2_AnalogR_Left		= BTN_NONE;
+			Settings.ButtonR2_AnalogR_Up		= BTN_NONE;
+			Settings.ButtonR2_AnalogR_Down		= BTN_NONE;
+			Settings.ButtonR2_ButtonR3		= BTN_QUICKSAVE;
+			Settings.ButtonR3_ButtonL3		= BTN_EXITTOMENU;
+			Settings.AnalogR_Up			= BTN_NONE;
+			Settings.AnalogR_Down			= BTN_NONE;
+			Settings.AnalogR_Left			= BTN_DECREMENTSAVE;
+			Settings.AnalogR_Right			= BTN_INCREMENTSAVE;
+			Settings.AnalogR_Up_Type		= false;
+			Settings.AnalogR_Down_Type		= false;
+			Settings.AnalogR_Left_Type		= false;
+			Settings.AnalogR_Right_Type		= false;
+			/*
+			Settings.AnalogL_Up			= BTN_UP;
+			Settings.AnalogL_Down			= BTN_DOWN;
+			Settings.AnalogL_Left			= BTN_LEFT;
+			Settings.AnalogL_Right			= BTN_RIGHT;
+			Settings.AnalogL_Up_Type		= true;
+			Settings.AnalogL_Down_Type		= true;
+			Settings.AnalogL_Left_Type		= true;
+			Settings.AnalogL_Right_Type		= true;
+			*/
+			break;
+	}
 }
 
 
@@ -394,7 +554,7 @@ bool VbaPs3::SaveSettings()
 {
 	if (currentconfig != NULL)
 	{
-		currentconfig->SetBool("VBA::DrawFps",Settings.PS3KeepAspect);
+		currentconfig->SetBool("VBA::DisplayFrameRate",Settings.DisplayFrameRate);
 		currentconfig->SetBool("PS3General::KeepAspect",Settings.PS3KeepAspect);
 		currentconfig->SetBool("PS3General::Smooth", Settings.PS3Smooth);
 		currentconfig->SetBool("PS3General::OverscanEnabled", Settings.PS3OverscanEnabled);
@@ -408,6 +568,7 @@ bool VbaPs3::SaveSettings()
 		currentconfig->SetString("RSound::RSoundServerIPAddress",Settings.RSoundServerIPAddress);
 		currentconfig->SetBool("RSound::RSoundEnabled",Settings.RSoundEnabled);
 		currentconfig->SetString("VBA::GBABIOS",Settings.GBABIOS);
+		VbaPs3::ButtonMappingSettings(MAP_BUTTONS_OPTION_SETTER);
 		return currentconfig->SaveTo(SYS_CONFIG_FILE);
 	}
 
@@ -842,6 +1003,20 @@ void VbaPs3::EmulationLoop()
 {
 	LOG("VbaPs3::EmulationLoop()\n");
 
+	if (Graphics->GetCurrentResolution() == CELL_VIDEO_OUT_RESOLUTION_576)
+	{
+		if(Graphics->CheckResolution(CELL_VIDEO_OUT_RESOLUTION_576))
+		{
+			if(!Graphics->GetPAL60Hz())
+			{
+				//PAL60 is OFF
+				Settings.PS3PALTemporalMode60Hz = true;
+				Graphics->SetPAL60Hz(Settings.PS3PALTemporalMode60Hz);
+				Graphics->SwitchResolution(Graphics->GetCurrentResolution(), Settings.PS3PALTemporalMode60Hz);
+			}
+		}
+	}
+
 	if (!vba_loaded)
 	{
 		if (this->VbaInit() != 0)
@@ -856,19 +1031,6 @@ void VbaPs3::EmulationLoop()
 		this->VbaGraphicsInit();
 	}
 
-	if (Graphics->GetCurrentResolution() == CELL_VIDEO_OUT_RESOLUTION_576)
-	{
-		if(Graphics->CheckResolution(CELL_VIDEO_OUT_RESOLUTION_576))
-		{
-			if(!Graphics->GetPAL60Hz())
-			{
-				//PAL60 is OFF
-				Settings.PS3PALTemporalMode60Hz = true;
-				Graphics->SetPAL60Hz(Settings.PS3PALTemporalMode60Hz);
-				Graphics->SwitchResolution(Graphics->GetCurrentResolution(), Settings.PS3PALTemporalMode60Hz);
-			}
-		}
-	}
 
 	if (!rom_loaded)
 	{
@@ -893,7 +1055,7 @@ void VbaPs3::EmulationLoop()
 		{
 			_messageTimer += systemGetClock();
 			//LOG("timer: %f\n", _messageTimer);
-			if (_messageTimer > 5000000)
+			if (_messageTimer > 2000000)
 			{
 				_messages.pop_back();
 				_messageTimer = 0;
@@ -901,7 +1063,7 @@ void VbaPs3::EmulationLoop()
 
 			for (int i = 0; i < _messages.size(); i++)
 			{
-				cellDbgFontPuts(0.05f, 0.80f + (i*0.04f), FONT_SIZE * 1.5f, BLUE, _messages[i].c_str());
+				cellDbgFontPuts(0.05f, 0.80f + (i*0.04f), 1.4f, BLUE, _messages[i].c_str());
 			}
 		}
 
